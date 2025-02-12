@@ -1,0 +1,46 @@
+﻿name: Deploy to Firebase Hosting on merge
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Dependencies and Build Frontend
+        run: |
+          cd client
+          npm ci
+          npm run build
+      
+      - name: Install Dependencies and Build Backend (Server)
+        run: |
+          cd server
+          npm ci
+          npm run build
+      
+      - name: Install Dependencies and Build Firebase Functions
+        run: |
+          cd functions
+          npm ci
+          npm run build
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}
+          channelId: live
+          projectId: initnextjsnestjs
