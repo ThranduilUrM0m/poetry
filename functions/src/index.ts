@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 import { google } from "googleapis";
 import * as dotenv from "dotenv";
+import next from 'next';
 
 // Load environment variables
 dotenv.config();
@@ -55,4 +56,13 @@ export const sendEmail = functions.https.onRequest(async (req, res) => {
         console.error("Error sending email:", error);
         res.status(500).send("Error sending email");
     }
+});
+
+// Next.js SSR function
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({ dev, conf: { distDir: 'client/.next' } });
+const handle = app.getRequestHandler();
+
+export const nextSSR = functions.https.onRequest((req, res) => {
+  return app.prepare().then(() => handle(req, res));
 });
