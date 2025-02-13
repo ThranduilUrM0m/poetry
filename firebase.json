@@ -16,6 +16,7 @@
     }
   ],
   "hosting": {
+    "site": "poetry-a6f93",
     "public": "client/public",
     "ignore": [
       "firebase.json",
