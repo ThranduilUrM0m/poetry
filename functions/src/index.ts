@@ -59,9 +59,9 @@ export const sendEmail = functions.https.onRequest(async (req, res) => {
 });
 
 // Next.js SSR function
-const isDev = process.env.NODE_ENV !== 'production';
+const dev = process.env.NODE_ENV !== 'production';
 const app = next({
-  dev: isDev,
+  dev,
   conf: { distDir: '../../client/.next' },
 });
 const handle = app.getRequestHandler();
