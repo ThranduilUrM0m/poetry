@@ -20,7 +20,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
@@ -45,7 +45,7 @@ jobs:
 
       - name: Set up Service Account Key
         run: |
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}" > ${{ github.workspace }}/firebase-service-account.json
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}" > ${{ github.workspace }}/firebase-service-account.json
       
       - name: Deploy to Firebase
         run: firebase deploy --only hosting,functions --project poetry-a6f93
