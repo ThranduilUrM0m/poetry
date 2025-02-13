@@ -25,21 +25,21 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Install Dependencies and Build Client
-        working-directory: client
+      - name: Install Dependencies and Build Frontend (Client)
         run: |
+          cd client
           npm ci
           npm run build
-
-      - name: Install Dependencies and Build Server
-        working-directory: server
+      
+      - name: Install Dependencies and Build Backend (Server)
         run: |
+          cd server
           npm ci
           npm run build
-
+      
       - name: Install Dependencies and Build Firebase Functions
-        working-directory: functions
         run: |
+          cd functions
           npm ci
           npm run build
       

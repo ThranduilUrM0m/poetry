@@ -19,7 +19,7 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Install Dependencies and Build Frontend
+      - name: Install Dependencies and Build Frontend (Client)
         run: |
           cd client
           npm ci
