@@ -44,9 +44,9 @@ jobs:
           npm run build
 
       - name: Set up Service Account Key
-        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}" > ${{ github.workspace }}/firebase-service-account.json
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}" > ${{ github.workspace }}/firebase-service-account.json
       
       - name: Deploy to Firebase
         run: firebase deploy --only hosting,functions --project poetry-a6f93
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}
