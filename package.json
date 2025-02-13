@@ -1,5 +1,0 @@
-{
-  "scripts": {
-    "build": "next build && next export -o client/public"
-  }
-}
