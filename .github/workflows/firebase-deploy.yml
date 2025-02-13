@@ -6,26 +6,42 @@ on:
       - master
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
 
-    - name: Install dependencies
-      run: npm install
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}
 
-    - name: Set up Firebase
-      env:
-        FIREBASE_SERVICE_ACCOUNT_POETRY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY }}
-      run: |
-        echo $FIREBASE_SERVICE_ACCOUNT_POETRY > ${HOME}/firebase-service-account.json
-        gcloud auth activate-service-account --key-file=${HOME}/firebase-service-account.json
-        firebase use --add poetry-a6f93
-        firebase deploy --only hosting,functions --project poetry-a6f93
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install Dependencies and Build Client
+        working-directory: client
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Dependencies and Build Server
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+
+      - name: Install Dependencies and Build Firebase Functions
+        working-directory: functions
+        run: |
+          npm ci
+          npm run build
+      
+      - name: Deploy to Firebase
+        run: firebase deploy --only hosting,functions --project poetry-a6f93
