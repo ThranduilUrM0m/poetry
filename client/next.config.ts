@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  outdir: 'public',
+  output: 'export',
+  distDir: 'public',
 };
 
 export default nextConfig;
