@@ -47,6 +47,6 @@ jobs:
         run: firebase deploy --only hosting,functions
       
       - name: Deploy to Firebase
-        run: firebase deploy --only hosting,functions --project ${{ secrets.GITHUB_TOKEN }}
+        run: firebase deploy --only hosting,functions --project poetry-a6f93
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
