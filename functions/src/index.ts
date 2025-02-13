@@ -59,8 +59,11 @@ export const sendEmail = functions.https.onRequest(async (req, res) => {
 });
 
 // Next.js SSR function
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev, conf: { distDir: 'client/.next' } });
+const isDev = process.env.NODE_ENV !== 'production';
+const app = next({
+  dev: isDev,
+  conf: { distDir: '../../client/.next' },
+});
 const handle = app.getRequestHandler();
 
 export const nextSSR = functions.https.onRequest((req, res) => {
