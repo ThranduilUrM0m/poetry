@@ -49,4 +49,4 @@ jobs:
       - name: Deploy to Firebase
         run: firebase deploy --only hosting,functions --project poetry-a6f93
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
+          GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/firebase-service-account.json
