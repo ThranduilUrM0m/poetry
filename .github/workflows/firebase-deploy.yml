@@ -43,10 +43,10 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy to Firebase
-        run: firebase deploy --only hosting,functions
+      - name: Set up Service Account Key
+        run: echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}" > ${{ github.workspace }}/firebase-service-account.json
       
       - name: Deploy to Firebase
         run: firebase deploy --only hosting,functions --project poetry-a6f93
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_POETRY_A6F93 }}
