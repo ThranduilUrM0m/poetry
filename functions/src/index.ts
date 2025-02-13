@@ -62,7 +62,7 @@ export const sendEmail = functions.https.onRequest(async (req, res) => {
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({
   dev,
-  conf: { distDir: 'next-build' },
+  conf: { distDir: '.next' },
 });
 const handle = app.getRequestHandler();
 
