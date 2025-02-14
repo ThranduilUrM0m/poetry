@@ -24,6 +24,10 @@ jobs:
           cd client
           npm ci
           npm run build
+
+      - name: Copy Next.js Build to Functions Directory
+        run: |
+          cp -R client/.next functions/.next
       
       - name: Install Dependencies and Build Backend (Server)
         run: |
