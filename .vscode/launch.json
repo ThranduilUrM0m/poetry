@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Next.js: Debug Client",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "address": "localhost",
+        "localRoot": "${workspaceFolder}/client",
+        "remoteRoot": "/app",
+        "sourceMaps": true,
+        "protocol": "inspector"
+      },
+      {
+        "name": "NestJS: Debug Server",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "address": "localhost",
+        "localRoot": "${workspaceFolder}/server",
+        "remoteRoot": "/app",
+        "sourceMaps": true,
+        "protocol": "inspector"
+      }
+    ]
+  }

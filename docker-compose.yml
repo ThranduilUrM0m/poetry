@@ -1,14 +1,39 @@
 ﻿services:
   client:
-    build: ./client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    depends_on:
-      - server
-  server:
-    build: ./server
-    ports:
-      - "5000:5000"
+      - '3000:3000'
+      - '9229:9229'  # Expose debugging port
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     environment:
-      - MONGO_URI=
-      - FIREBASE_CONFIG_PATH=
+      - NODE_ENV=development
+      - NODE_OPTIONS=--inspect=0.0.0.0:9229  # Enable debugging
+    command: npm run dev -- --turbopack  # Start Next.js with Turbopack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - '5000:5000'
+      - '9230:9229'  # Expose debugging port (use a different port for server)
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run start:dev -- --inspect=0.0.0.0:9229  # Enable debugging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
