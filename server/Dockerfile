@@ -1,14 +1,21 @@
-﻿# Dockerfile for NestJS (server)
-FROM node:20
+﻿FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Add debugging tools
+RUN apk add --no-cache curl
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+COPY package*.json ./
 RUN npm install
 
 COPY . .
 
-EXPOSE 5000
+EXPOSE 5000 9229
 
-CMD ["npm", "run", "start:dev"]  # Use start:dev for hot reloading
+ENV NODE_ENV=development
+
+CMD ["npm", "run", "dev"]

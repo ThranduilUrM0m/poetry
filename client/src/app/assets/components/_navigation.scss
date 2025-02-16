@@ -1,0 +1,71 @@
+// Hamburger Button
+.hamburger-btn {
+  @apply relative flex items-center justify-center;
+  width: 10vh;
+  height: 10vh;
+
+  &__lines {
+    @apply relative;
+    width: 4.5vh;
+    height: 1.6vh;
+  }
+
+  &__line {
+    @apply absolute left-0 right-0 transition-all duration-300 ease-out;
+    background-color: var(--color-text-primary);
+    height: 0.16vh;
+    width: 100%;
+    transform-origin: center;
+
+    &:first-child {
+      top: 15%;
+      
+      &.is-open {
+        top: 50%;
+        transform: translateY(-50%) rotate(45deg);
+      }
+    }
+
+    &:last-child {
+      bottom: 15%;
+      
+      &.is-open {
+        bottom: 50%;
+        transform: translateY(50%) rotate(-45deg);
+      }
+    }
+  }
+}
+
+// Side Menu
+.side-menu {
+  &__overlay {
+    @apply fixed inset-0 z-40;
+    top: 10vh;
+    background: rgba(var(--color-canvas-rgb), 0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  &__content {
+    @apply fixed right-0 h-[calc(100vh-10vh)] w-full md:w-1/2 z-50;
+    top: 10vh;
+    background: var(--color-canvas);
+  }
+
+  &__nav {
+    @apply p-8;
+  }
+
+  &__list {
+    @apply space-y-8;
+  }
+
+  &__link {
+    @apply text-2xl font-medium transition-colors duration-300;
+    color: var(--color-text-primary);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+}

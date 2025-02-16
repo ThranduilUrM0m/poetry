@@ -2,20 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+// Import base styles first
+@import 'base/variables'; // Add this line at the top of imports
+
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Economica&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Antonio&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300&display=swap');
+
+@import url('https://fonts.cdnfonts.com/css/fake-plastic');
+@import url('https://fonts.cdnfonts.com/css/fatcow');
+@import url('https://fonts.cdnfonts.com/css/heathergreen');
+@import url('https://fonts.cdnfonts.com/css/dense');
+@import url('https://fonts.cdnfonts.com/css/steelfish-2');
+
+$mainFont: 'Ubuntu',
+'Google Sans',
+Roboto,
+RobotoDraft,
+Helvetica,
+Arial,
+sans-serif;
+
+// Import component styles
+@import 'styles/animations';
+@import 'components/header';
+@import 'components/hamburger';
+@import 'components/side-menu';
+@import 'components/home';
+@import 'components/modals';
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: theme('colors.canvas');
+  --foreground: theme('colors.primary.900');
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: theme('colors.primary.900');
+    --foreground: theme('colors.canvas');
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: $mainFont;
 }

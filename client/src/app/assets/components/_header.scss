@@ -1,0 +1,52 @@
+.header {
+  @apply fixed top-0 left-0 w-full;
+  height: 10vh;
+  background: var(--background);
+  z-index: 70; // Increased to be above everything
+
+  &__nav {
+    @apply h-full flex items-center justify-between;
+    padding: 0 5vh;
+  }
+
+  &__logo {
+    @apply h-full flex items-center justify-center relative;
+    width: 10vh;
+  }
+
+  &__actions {
+    @apply h-full flex items-center;
+
+    .search-btn,
+    .hamburger-btn {
+      @apply flex items-center justify-center relative overflow-hidden;
+      width: 10vh;
+      height: 10vh;
+
+      &::before {
+        content: '';
+        @apply absolute bg-primary-50;
+        width: 0;
+        height: 0;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 400ms $ease-out-soft;
+      }
+
+      &:hover::before {
+        width: 90%;
+        height: 90%;
+      }
+
+      svg {
+        @apply relative z-10;
+        transition: transform 400ms $bounce;
+      }
+
+      &:hover svg {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
