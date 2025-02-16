@@ -12,6 +12,7 @@
     environment:
       - NODE_ENV=development
       - NODE_OPTIONS=--inspect=0.0.0.0:9229  # Enable debugging
+      - CHOKIDAR_USEPOLLING=true
     command: npm run dev -- --turbo  # Start Next.js with Turbopack
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
