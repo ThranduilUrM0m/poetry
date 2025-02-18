@@ -23,59 +23,39 @@
 
       // Left Column
       &-left {
-        @apply flex items-center w-full;
-        padding: 10vh 5vh 0;
+        @apply relative w-full h-full;
+        padding: 10vh 5vh 5vh;
 
-        // Quote Component
-        &-quote {
-          // Base Quote Style
-          @apply h-full w-[80%] relative flex items-center justify-center; // Increased width to 80%
-          font-size: 400px;
-          line-height: 0;
+        &-text {
+          @apply flex flex-col justify-center justify-self-end h-full w-fit;
 
-          // Container
-          &-container {
-            @apply relative w-full h-[80vh] flex items-center gap-4;
+          &-hello {
+            @apply text-9xl font-bold text-primary-900 leading-[.75];
           }
 
-          // Quote Symbol
-          &::before {
-            content: ',';
-            @apply absolute inset-0 flex items-center justify-center;
-            color: var(--color-quote-solid); // Changed from bg-primary-600 to color
-
-            font: {
-              family: 'Coolvetica', sans-serif;
-              weight: 700;
-              size: 100vh; // Increased to fill height
-            }
-
-            line-height: 0;
-            transform: translateY(-10%); // Scale up and adjust position
-            transform-origin: center;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          // Variants
-          &--image {
-            @apply overflow-hidden;
+          &-bio {
+            @apply text-base text-gray-600 leading-relaxed flex items-center justify-end gap-4 w-full;
 
             &::before {
-              @apply text-white mix-blend-overlay z-10 bg-transparent; // Added bg-transparent to prevent double background
-            }
-
-            img {
-              @apply absolute inset-0 object-cover;
+              content: '';
+              @apply h-[1px] bg-gray-600 flex-1;
             }
           }
+        }
 
-          &--solid {
-            &::before {
-              color: var(--color-background);
-              @apply opacity-90;
+        &-social {
+          @apply absolute -bottom-0 -left-0 flex flex-col items-center gap-[2.5vh] w-[10vh] pb-[2.5vh];
+
+          &-item {
+            @apply text-black transition-transform duration-300;
+
+            svg {
+              @apply w-5 h-5;
+              color: var(--color-text-secondary);
+            }
+
+            &:hover {
+              transform: translateY(4px);
             }
           }
         }
@@ -83,26 +63,15 @@
 
       // Right Column
       &-right {
-        @apply flex-col items-start justify-center w-full;
+        @apply flex flex-col w-full h-full;
         padding: 10vh 5vh 0;
 
-        // Content Elements
-        &-name {
-          @apply font-bold mb-4;
-          color: var(--color-text-primary);
-          font-size: 4.5rem;
-          line-height: 1.1;
-        }
-
-        &-bio {
-          @apply mb-4 leading-relaxed;
-          color: var(--color-text-secondary);
-          font-size: 1rem;
-          max-width: 40ch;
+        &-image {
+          @apply relative w-full flex-1;
         }
 
         &-read {
-          @apply flex items-center gap-2 text-sm font-medium mb-8 w-fit;
+          @apply flex items-center justify-end gap-2 text-sm font-medium w-full h-[5vh] my-4;
           color: var(--color-primary-600);
           transition: color var(--transition-smooth);
 
@@ -119,74 +88,6 @@
 
           &:hover {
             color: var(--color-primary-700);
-          }
-        }
-
-        // CTA Area
-        &-cta {
-          @apply flex gap-6;
-
-          // Button Component
-          &-btn {
-            @apply relative flex items-center justify-center text-base font-medium;
-            height: 8em;
-            width: 7rem;
-            transition: transform var(--transition-smooth),
-              background-color var(--transition-smooth),
-              border-color var(--transition-smooth);
-
-            &-text {
-              @apply text-sm font-medium;
-            }
-
-            // Button Variants
-            &--primary {
-              background-color: var(--color-button-primary);
-              @apply text-white flex items-center justify-center;
-              clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-
-              &:hover {
-                background-color: var(--color-button-primary-hover);
-                transform: translateY(-2px);
-              }
-            }
-
-            &--outline {
-              @apply bg-transparent flex items-center justify-center;
-              color: var(--color-button-text);
-              border: 2px solid var(--color-button-primary); // Added explicit border
-
-              &::before {
-                content: '';
-                @apply absolute;
-                background-color: var(--color-background);
-                width: 7vh;
-                height: 7vh;
-                right: -3.5vh;
-                bottom: -3.5vh;
-                transform: rotate(45deg);
-                border-left: 2px solid var(--color-button-primary); // Added explicit border
-                z-index: 2;
-                transition: all var(--transition-smooth);
-              }
-
-              &::after {
-                content: '';
-                @apply absolute border-t-2 border-l-2;
-                background-color: var(--color-background);
-                right: 0;
-                bottom: 0;
-                width: 5vh;
-                height: 5vh;
-                border-color: var(--color-button-primary);
-                z-index: 1; // Higher z-index to stay on top
-                transition: all var(--transition-smooth);
-              }
-
-              &:hover {
-                transform: translateY(-2px);
-              }
-            }
           }
         }
       }

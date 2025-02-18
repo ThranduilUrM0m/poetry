@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { defaultTransition } from '@/app/utils/motion';
 
@@ -16,6 +17,7 @@ export default function SideMenu({ isOpen, onClose }: {
   isOpen: boolean; 
   onClose: () => void 
 }) {
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export default function SideMenu({ isOpen, onClose }: {
                   >
                     <Link 
                       href={item.href}
-                      className="menu-link"
+                      className={`menu-link ${pathname === item.href ? 'active' : ''}`}
                       onClick={onClose}
                     >
                       {item.label}
