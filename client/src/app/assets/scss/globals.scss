@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// globals.scss
+/* Apply a default transition to all elements */
+* {
+    @apply transition-all duration-300 ease-in-out;
+}
+
+// Abstracts: variables, mixins, functions
+@import 'abstracts/variables';
+@import 'abstracts/mixins';
+@import 'abstracts/functions';
+
+// Base styles
+@import 'base/reset';
+@import 'base/typography';
+
+// Components
+@import 'components/header';
+@import 'components/footer';
+@import 'components/modals';
+@import 'components/navigation';
+@import 'components/forms';
+
+// Pages
+@import 'pages/home';
+@import 'pages/login';
+@import 'pages/about';
+@import 'pages/blog';
+@import 'pages/404';
+
+body {
+    @apply m-0 text-[.875rem] antialiased tracking-normal scroll-smooth;
+    color: rgb(var(--text)/1);
+    background: rgb(var(--background)/1);
+    font-family: $mainFont;
+
+    main {
+        @apply p-0;
+        min-height: 100vh;
+
+        section {
+            @apply relative py-[10vh];
+            min-height: 100vh;
+        }
+    }
+}

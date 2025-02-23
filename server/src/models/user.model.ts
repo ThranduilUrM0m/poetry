@@ -1,12 +1,15 @@
-﻿import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
+﻿import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'; // NestJS decorators for MongoDB schema
+import { Document } from 'mongoose'; // Mongoose Document type for TypeScript support
+import * as jwt from 'jsonwebtoken'; // JSON Web Token for authentication
+import * as passwordHash from 'password-hash'; // Password hashing utility
 
+// Create a custom type that combines User class with Mongoose Document
 export type UserDocument = User & Document;
 
+// Define User schema using decorators
 @Schema()
 export class User {
+  // Required fields with unique constraints
   @Prop({ required: true, unique: true })
   email: string;
 
@@ -16,6 +19,7 @@ export class User {
   @Prop({ required: true })
   password: string;
 
+  // Optional user profile fields
   @Prop()
   firstName?: string;
 
@@ -31,40 +35,50 @@ export class User {
   @Prop()
   phone?: string;
 
+  // Account status flags with default values
   @Prop({ default: false })
   isVerified: boolean;
 
   @Prop({ default: false })
   isActive: boolean;
-
-  @Prop({ default: false })
-  toDelete: boolean;
-
-  // Add other fields as necessary
 }
 
+// Create Mongoose schema from the User class
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.methods.authenticate = async function (
+// Add instance method to authenticate user
+// This method verifies if the provided password matches the stored hash
+UserSchema.methods.authenticate = function (
   this: UserDocument,
   password: string,
 ): Promise<boolean> {
-  return await bcrypt.compare(password, this.password);
+  return Promise.resolve(passwordHash.verify(password, this.password));
 };
 
+// Add instance method to generate JWT token
+// This method creates a signed token containing user information
 UserSchema.methods.getToken = function (this: UserDocument): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     throw new Error('JWT_SECRET is not defined');
   }
-  return jwt.sign({ sub: this._id }, secret);
+  return jwt.sign(
+    {
+      sub: this._id, // Subject (user ID)
+      email: this.email,
+      username: this.username,
+    },
+    secret,
+    { expiresIn: '24h' }, // Token expires in 24 hours
+  );
 };
 
-UserSchema.pre('save', async function (next) {
+// Mongoose middleware: Hash password before saving
+// Only runs if password field has been modified
+UserSchema.pre('save', function (next) {
   if (!this.isModified('password')) {
     return next();
   }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  this.password = passwordHash.generate(this.password);
   next();
 });

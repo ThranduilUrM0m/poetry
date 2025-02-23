@@ -18,31 +18,52 @@ const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const user_model_1 = require("../models/user.model");
-const bcrypt = require("bcrypt");
 let AuthService = class AuthService {
     constructor(userModel, jwtService) {
         this.userModel = userModel;
         this.jwtService = jwtService;
     }
-    async register(userData) {
-        const { password, ...rest } = userData;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const createdUser = new this.userModel({
-            ...rest,
-            password: hashedPassword,
+    async validateUser(identifier, password) {
+        const user = await this.userModel.findOne({
+            $or: [{ email: identifier }, { username: identifier }],
         });
-        return createdUser.save();
-    }
-    async login(userData) {
-        const { username, password } = userData;
-        const user = await this.userModel.findOne({ username });
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            throw new common_1.UnauthorizedException('Invalid credentials');
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
         }
-        const payload = { username: user.username, sub: user._id };
+        const isValid = await user.authenticate(password);
+        if (!isValid) {
+            throw new common_1.UnauthorizedException('Invalid password');
+        }
+        const { password: _, ...result } = user.toObject();
+        return result;
+    }
+    async login(identifier, password) {
+        const userDoc = await this.validateUser(identifier, password);
+        const token = this.jwtService.sign({
+            sub: userDoc._id,
+            email: userDoc.email,
+            username: userDoc.username,
+        });
         return {
-            access_token: this.jwtService.sign(payload),
+            user: userDoc,
+            access_token: token,
         };
+    }
+    async register(userData) {
+        const { email, username, password } = userData;
+        if (!email || !username || !password) {
+            throw new common_1.BadRequestException('Missing required fields');
+        }
+        const existingUser = await this.userModel.findOne({
+            $or: [{ email }, { username }],
+        });
+        if (existingUser) {
+            throw new common_1.BadRequestException('Email or username already exists');
+        }
+        const newUser = new this.userModel(userData);
+        await newUser.save();
+        const { password: _, ...result } = newUser.toObject();
+        return result;
     }
 };
 exports.AuthService = AuthService;

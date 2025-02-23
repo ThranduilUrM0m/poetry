@@ -58,18 +58,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const registerUser = createAsyncThunk(
-  'user/register',
-  async (userData: Partial<User>, thunkAPI) => {
-    try {
-      const response = await axios.post('/auth/register', userData);
-      return response.data.user;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error);
-    }
-  }
-);
-
 export const fetchUsers = createAsyncThunk(
   'user/fetchUsers',
   async (_, thunkAPI) => {
@@ -126,14 +114,6 @@ const userSlice = createSlice({
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state) => {
-        state.user = null;
-        state.isAuthenticated = false;
-      })
-      .addCase(registerUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.user = action.payload;
-        state.isAuthenticated = true;
-      })
-      .addCase(registerUser.rejected, (state) => {
         state.user = null;
         state.isAuthenticated = false;
       })

@@ -1,18 +1,8 @@
-﻿import Providers from "./components/providers";
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./assets/globals.scss";
-import LayoutWrapper from './components/LayoutWrapper';
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+﻿import type { Metadata } from "next";
+import Providers from "./components/providers";
+import LayoutWrapper from './pages/LayoutWrapper';
+import "./assets/scss/globals.scss";
+import 'simplebar/dist/simplebar.min.css';
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,19 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+  	children,
 }: Readonly<{
-  children: React.ReactNode;
+  	children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Providers>
-          <LayoutWrapper>{children}</LayoutWrapper>
-        </Providers>
-      </body>
+      	<body>
+        	<Providers>
+          		<LayoutWrapper>{children}</LayoutWrapper>
+        	</Providers>
+      	</body>
     </html>
   );
 }

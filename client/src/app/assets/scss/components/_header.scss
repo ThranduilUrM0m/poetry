@@ -1,0 +1,86 @@
+.header {
+    @apply fixed top-0 left-0 w-full h-[10vh] z-50 bg-transparent;
+
+    &__nav {
+        @apply h-full flex items-center justify-between px-[5vh];
+
+        &-logo,
+        &-actions {
+            @apply h-full flex items-center justify-center relative;
+        }
+
+        &-logo {
+            @apply w-[10vh] h-[10vh];
+        }
+
+        &-actions {
+            @apply h-[10vh] flex items-center;
+
+            &-search,
+            &-hamburger {
+                @apply h-full w-[10vh] flex items-center justify-center relative overflow-hidden;
+            }
+
+            &-search {
+                @apply z-10;
+                
+                svg {
+                    @apply w-[4vh] h-[4vh] stroke-[2];
+                }
+            }
+
+            &-hamburger {
+                @apply relative;
+        
+                .__background {
+                    @apply fixed w-[75vh] h-[100vh] top-0 -right-[5vh] bg-[rgb(var(--white)/1)];
+                }
+
+                .__ul {
+                    @apply fixed w-[75vh] h-[100vh] pl-[20vh] top-0 -right-[5vh] flex flex-col justify-center;
+
+                    li {
+                        a {
+                            @apply text-2xl font-medium relative flex items-center text-[rgb(var(--text)/1)] my-[1.25vh];
+        
+                            &:hover {
+                                @apply text-[rgb(var(--primary-dark)/1)];
+                            }
+        
+                            &.active {
+                                @apply text-[rgb(var(--primary-dark)/1)] translate-x-[2.5vh];
+        
+                                &::before {
+                                    content: '';
+                                    @apply absolute h-[.5vh] w-[22.5vh] -left-[2.5vh] top-1/2 -translate-x-full bg-[rgb(var(--primary-dark)/1)] -translate-y-1/2;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .__hamburger {
+                    svg {
+                        @apply relative w-full h-full;
+    
+                        g {
+                            line {
+                                @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)] origin-center;
+                            }
+                        }
+    
+                        &.isMenuOpen {
+                            .one {
+                                @apply rotate-45;
+                            }
+    
+                            .two {
+                                @apply -rotate-45;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

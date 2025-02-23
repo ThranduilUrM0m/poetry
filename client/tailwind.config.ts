@@ -1,39 +1,36 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
+import animate from 'tailwindcss-animated';
 
 export default {
-  content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        // Warm white color
-        canvas: '#FDFBF7',
-        // UI-friendly blue
-        primary: {
-          50: '#F0F7FF',
-          100: '#E0EFFF',
-          200: '#B8DBFF',
-          300: '#8AC2FF',
-          400: '#5BA4FF',
-          500: '#2D82FF',
-          600: '#0A5EDF',
-          700: '#0046B8',
-          800: '#003490',
-          900: '#002468',
-        }
-      },
-      transitionTimingFunction: {
-        DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',
-      },
-      transitionDuration: {
-        DEFAULT: '300ms',
-      },
+    content: [
+        './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    ],
+    theme: {
+        extend: {
+            colors: {
+                redNo: 'rgb(var(--redNo) / <alpha-value>)',
+                greenYes: 'rgb(var(--greenYes) / <alpha-value>)',
+                hoverGray: 'rgb(var(--hoverGray) / <alpha-value>)',
+                whitePlusOne: 'rgb(var(--whitePlusOne) / <alpha-value>)',
+                white: 'rgb(var(--white) / <alpha-value>)',
+                background: 'rgb(var(--background) / <alpha-value>)',
+                text: 'rgb(var(--text) / <alpha-value>)',
+                primary: {
+                    DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+                    light: 'rgb(var(--primary-light) / <alpha-value>)',
+                    dark: 'rgb(var(--primary-dark) / <alpha-value>)',
+                },
+            },
+            // If you want to keep some fallback transition settings (optional, since the plugin handles most animations)
+            transitionTimingFunction: {
+                DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            },
+            transitionDuration: {
+                DEFAULT: '300ms',
+            },
+        },
     },
-  },
-  plugins: [],
+    plugins: [animate],
 } satisfies Config;

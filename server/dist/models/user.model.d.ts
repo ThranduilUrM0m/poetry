@@ -11,7 +11,6 @@ export declare class User {
     phone?: string;
     isVerified: boolean;
     isActive: boolean;
-    toDelete: boolean;
 }
 export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, Document<unknown, any, User> & User & {
     _id: import("mongoose").Types.ObjectId;

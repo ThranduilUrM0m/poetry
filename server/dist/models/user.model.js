@@ -11,8 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserSchema = exports.User = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const passwordHash = require("password-hash");
 let User = class User {
 };
 exports.User = User;
@@ -56,30 +56,29 @@ __decorate([
     (0, mongoose_1.Prop)({ default: false }),
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: false }),
-    __metadata("design:type", Boolean)
-], User.prototype, "toDelete", void 0);
 exports.User = User = __decorate([
     (0, mongoose_1.Schema)()
 ], User);
 exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
-exports.UserSchema.methods.authenticate = async function (password) {
-    return await bcrypt.compare(password, this.password);
+exports.UserSchema.methods.authenticate = function (password) {
+    return Promise.resolve(passwordHash.verify(password, this.password));
 };
 exports.UserSchema.methods.getToken = function () {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jwt.sign({ sub: this._id }, secret);
+    return jwt.sign({
+        sub: this._id,
+        email: this.email,
+        username: this.username,
+    }, secret, { expiresIn: '24h' });
 };
-exports.UserSchema.pre('save', async function (next) {
+exports.UserSchema.pre('save', function (next) {
     if (!this.isModified('password')) {
         return next();
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = passwordHash.generate(this.password);
     next();
 });
 //# sourceMappingURL=user.model.js.map
