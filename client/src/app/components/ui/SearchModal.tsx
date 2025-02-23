@@ -1,24 +1,38 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-/* import Link from 'next/link'; */
 import { Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from 'yup';
 import FormField from './FormField';
 import AnimatedWrapper from './AnimatedWrapper';
+/* import Link from 'next/link'; */
 /* import _ from 'lodash'; */
+
+// Define the validation schema
+const searchSchema = Yup.object().shape({
+    searchQuery: Yup.string().required('Search query is required'),
+});
 
 // Define the structure of your form data
 interface FormValues {
     searchQuery: string;
 }
 
-// Define the structure of an article suggestion
+interface Author {
+    username: string;
+    firstname: string;
+    lastname: string;
+    city: string;
+    country: string;
+}
+
 interface ArticleSuggestion {
     id: string;
     title: string;
     body: string;
-    author: string;
+    author: Author;
     category: string;
     isPrivate: boolean;
     tags: string[];
@@ -59,7 +73,7 @@ const modalVariants = {
         RotateX: 0,
         transformX: '-50%',
         transition: {
-            duration: 0.5,
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
@@ -69,7 +83,7 @@ const modalVariants = {
         RotateX: 90,
         transformX: '-50%',
         transition: {
-            duration: 0.5,
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
@@ -85,14 +99,24 @@ export default function SearchModal({
     const modalRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
     const [articleSuggestions, setArticleSuggestions] = useState<ArticleSuggestion[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Use the schema in the useForm hook
     const {
         control,
         setValue,
         formState: { errors },
-    } = useForm<FormValues>();
+    } = useForm<FormValues>({
+        resolver: yupResolver(searchSchema),
+    });
 
     const handleClear = () => {
         setValue('searchQuery', '');
+        setSearchQuery('');
+    };
+
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
     };
 
     // Handle suggestion selection
@@ -142,13 +166,18 @@ export default function SearchModal({
     }; */
 
     useEffect(() => {
-        // Dummy data representing articles
         const dummyArticles: ArticleSuggestion[] = [
             {
                 id: '1',
                 title: 'Understanding React Hooks',
                 body: 'An in-depth look at React Hooks and how to use them effectively.',
-                author: 'Jane Doe',
+                author: {
+                    username: 'janedoe',
+                    firstname: 'Jane',
+                    lastname: 'Doe',
+                    city: 'New York',
+                    country: 'USA',
+                },
                 category: 'React',
                 isPrivate: false,
                 tags: ['react', 'hooks', 'javascript'],
@@ -164,7 +193,13 @@ export default function SearchModal({
                 id: '2',
                 title: 'Advanced TypeScript Tips',
                 body: 'Enhance your TypeScript skills with these advanced tips and tricks.',
-                author: 'John Smith',
+                author: {
+                    username: 'johnsmith',
+                    firstname: 'John',
+                    lastname: 'Smith',
+                    city: 'London',
+                    country: 'UK',
+                },
                 category: 'TypeScript',
                 isPrivate: false,
                 tags: ['typescript', 'javascript', 'programming'],
@@ -176,13 +211,21 @@ export default function SearchModal({
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             },
-            // Add more dummy articles as needed
         ];
 
-        // Simulate an API call with a timeout
-        setTimeout(() => {
-            setArticleSuggestions(dummyArticles.filter(article => !article.isPrivate));
-        }, 500); // Adjust the timeout as needed
+        if (searchQuery) {
+            const filteredArticles = dummyArticles.filter((article) => {
+                const searchLower = searchQuery.toLowerCase();
+                return (
+                    article.title.toLowerCase().includes(searchLower) ||
+                    article.category.toLowerCase().includes(searchLower) ||
+                    article.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+                );
+            });
+            setArticleSuggestions(filteredArticles);
+        } else {
+            setArticleSuggestions(dummyArticles);
+        }
 
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isSearchOpen) {
@@ -192,10 +235,8 @@ export default function SearchModal({
 
         const handleClickOutside = (event: MouseEvent) => {
             if (overlayRef.current && overlayRef.current.contains(event.target as Node)) {
-                // Click is on the overlay; close the menu
                 onSearchClose();
             } else if (modalRef.current && modalRef.current.contains(event.target as Node)) {
-                // Click is inside the background; keep the menu open
                 return;
             }
         };
@@ -209,7 +250,7 @@ export default function SearchModal({
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isSearchOpen, onSearchClose]);
+    }, [isSearchOpen, onSearchClose, searchQuery]);
 
     return (
         isSearchOpen && (
@@ -231,9 +272,9 @@ export default function SearchModal({
                     ref={modalRef}
                     className="_modal__search"
                     variants={modalVariants}
-                    initial="closed"
-                    animate={isSearchOpen ? 'open' : 'closed'}
-                    exit="closed"
+                    initial="closed" // Pass initial
+                    animate={isSearchOpen ? 'open' : 'closed'} // Pass animate
+                    exit="closed" // Pass exit
                 >
                     {/* Header */}
                     <div className="_header">
@@ -249,7 +290,7 @@ export default function SearchModal({
                                     control={control}
                                     rules={{ required: 'This field is required' }}
                                     onClear={handleClear}
-                                    /* onSuggestionSelect={handleSuggestionSelect} */
+                                    onInputChange={handleSearch}
                                 />
                             </form>
                         </div>

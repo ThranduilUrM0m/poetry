@@ -44,7 +44,7 @@ form {
         /* Autocorrect */
 
         ._clearButton {
-            @apply absolute z-50 top-1/2 right-0 -translate-y-1/2 w-[6vh] h-[6vh] flex items-center justify-center z-50;
+            @apply absolute z-50 top-[.5vh] right-0 w-[6vh] h-[6vh] flex items-center justify-center z-50;
 
             svg {
                 @apply relative w-full h-full;

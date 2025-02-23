@@ -1,29 +1,22 @@
 import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import { useCombobox } from 'downshift';
 import AnimatedWrapper from './AnimatedWrapper';
 import SimpleBar from 'simplebar-react';
 
-interface SuggestionItem {
-    id: string;
-    title: string;
-    body: string;
-    author: string;
-    category: string;
-    tags: string[];
-}
-
-interface FormFieldProps<T extends FieldValues> {
+interface FormFieldProps<T extends FieldValues, S extends { id: string; title: string }> {
     label: string;
     name: Path<T>;
     type?: 'text' | 'email' | 'password' | 'checkbox';
     icon?: React.ReactNode;
     error?: string;
-    suggestions?: SuggestionItem[];
+    suggestions?: S[]; // Use the generic type S for suggestions
     control: Control<T>;
     rules?: object;
     onClear?: () => void;
-    onSuggestionSelect?: (suggestion: SuggestionItem) => void;
+    onSuggestionSelect?: (suggestion: S) => void; // Use the generic type S
+    onInputChange?: (value: string) => void;
 }
 
 // Modal variants
@@ -48,7 +41,7 @@ const SimpleBarVariants = {
     },
 };
 
-const FormField = <T extends FieldValues>({
+const FormField = <T extends FieldValues, S extends { id: string; title: string }>({
     label,
     name,
     type = 'text',
@@ -59,17 +52,10 @@ const FormField = <T extends FieldValues>({
     rules = {},
     onClear,
     onSuggestionSelect,
-}: FormFieldProps<T>) => {
-    const [inputItems, setInputItems] = useState<SuggestionItem[]>(suggestions);
-
-    const {
-        isOpen,
-        getMenuProps,
-        getInputProps,
-        /* getComboboxProps, */
-        getItemProps,
-        highlightedIndex,
-    } = useCombobox({
+    onInputChange,
+}: FormFieldProps<T, S>) => {
+    const [inputItems, setInputItems] = useState<S[]>(suggestions);
+    const { isOpen, getMenuProps, getInputProps, getItemProps, highlightedIndex } = useCombobox({
         items: inputItems,
         onInputValueChange: ({ inputValue }) => {
             if (inputValue) {
@@ -80,6 +66,10 @@ const FormField = <T extends FieldValues>({
                 );
             } else {
                 setInputItems(suggestions);
+            }
+            // Call the onInputChange prop to update the searchQuery state
+            if (onInputChange) {
+                onInputChange(inputValue || '');
             }
         },
         onSelectedItemChange: ({ selectedItem }) => {
@@ -107,7 +97,7 @@ const FormField = <T extends FieldValues>({
                     </label>
 
                     {/* _formControl */}
-                    <div className="_formControl"/*  {...getComboboxProps()} */>
+                    <div className="_formControl">
                         {icon && <div className="_icon">{icon}</div>}
                         <input
                             type={type}
@@ -137,6 +127,7 @@ const FormField = <T extends FieldValues>({
 
                     {/* Clear button */}
                     {onClear && value && (
+                        <AnimatePresence mode="wait">
                         <AnimatedWrapper
                             as="button"
                             onClick={() => {
@@ -145,6 +136,29 @@ const FormField = <T extends FieldValues>({
                             }}
                             aria-label="Clear Search"
                             className="_clearButton"
+                            variants={{
+                                open: {
+                                    y: 0,
+                                    opacity: 1,
+                                    transition: {
+                                        duration: 0.25, // Speed of fade-out
+                                        ease: 'easeInOut',
+                                    },
+                                },
+                                closed: {
+                                    y: 25,
+                                    opacity: 0,
+                                    transition: {
+                                        duration: 0.25, // Speed of fade-out
+                                        ease: 'easeInOut',
+                                    },
+                                }
+                            }}
+                            initial="closed" // Pass initial
+                            animate={value ? 'open' : 'closed'} // Pass animate
+                            exit="closed"
+
+
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.5 }}
                         >
@@ -167,6 +181,7 @@ const FormField = <T extends FieldValues>({
                                 </g>
                             </svg>
                         </AnimatedWrapper>
+                        </AnimatePresence>
                     )}
 
                     {/* Error text */}
