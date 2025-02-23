@@ -1,14 +1,14 @@
 ﻿'use client';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useDispatch } from 'react-redux';
-import { LoginFormData, loginSchema } from './validation';
-import { setCredentials, clearCredentials } from '@/app/slices/authSlice';
-import FloatingInput from '../../components/ui/FormField';
+/* import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup'; */
+/* import { useDispatch } from 'react-redux';
+import { LoginFormData, loginSchema } from './validation'; */
+/* import { setCredentials, clearCredentials } from '@/app/slices/authSlice';
+import FloatingInput from '../../components/ui/FormField'; */
 
 export default function LoginPage() {
-  const dispatch = useDispatch();
-  const {
+  /* const dispatch = useDispatch(); */
+  /* const {
     register,
     handleSubmit,
     formState: { errors },
@@ -23,17 +23,17 @@ export default function LoginPage() {
   const handleClear = (field: keyof LoginFormData) => {
     setValue(field, '');
     dispatch(clearCredentials());
-  };
+  }; */
 
-  const onSubmit = (data: LoginFormData) => {
+/*   const onSubmit = (data: LoginFormData) => {
     console.log(data);
     // Handle form submission
-  };
+  }; */
 
-  const handleInputChange = (field: 'identifier' | 'password', value: string) => {
+ /*  const handleInputChange = (field: 'identifier' | 'password', value: string) => {
     setValue(field, value);
     dispatch(setCredentials({ field, value }));
-  };
+  }; */
 
   return (
     <main className='login'>
@@ -44,8 +44,8 @@ export default function LoginPage() {
               <h3>Login</h3>
             </div>
             <div className='login__card-body'>
-              <form onSubmit={handleSubmit(onSubmit)} className="form">
-                <div className='form__row'>
+              <form /* onSubmit={handleSubmit(onSubmit)} */ className="form">
+                {/* <div className='form__row'>
                   <FloatingInput
                     {...register('identifier')}
                     label="Username or Email"
@@ -65,7 +65,7 @@ export default function LoginPage() {
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     onClear={() => handleClear('password')}
                   />
-                </div>
+                </div> */}
                 <div className='form__row'>
                   <button type="submit" className='login__submit-btn'>
                     Login
