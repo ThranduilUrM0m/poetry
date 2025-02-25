@@ -1,16 +1,16 @@
 .__overlay {
-    @apply fixed inset-0 backdrop-blur-[1px] top-0;
+    @apply fixed top-0 left-0 w-full h-[100vh] z-10;
     pointer-events: all;
 }
 
-._modal {    
+._modal {
     &__search {
-        @apply fixed z-10 top-[5vh] left-1/2 -translate-x-1/2 w-[calc(100%-10vh)] h-[calc(100vh-10vh)] bg-[rgb(var(--white)/1)] p-[2.5vh];
+        @apply fixed z-30 top-[5vh] left-1/2 -translate-x-1/2 w-[calc(100%-10vh)] h-[calc(100vh-10vh)] bg-[rgb(var(--white)/1)] p-[2.5vh];
         box-shadow: 0 0 2vh 2vh rgb(rgb(var(--text)/1) / 0.05);
-    
+
         ._header {
             @apply flex h-[10vh] overflow-visible px-[2.5vh];
-        
+
             ._formContainer {
                 @apply w-[100vh] m-auto;
             }
@@ -22,7 +22,7 @@
                     g {
                         line {
                             @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)] origin-center;
-                            
+
                             &.one {
                                 @apply rotate-45;
                             }

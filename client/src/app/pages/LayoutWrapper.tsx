@@ -3,23 +3,22 @@
 import { usePathname } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { AnimatePresence } from 'framer-motion';
 import AnimatedWrapper from '../components/ui/AnimatedWrapper';
 
 const headerVariants = {
     open: {
-        y: 0,
-		opacity: 1,
-		transition: {
-            duration: 0.25, // Speed of fade-out
+        translateY: 0, // Use translateY instead of y
+        opacity: 1,
+        transition: {
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
     closed: {
-        y: -100,
-		opacity: 0,
-		transition: {
-            duration: 0.25, // Speed of fade-out
+        translateY: -100, // Use translateY instead of y
+        opacity: 0,
+        transition: {
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
@@ -27,24 +26,24 @@ const headerVariants = {
 
 const footerVariants = {
     open: {
-        y: 0,
-		opacity: 1,
-		transition: {
-            duration: 0.25, // Speed of fade-out
+        translateY: 0, // Use translateY instead of y
+        opacity: 1,
+        transition: {
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
     closed: {
-        y: 100,
-		opacity: 0,
-		transition: {
-            duration: 0.25, // Speed of fade-out
+        translateY: 100, // Use translateY instead of y
+        opacity: 0,
+        transition: {
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
 };
 
-export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
+export default function LayoutWrapper({ children }: Readonly<{ children: React.ReactNode }>) {
     const pathname = usePathname();
     const isDashboard = pathname?.startsWith('/dashboard');
 
@@ -52,15 +51,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         <>
             {/* Animate Header */}
             {!isDashboard && (
-                <AnimatePresence>
-					<AnimatedWrapper
-						variants={headerVariants}
-						initial="closed" // Pass initial
-						animate={'open'} // Pass animate
-					>
-                        <Header />
-					</AnimatedWrapper>
-                </AnimatePresence>
+                <AnimatedWrapper
+                    variants={headerVariants}
+                    initial="closed" // Start from the "closed" state
+                    animate="open" // Animate to the "open" state
+                    transition={{ duration: 0.25, ease: 'easeInOut' }} // Add transition here
+                >
+                    <Header />
+                </AnimatedWrapper>
             )}
 
             {/* Children */}
@@ -68,15 +66,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
             {/* Animate Footer */}
             {!isDashboard && (
-                <AnimatePresence>
-					<AnimatedWrapper
-						variants={footerVariants}
-						initial="closed" // Pass initial
-						animate={'open'} // Pass animate
-					>
-                        <Footer />
-					</AnimatedWrapper>
-                </AnimatePresence>
+                <AnimatedWrapper
+                    variants={footerVariants}
+                    initial="closed" // Pass initial
+                    animate={'open'} // Pass animate
+                    transition={{ duration: 0.25, ease: 'easeInOut' }} // Add transition here
+                >
+                    <Footer />
+                </AnimatedWrapper>
             )}
         </>
     );

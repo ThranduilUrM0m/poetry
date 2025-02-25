@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import AnimatedWrapper from './ui/AnimatedWrapper';
 import Link from 'next/link';
 import Image from 'next/image';
 import logo from '@/app/assets/images/b_white_orange..svg';
 import { Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import AnimatedWrapper from './ui/AnimatedWrapper';
 import SearchModal from './ui/SearchModal';
 /* import NewsletterPopup from './ui/NewsletterPopup'; */
 
@@ -33,16 +33,20 @@ const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
 
 const overlayVariants = {
     open: {
-        opacity: 1, // Fully visible
+        display: 'block',
+        opacity: 1,
+        backdropFilter: 'blur(.25vh)',
         transition: {
-            duration: 0.3, // Speed of fade-in
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
     closed: {
-        opacity: 0, // Fully transparent
+        display: 'none',
+        opacity: 0,
+        backdropFilter: 'blur(0vh)',
         transition: {
-            duration: 0.3, // Speed of fade-out
+            duration: 0.25,
             ease: 'easeInOut',
         },
     },
@@ -50,18 +54,18 @@ const overlayVariants = {
 
 const sidebarVariants = {
     open: {
-        clipPath: `circle(200% at 100% 0)`,
+        clipPath: 'circle(150vh at 15vh 5vh)',
         transition: {
-            type: 'spring',
+            type: "spring",
             stiffness: 20,
             restDelta: 2,
         },
     },
     closed: {
-        clipPath: 'circle(0 at 100% 0)',
+        clipPath: 'circle(0vh at 15vh 5vh)',
         transition: {
-            delay: 0.1,
-            type: 'spring',
+            delay: 0.2,
+            type: "spring",
             stiffness: 400,
             damping: 40,
         },
@@ -143,11 +147,119 @@ export default function Header() {
     return (
         <header className={getHeaderClass()}>
             <nav className="header__nav">
-                <Link href="/" className="header__nav-logo">
-                    <Image src={logo} alt="Logo" width={32} height={32} />
-                </Link>
+                <div className="header__nav-left">
+                    {/* Overlay */}
+                    <AnimatePresence>
+                        <AnimatedWrapper
+                            as="div"
+                            className="__overlay"
+                            ref={overlayRef}
+                            variants={overlayVariants}
+                            initial="closed" // Pass initial
+                            animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
+                            exit="closed" // Pass exit
+                            transition={{ duration: 0.5 }} // Pass transition
+                        ></AnimatedWrapper>
+                    </AnimatePresence>
 
-                <div className="header__nav-actions">
+                    <AnimatePresence>
+                        <AnimatedWrapper
+                            as="nav"
+                            className="header__nav-left-hamburger"
+                            initial={false}
+                            animate={isMenuOpen ? 'open' : 'closed'}
+                            custom={height}
+                            ref={menuRef}
+                        >
+                            {/* __background */}
+                            <AnimatePresence>
+                                <AnimatedWrapper
+                                    as="div"
+                                    className="__background"
+                                    ref={backgroundRef}
+                                    variants={sidebarVariants}
+                                    initial="closed" // Pass initial
+                                    animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
+                                    exit="closed" // Pass exit
+                                ></AnimatedWrapper>
+                            </AnimatePresence>
+
+                            {/* __ul */}
+                            <AnimatePresence>
+                                <AnimatedWrapper
+                                    as="ul"
+                                    className="__ul"
+                                    variants={navVariants}
+                                    initial="closed"
+                                    animate={isMenuOpen ? 'open' : 'closed'} // Ensure this is toggling correctly
+                                >
+                                    {menuItems.map((item) => (
+                                        <AnimatedWrapper
+                                            as="li"
+                                            key={item.href}
+                                            variants={itemVariants}
+                                            initial="closed"
+                                            animate={isMenuOpen ? 'open' : 'closed'} // Matches parent's animate state
+                                            exit="closed"
+                                            whileHover={{ scale: 1.16 }}
+                                            whileTap={{ scale: 0.5 }}
+                                        >
+                                            <Link
+                                                href={item.href}
+                                                className={`${
+                                                    pathname === item.href ? 'active' : ''
+                                                }`}
+                                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        </AnimatedWrapper>
+                                    ))}
+                                </AnimatedWrapper>
+                            </AnimatePresence>
+
+                            {/* __hamburger */}
+                            <AnimatePresence>
+                                <AnimatedWrapper
+                                    as="button"
+                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                    aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+                                    className="__hamburger"
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.5 }}
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        viewBox="0 0 100 100"
+                                        className={`${isMenuOpen ? 'isMenuOpen' : ''}`}
+                                    >
+                                        <g>
+                                            <line
+                                                className="one"
+                                                x1={`${isMenuOpen ? '24.5' : '19.5'}`}
+                                                y1={`${isMenuOpen ? '49.5' : '43.5'}`}
+                                                x2={`${isMenuOpen ? '75.5' : '80.5'}`}
+                                                y2={`${isMenuOpen ? '49.5' : '43.5'}`}
+                                            ></line>
+                                            <line
+                                                className="two"
+                                                x1={`${isMenuOpen ? '24.5' : '19.5'}`}
+                                                y1={`${isMenuOpen ? '50.5' : '56.5'}`}
+                                                x2={`${isMenuOpen ? '75.5' : '80.5'}`}
+                                                y2={`${isMenuOpen ? '50.5' : '56.5'}`}
+                                            ></line>
+                                        </g>
+                                    </svg>
+                                </AnimatedWrapper>
+                            </AnimatePresence>
+                        </AnimatedWrapper>
+                    </AnimatePresence>
+
+                    <Link href="/" className="header__nav-left-logo">
+                        <Image src={logo} alt="Logo" width={32} height={32} />
+                    </Link>
+                </div>
+                <div className="header__nav-right">
                     <AnimatedWrapper
                         as="button"
                         onClick={() => setIsSearchOpen(true)}
@@ -156,99 +268,6 @@ export default function Header() {
                         whileTap={{ scale: 0.5 }}
                     >
                         <Search />
-                    </AnimatedWrapper>
-
-                    <AnimatedWrapper
-                        as="nav"
-                        className="header__nav-actions-hamburger"
-                        initial={false}
-                        animate={isMenuOpen ? 'open' : 'closed'}
-                        custom={height}
-                        ref={menuRef}
-                    >
-                        <AnimatePresence mode="wait">
-                            {/* Overlay */}
-                            <AnimatedWrapper
-                                as="div"
-                                className="__overlay"
-                                ref={overlayRef}
-                                variants={overlayVariants}
-                                initial="closed" // Pass initial
-                                animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
-                                exit="closed" // Pass exit
-                                transition={{ duration: 0.5 }} // Pass transition
-                            ></AnimatedWrapper>
-
-                            {/* __background */}
-                            <AnimatedWrapper
-                                as="div"
-                                className="__background"
-                                ref={backgroundRef}
-                                variants={sidebarVariants}
-                                initial="closed" // Pass initial
-                                animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
-                                exit="closed" // Pass exit
-                                transition={{ duration: 0.5 }} // Pass transition
-                            ></AnimatedWrapper>
-
-                            {/* __ul */}
-                            <AnimatedWrapper as="ul" className="__ul" variants={navVariants}>
-                                {menuItems.map((item /* , index */) => (
-                                    <AnimatedWrapper
-                                        as="li"
-                                        key={item.href}
-                                        variants={itemVariants}
-                                        initial="closed" // Pass initial
-                                        animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
-                                        exit="closed" // Pass exit
-                                        transition={{ duration: 0.25 }} // Pass transition
-                                        whileHover={{ scale: 1.16 }}
-                                        whileTap={{ scale: 0.5 }}
-                                    >
-                                        <Link
-                                            href={item.href}
-                                            className={`${pathname === item.href ? 'active' : ''}`}
-                                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    </AnimatedWrapper>
-                                ))}
-                            </AnimatedWrapper>
-                        </AnimatePresence>
-
-                        {/* __hamburger */}
-                        <AnimatedWrapper
-                            as="button"
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-                            className="__hamburger"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.5 }}
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 100 100"
-                                className={`${isMenuOpen ? 'isMenuOpen' : ''}`}
-                            >
-                                <g>
-                                    <line
-                                        className="one"
-                                        x1={`${isMenuOpen ? '24.5' : '19.5'}`}
-                                        y1={`${isMenuOpen ? '49.5' : '43.5'}`}
-                                        x2={`${isMenuOpen ? '75.5' : '80.5'}`}
-                                        y2={`${isMenuOpen ? '49.5' : '43.5'}`}
-                                    ></line>
-                                    <line
-                                        className="two"
-                                        x1={`${isMenuOpen ? '24.5' : '19.5'}`}
-                                        y1={`${isMenuOpen ? '50.5' : '56.5'}`}
-                                        x2={`${isMenuOpen ? '75.5' : '80.5'}`}
-                                        y2={`${isMenuOpen ? '50.5' : '56.5'}`}
-                                    ></line>
-                                </g>
-                            </svg>
-                        </AnimatedWrapper>
                     </AnimatedWrapper>
                 </div>
             </nav>
