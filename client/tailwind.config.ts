@@ -10,6 +10,7 @@ export default {
     theme: {
         extend: {
             colors: {
+                d: 'rgb(var(--d) / <alpha-value>)',
                 redNo: 'rgb(var(--redNo) / <alpha-value>)',
                 greenYes: 'rgb(var(--greenYes) / <alpha-value>)',
                 hoverGray: 'rgb(var(--hoverGray) / <alpha-value>)',

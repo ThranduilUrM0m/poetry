@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import AnimatedWrapper from './ui/AnimatedWrapper';
+import Overlay from './ui/Overlay';
 import Link from 'next/link';
 import Image from 'next/image';
 import logo from '@/app/assets/images/b_white_orange..svg';
@@ -31,33 +32,12 @@ const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
     return dimensions.current;
 };
 
-const overlayVariants = {
-    open: {
-        display: 'block',
-        opacity: 1,
-        backdropFilter: 'blur(.25vh)',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        display: 'none',
-        opacity: 0,
-        backdropFilter: 'blur(0vh)',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-};
-
 const sidebarVariants = {
     open: {
         clipPath: 'circle(150vh at 15vh 5vh)',
         transition: {
-            type: "spring",
-            stiffness: 20,
+            type: 'spring',
+            stiffness: 400,
             restDelta: 2,
         },
     },
@@ -65,7 +45,7 @@ const sidebarVariants = {
         clipPath: 'circle(0vh at 15vh 5vh)',
         transition: {
             delay: 0.2,
-            type: "spring",
+            type: 'spring',
             stiffness: 400,
             damping: 40,
         },
@@ -74,10 +54,18 @@ const sidebarVariants = {
 
 const navVariants = {
     open: {
-        transition: { staggerChildren: 0.07, delayChildren: 0.2 },
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.2,
+            when: 'afterChildren',
+        },
     },
     closed: {
-        transition: { staggerChildren: 0.05, staggerDirection: -1 },
+        transition: {
+            staggerChildren: 0.05,
+            staggerDirection: -1,
+            when: 'afterChildren',
+        },
     },
 };
 
@@ -86,14 +74,16 @@ const itemVariants = {
         y: 0,
         opacity: 1,
         transition: {
-            y: { stiffness: 1000, velocity: -100 },
+            duration: 0.4,
+            ease: [0.6, 0.05, -0.01, 0.9],
         },
     },
     closed: {
         y: 50,
         opacity: 0,
         transition: {
-            y: { stiffness: 1000 },
+            duration: 0.4,
+            ease: [0.6, 0.05, -0.01, 0.9],
         },
     },
 };
@@ -148,18 +138,12 @@ export default function Header() {
         <header className={getHeaderClass()}>
             <nav className="header__nav">
                 <div className="header__nav-left">
-                    {/* Overlay */}
                     <AnimatePresence>
-                        <AnimatedWrapper
-                            as="div"
-                            className="__overlay"
-                            ref={overlayRef}
-                            variants={overlayVariants}
-                            initial="closed" // Pass initial
-                            animate={isMenuOpen ? 'open' : 'closed'} // Pass animate
-                            exit="closed" // Pass exit
-                            transition={{ duration: 0.5 }} // Pass transition
-                        ></AnimatedWrapper>
+                        <Overlay
+                            isVisible={isMenuOpen}
+                            onClick={() => setIsMenuOpen(false)}
+                            zIndex={10} // Explicitly set z-10 for hamburger menu
+                        />
                     </AnimatePresence>
 
                     <AnimatePresence>
@@ -186,21 +170,12 @@ export default function Header() {
 
                             {/* __ul */}
                             <AnimatePresence>
-                                <AnimatedWrapper
-                                    as="ul"
-                                    className="__ul"
-                                    variants={navVariants}
-                                    initial="closed"
-                                    animate={isMenuOpen ? 'open' : 'closed'} // Ensure this is toggling correctly
-                                >
+                                <AnimatedWrapper as="ul" className="__ul" variants={navVariants}>
                                     {menuItems.map((item) => (
                                         <AnimatedWrapper
                                             as="li"
                                             key={item.href}
                                             variants={itemVariants}
-                                            initial="closed"
-                                            animate={isMenuOpen ? 'open' : 'closed'} // Matches parent's animate state
-                                            exit="closed"
                                             whileHover={{ scale: 1.16 }}
                                             whileTap={{ scale: 0.5 }}
                                         >

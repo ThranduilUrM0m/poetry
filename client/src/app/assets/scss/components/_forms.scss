@@ -4,19 +4,31 @@ form {
     ._formGroup {
         @apply relative h-[7vh] w-full bg-[rgb(var(--white)/1)];
 
-        ._floatingLabel {
-            @apply absolute z-50 top-1/2 left-[6vh] -translate-y-1/2 text-[rgb(var(--text)/1)] px-[1vh] opacity-75 text-[2vh];
-
-            &::before {
-                @apply absolute bg-[rgb(var(--white)/1)] top-full left-0 w-full h-1/4;
-                content: '';
-            }
-
-            &._focused {
-                @apply top-0 left-[1vh] -translate-y-full opacity-100;
+        &.hasIcon {
+            ._formControl {
+                ._input {
+                    @apply pl-[7vh];
+                }
             }
         }
 
+        &.__notEmpty {
+            ._errorText {
+                @apply right-[6vh];
+            }
+        }
+
+        // Floating Label
+        ._floatingLabel {
+            @apply absolute z-50 top-1/2 text-[rgb(var(--text)/1)] px-[1vh] opacity-75 text-[2vh];
+
+            &::before {
+                content: '';
+                @apply absolute bg-[rgb(var(--white)/1)] top-full left-0 w-full h-1/4;
+            }
+        }
+
+        // Form Control
         ._formControl {
             @apply relative z-40 h-full w-full;
 
@@ -25,26 +37,46 @@ form {
             }
 
             ._input {
-                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)] pl-[2vh] text-[rgb(var(--text)/1)] text-[2.5vh] ;
+                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)] pl-[2vh] text-[2.5vh];
 
                 &._focused {
                     @apply outline-none border border-[rgb(var(--hoverGray)/1)] border-solid;
                 }
 
-                &.__icon {
-                    @apply pl-[7vh];
-                }
-
                 &.__error {
                     @apply border-[rgb(var(--red)/1)];
+                }
+
+                &:not(._hasAutoComplete) {
+                    @apply text-[rgb(var(--text)/1)];
                 }
             }
         }
 
-        /* Autocorrect */
+        // Autocomplete
+        ._autocorrectWrapper {
+            @apply absolute z-[1] flex items-center top-0 left-0 w-full h-full pointer-events-none text-[rgb(var(--text)/1)];
 
+            ._autocomplete {
+                @apply whitespace-pre-wrap flex items-center h-full pl-[6vh] text-[rgb(var(--text)/.5)];
+
+                ._suggestion {
+                    @apply opacity-[.5];
+                }
+
+                ._typed {
+                    @apply opacity-[1] text-[rgb(var(--text)/1)];
+
+                    &:only-child {
+                        @apply text-[rgb(var(--text)/1)];
+                    }
+                }
+            }
+        }
+
+        // Clear Button
         ._clearButton {
-            @apply absolute z-50 top-[.5vh] right-0 w-[6vh] h-[6vh] flex items-center justify-center z-50;
+            @apply absolute z-50 top-[.5vh] right-0 w-[6vh] h-[6vh] flex items-center justify-center;
 
             svg {
                 @apply relative w-full h-full;
@@ -65,44 +97,156 @@ form {
             }
 
             &:hover {
-                svg {
-                    g {
-                        line {
-                            @apply opacity-100;
-                        }
-                    }
+                svg g line {
+                    @apply opacity-100;
                 }
             }
         }
 
+        // Error Text
         .__errorText {
             @apply absolute top-1/2 right-[1.5vh] -translate-y-1/2 h-[4vh] max-w-[50%] w-fit p-[1vh] m-0 rounded-sm bg-[rgb(var(--redNo)/.25)] flex items-center z-50;
 
             span {
-                @apply text-xs text-[rgb(var(--redNo)/1)];
+                @apply text-xs text-[rgb(var(--redNo)/1)] truncate;
             }
         }
 
+        // SimpleBar Suggestions
         ._SimpleBar {
-            @apply absolute w-full translate-y-[1vh];
+            @apply absolute z-10 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+            box-shadow: 1.25vh 1.25vh 4.5vh -2.5vh rgb(var(--text)/.25);
 
-            ul {
-                @apply w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
-                box-shadow: 1.25vh 1.25vh 4.5vh -2.5vh rgb(var(--text)/.25);
+            &::before {
+                content: '';
+                @apply absolute top-0 left-0 w-full h-full bg-[rgb(var(--hoverGray)/.25)];
+            }
 
-                li {
-                    @apply relative px-[1vh] py-[2vh] text-xs leading-[1.25] cursor-pointer w-full h-[5.75vh];
-                    
-                    &:hover {
-                        @apply bg-[rgb(var(--hoverGray)/.5)];
-                    }
+            // Scrollbar styling
+            .simplebar-scrollbar {
+                width: 1.5vh !important;
+                @apply bg-transparent;
+
+                &::before {
+                    @apply bg-[rgb(var(--text)/.25)] opacity-100;
+                    width: 100% !important;
+                }
+
+                &.simplebar-visible::before {
+                    @apply opacity-100;
                 }
             }
-        }
 
-        &.__notEmpty {
-            .__errorText {
-                @apply right-[6vh];
+            .simplebar-track {
+                &.simplebar-vertical {
+                    width: 1.5vh !important;
+                    @apply bg-[rgb(var(--hoverGray)/.25)];
+                    right: 1vh;
+                }
+
+                &.simplebar-horizontal {
+                    @apply hidden;
+                }
+            }
+
+            // Suggestions Groups
+            &-Group {
+                @apply w-full py-[1vh];
+
+                .suggestion-group {
+                    @apply w-full mb-[2vh];
+
+                    .suggestion-group-header {
+                        @apply sticky top-0 z-10 h-[5vh] flex items-center px-[3.5vh] text-[2.5vh] text-[rgb(var(--text)/.5)];
+                    }
+
+                    // Different suggestion lists
+                    .suggestionList {
+                        &-tag {
+                            @apply flex flex-wrap px-[3.5vh] gap-[1vh];
+                            min-height: min-content;
+                            max-height: calc(6vh * 3); // Exactly 3 rows
+                            overflow: hidden;
+
+                            .suggestion-item {
+                                @apply h-[6vh] w-fit py-[1vh];
+
+                                .suggestion {
+                                    @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
+                                    @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+                                    @apply text-[1.75vh] font-semibold;
+                                }
+                            }
+                        }
+
+                        &-category,
+                        &-author,
+                        &-title {
+                            @apply w-full;
+
+                            .suggestion-item {
+                                @apply w-full;
+
+                                .suggestion {
+                                    @apply flex items-center px-[3.5vh] py-[1vh] min-h-[6vh];
+
+                                    &.category .category-suggestion,
+                                    &.author .author-suggestion {
+                                        @apply flex items-center justify-between w-full;
+                                    }
+                                }
+                            }
+                        }
+
+                        &-author {
+                            .suggestion-item {
+                                .suggestion {
+                                    .author-suggestion {
+                                        .author-info {
+                                            @apply flex items-center;
+
+                                            span {
+                                                &.suggestion-icon {
+                                                    @apply mr-[1vh];
+                                                }
+
+                                                &.fullname {
+                                                    @apply mr-[1vh];
+                                                }
+
+                                                &.username {
+                                                    @apply font-normal text-[1.75vh];
+                                                }
+                                            }
+                                        }
+
+                                        .location {
+                                            @apply font-normal text-[1.75vh];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Common suggestion item styles
+                    .suggestion-item {
+                        @apply relative text-[2vh] font-semibold cursor-pointer transition-all duration-200;
+
+                        &:hover,
+                        &.highlighted {
+                            &[data-type="tag"] {
+                                @apply bg-[rgb(var(--pink)/.15)];
+                            }
+
+                            &[data-type="category"],
+                            &[data-type="author"],
+                            &[data-type="title"] {
+                                @apply bg-[rgb(var(--primary-light)/.5)];
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -36,6 +36,8 @@ type Props<T extends HTMLElementTag> = AsProp<T> &
     HTMLMotionProps<T> &
     AnimationProps & {
         variant?: 'primary' | 'secondary';
+        htmlFor?: string;
+        type?: T extends 'button' ? 'button' | 'submit' | 'reset' : never; // Add type prop for buttons
     };
 
 // Create the AnimatedWrapper component
@@ -52,6 +54,8 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
         whileFocus,
         whileInView,
         transition,
+        htmlFor, // Destructure htmlFor from props
+        type, // Add type to destructured props
         ...rest
     }: Props<T>,
     ref: React.Ref<Element>
@@ -119,24 +123,25 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
             ref={(node: HTMLElement) => {
                 // Forward the ref to both the elementRef and the forwarded ref
                 elementRef.current = node;
-                if (typeof ref === 'function') {
-                    ref(node);
-                } else if (ref) {
-                    (ref as React.MutableRefObject<HTMLElement>).current = node;
-                }
+                if (typeof ref === 'function') ref(node);
+                else if (ref) (ref as React.RefObject<HTMLElement>).current = node;
             }}
-            variants={variants}
-            initial={initial}
-            animate={animate}
-            exit={exit}
-            whileHover={whileHover}
-            whileTap={whileTap}
-            whileFocus={whileFocus}
-            whileInView={whileInView}
-            transition={transition}
-            onUpdate={handleUpdate}
-            onAnimationComplete={handleAnimationComplete}
-            {...(rest as HTMLMotionProps<T>)}
+            {...{
+                variants,
+                initial,
+                animate,
+                exit,
+                whileHover,
+                whileTap,
+                whileFocus,
+                whileInView,
+                transition,
+                onUpdate: handleUpdate,
+                onAnimationComplete: handleAnimationComplete,
+                htmlFor,
+                type,
+                ...(rest as HTMLMotionProps<T>),
+            }}
         >
             {children}
         </MotionComponent>

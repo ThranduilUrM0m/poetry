@@ -12,11 +12,11 @@
         &-left {
             &-hamburger {
                 .__background {
-                    @apply fixed w-[75vh] h-[100vh] top-0 -left-[5vh] bg-[rgb(var(--white)/1)];
+                    @apply fixed w-[75vh] h-[100vh] top-0 left-0 bg-[rgb(var(--white)/1)];
                 }
 
                 .__ul {
-                    @apply fixed w-[75vh] h-[100vh] pl-[20vh] top-0 -left-[5vh] flex flex-col justify-center;
+                    @apply fixed w-[75vh] h-[100vh] pl-[20vh] top-0 left-0 flex flex-col justify-center;
 
                     li {
                         a {
@@ -27,11 +27,11 @@
                             }
 
                             &.active {
-                                @apply text-[rgb(var(--primary-dark)/1)] translate-x-[2.5vh];
+                                @apply text-[rgb(var(--primary-dark)/1)] translate-x-[10vh];
 
                                 &::before {
                                     content: '';
-                                    @apply absolute h-[.5vh] w-[22.5vh] -left-[2.5vh] top-1/2 -translate-x-full bg-[rgb(var(--primary-dark)/1)] -translate-y-1/2;
+                                    @apply absolute h-[.5vh] w-[24vh] -left-[5vh] top-1/2 -translate-x-full bg-[rgb(var(--primary-dark)/1)] -translate-y-1/2;
                                 }
                             }
                         }

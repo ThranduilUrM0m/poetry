@@ -1,14 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect, useRef, JSX } from 'react';
+import { Search, Hash, UserSearch } from 'lucide-react'; // Add Hash and UserSearch imports
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import FormField from './FormField';
+import Overlay from './Overlay';
+import { AnimatePresence } from 'framer-motion';
+import SearchResults from './SearchResults';
 import AnimatedWrapper from './AnimatedWrapper';
-/* import Link from 'next/link'; */
-/* import _ from 'lodash'; */
+import * as stringSimilarity from 'string-similarity';
+import { dummyArticles } from '@/app/data/dummyArticles';
+import _ from 'lodash';
+import { SearchSuggestion, ArticleSuggestion } from '@/app/types/search';
 
 // Define the validation schema
 const searchSchema = Yup.object().shape({
@@ -20,73 +25,71 @@ interface FormValues {
     searchQuery: string;
 }
 
-interface Author {
-    username: string;
-    firstname: string;
-    lastname: string;
-    city: string;
-    country: string;
-}
-
-interface ArticleSuggestion {
-    id: string;
-    title: string;
-    body: string;
-    author: Author;
-    category: string;
-    isPrivate: boolean;
-    tags: string[];
-    comments: string[];
-    views: string[];
-    upvotes: string[];
-    downvotes: string[];
-    status: 'pending' | 'approved' | 'rejected';
-    createdAt: string;
-    updatedAt: string;
-}
-
-// Backdrop variants
-const backdropVariants = {
+// Update the modal variants
+const modalVariants = {
     open: {
         opacity: 1,
-        zIndex: 20,
-        transition: {
-            duration: 0.3,
-            ease: 'easeInOut',
-        },
+        x: '-50%',
+        y: 0,
+        scale: 1,
+        display: 'block',
     },
     closed: {
         opacity: 0,
-        transition: {
-            duration: 0.3,
-            ease: 'easeInOut',
+        x: '-50%',
+        y: -50,
+        scale: 0.95,
+        transitionEnd: {
+            display: 'none',
         },
     },
 };
 
-// Modal variants
-const modalVariants = {
-    open: {
-        opacity: 1,
-        zIndex: 30,
-        filter: 'blur(0px)',
-        RotateX: 0,
-        transformX: '-50%',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        opacity: 0,
-        filter: 'blur(10px)',
-        RotateX: 90,
-        transformX: '-50%',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
+// Add this helper function
+const getCompatibleSuggestions = (
+    articles: ArticleSuggestion[],
+    selected: SearchSuggestion[],
+    current: SearchSuggestion[]
+): SearchSuggestion[] => {
+    // First, get articles that match current selections
+    const compatibleArticles = articles.filter((article) => {
+        return selected.every((selection) => {
+            switch (selection.type) {
+                case 'tag':
+                    return article.tags.includes(selection.title);
+                case 'category':
+                    return article.category === selection.title;
+                case 'author':
+                    return article.author.username === selection.title;
+                case 'title':
+                    return article.title === selection.title;
+                default:
+                    return false;
+            }
+        });
+    });
+
+    // Then, filter suggestions that could combine with current selections
+    return current.filter((suggestion) => {
+        // Check if adding this suggestion would still result in matches
+        const hypotheticalSelections = [...selected, suggestion];
+        return compatibleArticles.some((article) => {
+            return hypotheticalSelections.every((selection) => {
+                switch (selection.type) {
+                    case 'tag':
+                        return article.tags.includes(selection.title);
+                    case 'category':
+                        return article.category === selection.title;
+                    case 'author':
+                        return article.author.username === selection.title;
+                    case 'title':
+                        return article.title === selection.title;
+                    default:
+                        return false;
+                }
+            });
+        });
+    });
 };
 
 export default function SearchModal({
@@ -100,12 +103,15 @@ export default function SearchModal({
     const overlayRef = useRef<HTMLDivElement>(null);
     const [articleSuggestions, setArticleSuggestions] = useState<ArticleSuggestion[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [transformedSuggestions, setTransformedSuggestions] = useState<SearchSuggestion[]>([]);
+    const [selectedSuggestions, setSelectedSuggestions] = useState<SearchSuggestion[]>([]);
 
     // Use the schema in the useForm hook
     const {
         control,
         setValue,
         formState: { errors },
+        clearErrors,
     } = useForm<FormValues>({
         resolver: yupResolver(searchSchema),
     });
@@ -113,120 +119,230 @@ export default function SearchModal({
     const handleClear = () => {
         setValue('searchQuery', '');
         setSearchQuery('');
+        // Only clear the search, keep selected suggestions
+        const filteredArticles = filterArticlesBySuggestions(dummyArticles, selectedSuggestions);
+        const availableSuggestions = generateSearchSuggestions(filteredArticles);
+        const compatibleSuggestions = getCompatibleSuggestions(
+            dummyArticles,
+            selectedSuggestions,
+            availableSuggestions
+        );
+        setArticleSuggestions(filteredArticles);
+        setTransformedSuggestions(compatibleSuggestions);
+        clearErrors('searchQuery');
     };
 
-    const handleSearch = (value: string) => {
-        setSearchQuery(value);
+    const generateSearchSuggestions = (articles: ArticleSuggestion[]): SearchSuggestion[] => {
+        const createSuggestion = (
+            article: ArticleSuggestion,
+            type: 'title' | 'category' | 'author' | 'tag',
+            title: string,
+            priority: number,
+            icon?: JSX.Element
+        ): SearchSuggestion => ({
+            id: `${article.id}-${type}`,
+            title,
+            type,
+            source: article,
+            priority,
+            icon, // Add icon to the suggestion object
+        });
+
+        return _.flatMap(articles, (article) => [
+            createSuggestion(article, 'title', article.title, 1),
+            createSuggestion(article, 'category', article.category, 2),
+            ...article.tags.map((tag) =>
+                createSuggestion(article, 'tag', tag, 3, <Hash size={16} />)
+            ),
+            createSuggestion(
+                article,
+                'author',
+                article.author.username,
+                4,
+                <UserSearch size={16} />
+            ),
+        ]);
     };
 
-    // Handle suggestion selection
-    /* const handleSuggestionSelect = (suggestion: ArticleSuggestion) => {
-        setValue('searchQuery', suggestion.title);
-        // Perform additional actions upon selecting a suggestion, if needed
-    }; */
+    const getFuzzyMatches = (
+        searchTerm: string,
+        articles: ArticleSuggestion[]
+    ): {
+        exactMatches: ArticleSuggestion[];
+        similarMatches: ArticleSuggestion[];
+    } => {
+        const searchLower = _.toLower(searchTerm);
 
-    /* const [currentPage, setCurrentPage] = useState(1);
-    const cardsPerPage = 6;
+        // First try exact matches in all fields
+        const exactMatches = articles.filter(
+            (article) =>
+                _.includes(_.toLower(article.title), searchLower) ||
+                _.includes(_.toLower(article.category), searchLower) ||
+                _.includes(_.toLower(article.author.username), searchLower) ||
+                article.tags.some((tag) => _.includes(_.toLower(tag), searchLower))
+        );
 
-    interface Article {
-        title: string;
-        description: string;
-        link: string;
-        // Add other relevant properties here
-    } */
-
-    // Sample data for articles and projects
-    /* const articles = [
-        {
-            title: 'Understanding JavaScript Closures',
-            description: 'A deep dive into closures in JavaScript.',
-            link: '/articles/js-closures',
-        },
-        {
-            title: 'A Guide to Responsive Web Design',
-            description: 'Learn how to create responsive layouts.',
-            link: '/articles/responsive-design',
-        },
-    ]; */
-
-    // Filter articles based on search query
-    /* const filteredArticles = _.filter(articles, (article: Article) =>
-        _.includes(_.toLower(article.title), _.toLower(searchQuery))
-    ); */
-
-    // Paginate filtered articles
-    // const paginatedArticles = _.chunk(filteredArticles, cardsPerPage)[currentPage - 1] || [];
-
-    // Calculate total pages
-    // const totalPages = _.ceil(_.size(filteredArticles) / cardsPerPage);
-
-    // Handle page change
-    /* const handlePageClick = (pageNumber: number) => {
-        setCurrentPage(pageNumber);
-    }; */
-
-    useEffect(() => {
-        const dummyArticles: ArticleSuggestion[] = [
-            {
-                id: '1',
-                title: 'Understanding React Hooks',
-                body: 'An in-depth look at React Hooks and how to use them effectively.',
-                author: {
-                    username: 'janedoe',
-                    firstname: 'Jane',
-                    lastname: 'Doe',
-                    city: 'New York',
-                    country: 'USA',
-                },
-                category: 'React',
-                isPrivate: false,
-                tags: ['react', 'hooks', 'javascript'],
-                comments: [],
-                views: [],
-                upvotes: [],
-                downvotes: [],
-                status: 'approved',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-            {
-                id: '2',
-                title: 'Advanced TypeScript Tips',
-                body: 'Enhance your TypeScript skills with these advanced tips and tricks.',
-                author: {
-                    username: 'johnsmith',
-                    firstname: 'John',
-                    lastname: 'Smith',
-                    city: 'London',
-                    country: 'UK',
-                },
-                category: 'TypeScript',
-                isPrivate: false,
-                tags: ['typescript', 'javascript', 'programming'],
-                comments: [],
-                views: [],
-                upvotes: [],
-                downvotes: [],
-                status: 'approved',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-        ];
-
-        if (searchQuery) {
-            const filteredArticles = dummyArticles.filter((article) => {
-                const searchLower = searchQuery.toLowerCase();
-                return (
-                    article.title.toLowerCase().includes(searchLower) ||
-                    article.category.toLowerCase().includes(searchLower) ||
-                    article.tags.some((tag) => tag.toLowerCase().includes(searchLower))
-                );
-            });
-            setArticleSuggestions(filteredArticles);
-        } else {
-            setArticleSuggestions(dummyArticles);
+        if (exactMatches.length > 0) {
+            return { exactMatches, similarMatches: [] };
         }
 
+        // If no exact matches, try fuzzy matching
+        const articlesWithSimilarity = articles.map((article) => ({
+            article,
+            similarity: Math.max(
+                stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.title)),
+                stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.category)),
+                article.tags.reduce(
+                    (maxSim, tag) =>
+                        Math.max(
+                            maxSim,
+                            stringSimilarity.compareTwoStrings(searchLower, _.toLower(tag))
+                        ),
+                    0
+                )
+            ),
+        }));
+
+        // Filter articles with good similarity (above 0.4)
+        const similarMatches = articlesWithSimilarity
+            .filter((item) => item.similarity > 0.4)
+            .sort((a, b) => b.similarity - a.similarity)
+            .map((item) => item.article);
+
+        return { exactMatches: [], similarMatches };
+    };
+
+    const filterArticlesBySuggestions = (
+        articles: ArticleSuggestion[],
+        suggestions: SearchSuggestion[]
+    ): ArticleSuggestion[] => {
+        if (suggestions.length === 0) return articles;
+
+        const groupedSuggestions = _.groupBy(suggestions, 'type');
+
+        return articles.filter((article) => {
+            // Tags: OR within themselves
+            const tagMatches =
+                !groupedSuggestions.tag ||
+                groupedSuggestions.tag.some((tag) => article.tags.includes(tag.title));
+
+            // Categories: OR within themselves
+            const categoryMatches =
+                !groupedSuggestions.category ||
+                groupedSuggestions.category.some((cat) => article.category === cat.title);
+
+            // Authors: OR within themselves
+            const authorMatches =
+                !groupedSuggestions.author ||
+                groupedSuggestions.author.some((auth) => article.author.username === auth.title);
+
+            // AND between different types
+            return tagMatches && categoryMatches && authorMatches;
+        });
+    };
+
+    // Fix: Update handleSearch to properly handle compatible suggestions
+    const handleSearch = (value: string) => {
+        setSearchQuery(value);
+        setValue('searchQuery', value);
+
+        if (!value) {
+            const filteredArticles = filterArticlesBySuggestions(
+                dummyArticles,
+                selectedSuggestions
+            );
+            const availableSuggestions = generateSearchSuggestions(filteredArticles); // Changed from dummyArticles to filteredArticles
+            const compatibleSuggestions = getCompatibleSuggestions(
+                dummyArticles,
+                selectedSuggestions,
+                availableSuggestions
+            );
+
+            setArticleSuggestions(filteredArticles);
+            setTransformedSuggestions(compatibleSuggestions);
+            clearErrors('searchQuery');
+            return;
+        }
+
+        // First filter by selected suggestions
+        const preFilteredArticles = filterArticlesBySuggestions(dummyArticles, selectedSuggestions);
+        const { exactMatches, similarMatches } = getFuzzyMatches(value, preFilteredArticles);
+
+        // Generate and filter suggestions
+        const suggestions = generateSearchSuggestions(exactMatches);
+        const compatibleSuggestions = getCompatibleSuggestions(
+            dummyArticles,
+            selectedSuggestions,
+            suggestions
+        );
+
+        setArticleSuggestions(exactMatches.length > 0 ? exactMatches : similarMatches);
+        setTransformedSuggestions(compatibleSuggestions);
+
+        // Error handling
+        if (exactMatches.length === 0) {
+            if (value.length > 1) {
+                control.setError('searchQuery', {
+                    type: 'manual',
+                    message: 'No exact matches found.',
+                });
+            } else {
+                clearErrors('searchQuery');
+            }
+        } else {
+            clearErrors('searchQuery');
+        }
+    };
+
+    const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
+        // Don't add duplicate selections
+        if (selectedSuggestions.some((s) => s.id === suggestion.id)) {
+            return;
+        }
+
+        const newSelections = [...selectedSuggestions, suggestion];
+        setSelectedSuggestions(newSelections);
+
+        // Clear input after selection
+        setValue('searchQuery', '');
+        setSearchQuery('');
+
+        // Filter articles based on all selections
+        const filteredArticles = filterArticlesBySuggestions(dummyArticles, newSelections);
+        // Generate new suggestions based on filtered articles
+        const availableSuggestions = generateSearchSuggestions(filteredArticles);
+        const compatibleSuggestions = getCompatibleSuggestions(
+            dummyArticles,
+            newSelections,
+            availableSuggestions
+        );
+
+        setArticleSuggestions(filteredArticles);
+        setTransformedSuggestions(compatibleSuggestions);
+        clearErrors('searchQuery');
+    };
+
+    const handleRemoveSuggestion = (suggestionToRemove: SearchSuggestion) => {
+        const newSelections = selectedSuggestions.filter((s) => s.id !== suggestionToRemove.id);
+        setSelectedSuggestions(newSelections);
+
+        // Refilter articles with remaining selections
+        const filteredArticles = filterArticlesBySuggestions(dummyArticles, newSelections);
+        setArticleSuggestions(filteredArticles);
+    };
+
+    const handleClearAllSuggestions = () => {
+        setSelectedSuggestions([]);
+        setArticleSuggestions(dummyArticles);
+    };
+
+    useEffect(() => {
+        // Initialize with all articles and their suggestions
+        setArticleSuggestions(dummyArticles);
+        const initialSuggestions = generateSearchSuggestions(dummyArticles);
+        setTransformedSuggestions(initialSuggestions);
+
+        // Event listeners for Escape key and click outside
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isSearchOpen) {
                 onSearchClose();
@@ -250,138 +366,127 @@ export default function SearchModal({
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isSearchOpen, onSearchClose, searchQuery]);
+    }, [isSearchOpen, onSearchClose]);
 
     return (
-        isSearchOpen && (
-            <>
-                {/* Backdrop Overlay */}
-                <AnimatedWrapper
-                    as="div"
-                    className="__overlay"
-                    ref={overlayRef}
-                    variants={backdropVariants}
-                    initial="closed"
-                    animate={isSearchOpen ? 'open' : 'closed'}
-                    exit="closed"
-                />
-
-                {/* Search Modal */}
-                <AnimatedWrapper
-                    as="div"
-                    ref={modalRef}
-                    className="_modal__search"
-                    variants={modalVariants}
-                    initial="closed" // Pass initial
-                    animate={isSearchOpen ? 'open' : 'closed'} // Pass animate
-                    exit="closed" // Pass exit
-                >
-                    {/* Header */}
-                    <div className="_header">
-                        <div className="_formContainer">
-                            <form>
-                                <FormField
-                                    label="Search"
-                                    name="searchQuery"
-                                    type="text"
-                                    icon={<Search />}
-                                    error={errors.searchQuery?.message}
-                                    suggestions={articleSuggestions}
-                                    control={control}
-                                    rules={{ required: 'This field is required' }}
-                                    onClear={handleClear}
-                                    onInputChange={handleSearch}
-                                />
-                            </form>
-                        </div>
-                        <AnimatedWrapper
-                            as="button"
-                            onClick={onSearchClose}
-                            aria-label="Close Search"
-                            className="__searchClose"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.5 }}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                                <g>
-                                    <line
-                                        className="one"
-                                        x1="29.5"
-                                        y1="49.5"
-                                        x2="70.5"
-                                        y2="49.5"
-                                    ></line>
-                                    <line
-                                        className="two"
-                                        x1="29.5"
-                                        y1="50.5"
-                                        x2="70.5"
-                                        y2="50.5"
-                                    ></line>
-                                </g>
-                            </svg>
-                        </AnimatedWrapper>
-                    </div>
-
-                    {/* Body */}
-                    {/* <div className="_body">
-                            {paginatedArticles.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-4">
-                                    {paginatedArticles.map((article: Article, index: number) => (
-                                        <div
-                                            key={index}
-                                            className="p-4 border rounded shadow hover:shadow-md transition-shadow"
-                                        >
-                                            <h3 className="text-lg font-semibold">
-                                                {article.title}
-                                            </h3>
-                                            <p className="text-sm text-gray-600">
-                                                {article.description}
-                                            </p>
-                                            <Link href={article.link}>
-											Read more
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-center text-gray-500">No results found.</p>
-                            )}
-                        </div> */}
-
-                    {/* Footer */}
-                    {/* <div className="_footer">
-                            <div className="flex justify-between items-center">
-                                <p className="text-sm text-gray-600">
-                                    Showing{' '}
-                                    <strong>
-                                        {currentPage * cardsPerPage - cardsPerPage + 1} -{' '}
-                                        {Math.min(
-                                            currentPage * cardsPerPage,
-                                            _.size(filteredArticles)
-                                        )}
-                                    </strong>{' '}
-                                    of <strong>{_.size(filteredArticles)}</strong> articles.
-                                </p>
-                                <div className="flex space-x-1">
-                                    {_.times(totalPages, (page: number) => (
-                                        <button
-                                            key={page + 1}
-                                            onClick={() => handlePageClick(page + 1)}
-                                            className={`px-2 py-1 border rounded ${
-                                                currentPage === page + 1
-                                                    ? 'bg-blue-500 text-white'
-                                                    : 'bg-white text-blue-500'
-                                            }`}
-                                        >
-                                            {page + 1}
-                                        </button>
-                                    ))}
-                                </div>
+        <AnimatePresence mode="wait">
+            {isSearchOpen && (
+                <>
+                    <Overlay
+                        isVisible={isSearchOpen}
+                        onClick={onSearchClose}
+                        zIndex={20} // Explicitly set z-20 for search modal
+                    />
+                    <AnimatedWrapper
+                        className="_modal__search"
+                        variants={modalVariants}
+                        initial="closed"
+                        animate="open"
+                        exit="closed"
+                        transition={{
+                            duration: 0.2,
+                            ease: 'easeInOut',
+                        }}
+                        ref={modalRef}
+                    >
+                        {/* Header */}
+                        <div className="_header">
+                            <div className="_formContainer">
+                                <form>
+                                    <FormField
+                                        label="Search"
+                                        name="searchQuery"
+                                        type="text"
+                                        icon={<Search />}
+                                        error={
+                                            transformedSuggestions.length === 0 && searchQuery
+                                                ? 'No exact matches found, here are some suggestions.'
+                                                : errors.searchQuery?.message
+                                        }
+                                        suggestions={transformedSuggestions}
+                                        allArticles={dummyArticles} // Pass the original articles array
+                                        control={control}
+                                        rules={{ required: 'This field is required' }}
+                                        onClear={handleClear}
+                                        onInputChange={handleSearch}
+                                        onSuggestionSelect={handleSuggestionSelect}
+                                        selectedSuggestions={selectedSuggestions} // Fix: Add missing selectedSuggestions prop to FormField
+                                    />
+                                </form>
                             </div>
-                        </div> */}
-                </AnimatedWrapper>
-            </>
-        )
+                            <AnimatedWrapper
+                                as="button"
+                                onClick={onSearchClose}
+                                aria-label="Close Search"
+                                className="__searchClose"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.5 }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                                    <g>
+                                        <line
+                                            className="one"
+                                            x1="29.5"
+                                            y1="49.5"
+                                            x2="70.5"
+                                            y2="49.5"
+                                        ></line>
+                                        <line
+                                            className="two"
+                                            x1="29.5"
+                                            y1="50.5"
+                                            x2="70.5"
+                                            y2="50.5"
+                                        ></line>
+                                    </g>
+                                </svg>
+                            </AnimatedWrapper>
+                        </div>
+
+                        {/* Body */}
+                        <div className="_body">
+                            <SearchResults
+                                selectedSuggestions={selectedSuggestions}
+                                articleSuggestions={articleSuggestions}
+                                onRemoveSuggestion={handleRemoveSuggestion}
+                                onClearAllSuggestions={handleClearAllSuggestions}
+                            />
+                        </div>
+
+                        {/* Footer */}
+                        {/* <div className="_footer">
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm text-gray-600">
+                                        Showing{' '}
+                                        <strong>
+                                            {currentPage * cardsPerPage - cardsPerPage + 1} -{' '}
+                                            {Math.min(
+                                                currentPage * cardsPerPage,
+                                                _.size(filteredArticles)
+                                            )}
+                                        </strong>{' '}
+                                        of <strong>{_.size(filteredArticles)}</strong> articles.
+                                    </p>
+                                    <div className="flex space-x-1">
+                                        {_.times(totalPages, (page: number) => (
+                                            <button
+                                                key={page + 1}
+                                                onClick={() => handlePageClick(page + 1)}
+                                                className={`px-2 py-1 border rounded ${
+                                                    currentPage === page + 1
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'bg-white text-blue-500'
+                                                }`}
+                                            >
+                                                {page + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div> */}
+                    </AnimatedWrapper>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
