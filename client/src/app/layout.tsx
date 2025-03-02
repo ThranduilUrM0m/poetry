@@ -1,7 +1,7 @@
 ﻿import type { Metadata } from 'next';
-import Providers from './components/providers';
-import LayoutWrapper from './pages/LayoutWrapper';
-import './assets/scss/globals.scss';
+import LayoutWrapper from './LayoutWrapper';
+import Providers from '@/components/providers';
+import '@/assets/scss/globals.scss';
 import 'simplebar/dist/simplebar.min.css';
 
 export const metadata: Metadata = {

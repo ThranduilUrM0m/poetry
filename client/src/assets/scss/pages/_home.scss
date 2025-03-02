@@ -1,0 +1,87 @@
+.home {
+    @apply w-full;
+
+    // Global Section Styles
+    &__section {
+
+        &-1,
+        &-2,
+        &-3,
+        &-4 {}
+
+        // Section 1
+        &-1 {
+            @apply flex justify-stretch;
+
+            &-left,
+            &-right {
+                @apply relative basis-1/2;
+            }
+
+            // Left Column
+            &-left {
+                @apply h-[100vh] -translate-y-[10vh] flex flex-col items-center justify-center;
+
+                &-fadedText {
+                    @apply w-1/2 h-fit text-[rgb(var(--text)/.5)] text-left text-[3vh];
+                    font-family: "Great Vibes", serif;
+                }
+
+                &-text {
+                    @apply relative w-1/2 h-fit text-left text-[5vh] font-[600] leading-normal;
+
+                    .__lastWord {
+                        @apply text-[rgb(var(--primary-light)/1)];
+                    }
+
+                    &::before {
+                        content: 'Speaking.';
+                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
+                        font-family: 'Abril Fatface', cursive;
+                    }
+                }
+
+                &-read {
+                    @apply w-1/2 h-[5vh] mt-[7.5vh] mb-[10vh] flex items-center text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
+
+                    svg {
+                        @apply w-[20vh] h-[2vh];
+                    }
+                }
+
+                &::before {
+                    content: '';
+                    @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.25)] top-1/2 -right-0 backdrop-blur-[.75vh] -translate-y-1/2;
+                }
+
+                &::after {
+                    content: '';
+                    @apply z-[-1] absolute w-[30vw] h-[20vh] bg-[rgb(var(--primary-light)/.1)] bottom-0 left-1/2 backdrop-blur-[.75vh] -translate-x-1/4;
+                }
+            }
+
+            // Right Column
+            &-right {
+                @apply relative h-[100vh] -translate-y-[10vh];
+
+                &-image {
+                    @apply relative w-full h-full;
+                }
+
+                &-text {
+                    @apply absolute flex flex-col justify-center h-fit w-1/2 top-1/2 left-[5vh] -translate-y-1/2;
+
+                    &-hello {
+                        @apply text-9xl font-medium text-[rgb(var(--white)/1)] leading-[.75];
+                        font-family: 'Abril Fatface', cursive;
+                    }
+
+                    &::before {
+                        content: '';
+                        @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.25)] top-1/2 -left-[5vh] backdrop-blur-[.75vh] -translate-y-1/2;
+                    }
+                }
+            }
+        }
+    }
+}

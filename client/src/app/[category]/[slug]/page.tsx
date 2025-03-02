@@ -1,44 +1,61 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+'use client';
 
-interface Props {
-    params: Promise<{
-        category: string;
-        slug: string;
-    }>;
-}
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams, useRouter } from 'next/navigation';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import { selectCurrentArticle, setCurrentArticle } from '@/slices/articleSlice';
 
-async function getArticle(category: string, slug: string) {
-    // Replace with your actual API call
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/articles/${category}/${slug}`);
-    if (!res.ok) return null;
-    return res.json();
-}
+export default function ArticlePage() {
+    const { category, slug } = useParams();
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const article = useSelector(selectCurrentArticle);
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const resolvedParams = await params;
-    const article = await getArticle(resolvedParams.category, resolvedParams.slug);
-    if (!article) return { title: 'Article Not Found' };
+    useEffect(() => {
+        if (!category || !slug) {
+            return;
+        }
 
-    return {
-        title: article.title,
-        description: article.description,
-    };
-}
+        const fetchArticle = async () => {
+            try {
+                const response = await fetch(`/api/articles/${category}/${slug}`, {
+                    cache: 'no-store', // Disable caching to ensure fresh data
+                });
 
-export default async function ArticlePage({ params }: Props) {
-    const resolvedParams = await params;
-    const article = await getArticle(resolvedParams.category, resolvedParams.slug);
-    if (!article) notFound();
+                if (!response.ok) {
+                    throw new Error('Article not found');
+                }
+
+                const data = await response.json();
+                dispatch(setCurrentArticle(data));
+            } catch (error) {
+                console.error('Error fetching article:', error);
+                router.push('/404');
+            }
+        };
+
+        fetchArticle();
+    }, [category, slug, dispatch, router]); // Dependencies ensure effect runs on param changes
+
+    if (!article) {
+        return <div>Loading...</div>;
+    }
 
     return (
-        <main className="article-page">
-            <h1>{article.title}</h1>
-            <div className="meta">
-                <p>Category: {resolvedParams.category}</p>
-                {/* Add other article metadata */}
-            </div>
-            <div className="content">{article.content}</div>
-        </main>
+        <AnimatedWrapper
+            className="article-page"
+            // ...existing animation props...
+        >
+            <article className="article-content">
+                <h1>{article.title}</h1>
+                <div className="meta">
+                    <p>Category: {category}</p>
+                    {/* <p>Author: {article.author.firstname} {article.author.lastname}</p> */}
+                    {/* ...other metadata... */}
+                </div>
+                <div className="content">{article.body}</div>
+            </article>
+        </AnimatedWrapper>
     );
 }
