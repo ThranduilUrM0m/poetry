@@ -161,35 +161,57 @@ export default function SearchModal({
     };
 
     const generateSearchSuggestions = (articles: Article[]): SearchSuggestion[] => {
+        // Helper function to create suggestion objects
         const createSuggestion = (
-            article: Article,
+            id: string,
             type: 'title' | 'category' | 'author' | 'tag',
             title: string,
+            article: Article,
             priority: number,
             icon?: JSX.Element
         ): SearchSuggestion => ({
-            _id: `${article._id}-${type}`,
-            title,
+            _id: id,
+            title: _.startCase(title), // Capitalize first letter of each word
             type,
             source: article,
             priority,
-            icon, // Add icon to the suggestion object
+            icon,
         });
 
-        return _.flatMap(articles, (article) => [
-            createSuggestion(article, 'title', article.title, 1),
-            createSuggestion(article, 'category', article.category, 2),
-            ...article.tags.map((tag) =>
-                createSuggestion(article, 'tag', tag, 3, <Hash size={16} />)
-            ),
-            createSuggestion(
-                article,
-                'author',
-                article.author.username,
-                4,
-                <UserSearch size={16} />
-            ),
-        ]);
+        // Get unique values using Sets with case-insensitive comparison
+        const uniqueTitles = new Set(articles.map(a => _.startCase(a.title)));
+        const uniqueCategories = new Set(articles.map(a => _.startCase(a.category)));
+        const uniqueTags = new Set(articles.flatMap(a => a.tags.map(tag => _.startCase(tag))));
+        const uniqueAuthors = new Set(articles.map(a => _.startCase(a.author.username)));
+
+        // Create suggestions arrays
+        const suggestions: SearchSuggestion[] = [];
+
+        // Add title suggestions
+        uniqueTitles.forEach(title => {
+            const article = articles.find(a => _.toLower(a.title) === _.toLower(title))!;
+            suggestions.push(createSuggestion(`title-${_.toLower(title)}`, 'title', title, article, 1));
+        });
+
+        // Add category suggestions
+        uniqueCategories.forEach(category => {
+            const article = articles.find(a => _.toLower(a.category) === _.toLower(category))!;
+            suggestions.push(createSuggestion(`category-${_.toLower(category)}`, 'category', category, article, 2));
+        });
+
+        // Add tag suggestions
+        uniqueTags.forEach(tag => {
+            const article = articles.find(a => a.tags.some(t => _.toLower(t) === _.toLower(tag)))!;
+            suggestions.push(createSuggestion(`tag-${_.toLower(tag)}`, 'tag', tag, article, 3, <Hash size={16} />));
+        });
+
+        // Add author suggestions
+        uniqueAuthors.forEach(username => {
+            const article = articles.find(a => _.toLower(a.author.username) === _.toLower(username))!;
+            suggestions.push(createSuggestion(`author-${_.toLower(username)}`, 'author', username, article, 4, <UserSearch size={16} />));
+        });
+
+        return suggestions;
     };
 
     const getFuzzyMatches = (
@@ -252,17 +274,23 @@ export default function SearchModal({
             // Tags: OR within themselves
             const tagMatches =
                 !groupedSuggestions.tag ||
-                groupedSuggestions.tag.some((tag) => article.tags.includes(tag.title));
+                groupedSuggestions.tag.some((tag) => 
+                    article.tags.some(t => _.toLower(t) === _.toLower(tag.title))
+                );
 
             // Categories: OR within themselves
             const categoryMatches =
                 !groupedSuggestions.category ||
-                groupedSuggestions.category.some((cat) => article.category === cat.title);
+                groupedSuggestions.category.some((cat) => 
+                    _.toLower(article.category) === _.toLower(cat.title)
+                );
 
             // Authors: OR within themselves
             const authorMatches =
                 !groupedSuggestions.author ||
-                groupedSuggestions.author.some((auth) => article.author.username === auth.title);
+                groupedSuggestions.author.some((auth) => 
+                    _.toLower(article.author.username) === _.toLower(auth.title)
+                );
 
             // AND between different types
             return tagMatches && categoryMatches && authorMatches;
