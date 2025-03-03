@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { Hash } from 'lucide-react';
 import { Article } from '@/types/article';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
@@ -33,7 +32,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
         >
-            <Link href={`/${article.category}/${article.slug}`}>
+            <a href={`/${article.category}/${article.slug}`}>
                 <h3 className="title">{article.title}</h3>
                 <div className="meta">
                     <span className="author">
@@ -54,7 +53,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                 <div className="location">
                     {article.author.city}, {article.author.country?._country}
                 </div>
-            </Link>
+            </a>
         </AnimatedWrapper>
     );
 }
