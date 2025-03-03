@@ -1,13 +1,13 @@
 // src/slices/articleSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
-import { Article } from '@/types/article';
+import { ArticleForRedux } from '@/types/article';
 
 // Define the initial state
 interface ArticleState {
-    articles: Article[];
-    currentArticle: Article | null;
-    cachedArticles: { [key: string]: Article };
+    articles: ArticleForRedux[];
+    currentArticle: ArticleForRedux | null;
+    cachedArticles: { [key: string]: ArticleForRedux };
     isLoading: boolean;
     error: string | null;
 }
@@ -25,30 +25,30 @@ const articleSlice = createSlice({
     name: 'article',
     initialState,
     reducers: {
-        setArticles(state, action: PayloadAction<Article[]>) {
+        setArticles(state, action: PayloadAction<ArticleForRedux[]>) {
             state.articles = action.payload;
         },
-        addArticle(state, action: PayloadAction<Article>) {
+        addArticle(state, action: PayloadAction<ArticleForRedux>) {
             state.articles.push(action.payload);
         },
-        updateArticle(state, action: PayloadAction<Article>) {
-            const index = state.articles.findIndex((article) => article.id === action.payload.id);
+        updateArticle(state, action: PayloadAction<ArticleForRedux>) {
+            const index = state.articles.findIndex((article) => article._id === action.payload._id);
             if (index !== -1) {
                 state.articles[index] = action.payload;
             }
         },
         deleteArticle(state, action: PayloadAction<string>) {
-            state.articles = state.articles.filter((article) => article.id !== action.payload);
+            state.articles = state.articles.filter((article) => article._id !== action.payload);
         },
-        setCurrentArticle(state, action: PayloadAction<Article>) {
+        setCurrentArticle(state, action: PayloadAction<ArticleForRedux>) {
             state.currentArticle = action.payload;
-            state.cachedArticles[action.payload.id] = action.payload;
+            state.cachedArticles[action.payload._id] = action.payload;
         },
         clearCurrentArticle(state) {
             state.currentArticle = null;
         },
-        setCachedArticle(state, action: PayloadAction<Article>) {
-            state.cachedArticles[action.payload.id] = action.payload;
+        setCachedArticle(state, action: PayloadAction<ArticleForRedux>) {
+            state.cachedArticles[action.payload._id] = action.payload;
         },
         setLoading(state, action: PayloadAction<boolean>) {
             state.isLoading = action.payload;
@@ -73,10 +73,10 @@ export const {
 } = articleSlice.actions;
 export default articleSlice.reducer;
 
-// Selector
+// Selectors
 export const selectArticles = (state: RootState) => state.article.articles;
 export const selectCurrentArticle = (state: RootState) => state.article.currentArticle;
-export const selectCachedArticle = (id: string) => (state: RootState) =>
-    state.article.cachedArticles[id];
+export const selectCachedArticle = (_id: string) => (state: RootState) =>
+    state.article.cachedArticles[_id];
 export const selectIsLoading = (state: RootState) => state.article.isLoading;
 export const selectError = (state: RootState) => state.article.error;

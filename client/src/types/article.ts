@@ -37,3 +37,29 @@ export interface Article {
     updatedAt: Date;
     slug?: string;
 }
+
+// Redux-specific interface with `_id` as string
+export interface ArticleForRedux
+    extends Omit<Article, '_id' | 'comments' | 'views' | 'upvotes' | 'downvotes'> {
+    _id: string;
+    comments: string[];
+    views: string[];
+    upvotes: string[];
+    downvotes: string[];
+}
+
+/* When fetching data from backend, ensure that you convert _id and other Types.ObjectId fields to strings before storing them in Redux */
+/* const response = await fetch('/api/articles');
+const data = await response.json();
+
+// Convert _id and other ObjectId fields to strings
+const articlesForRedux: ArticleForRedux[] = data.map((article: Article) => ({
+    ...article,
+    _id: article._id.toString(),
+    comments: article.comments.map((comment) => comment.toString()),
+    views: article.views.map((view) => view.toString()),
+    upvotes: article.upvotes.map((upvote) => upvote.toString()),
+    downvotes: article.downvotes.map((downvote) => downvote.toString()),
+}));
+
+dispatch(setArticles(articlesForRedux)); */
