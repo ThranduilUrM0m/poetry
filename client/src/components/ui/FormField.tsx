@@ -575,13 +575,16 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                     .city
                                                                                             }
                                                                                             ,{' '}
-                                                                                            {
-                                                                                                typedItem
-                                                                                                    .source
-                                                                                                    .author
-                                                                                                    .country
-                                                                                                    ._country
-                                                                                            }
+                                                                                            {typedItem
+                                                                                                .source
+                                                                                                .author
+                                                                                                .country
+                                                                                                ? typedItem
+                                                                                                      .source
+                                                                                                      .author
+                                                                                                      .country
+                                                                                                      ._country
+                                                                                                : ''}
                                                                                         </div>
                                                                                     </div>
                                                                                 ) : typedItem.type ===
