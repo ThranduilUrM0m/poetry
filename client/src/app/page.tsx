@@ -91,7 +91,6 @@ export default function HomePage() {
         swipeToSlide: true,
         arrows: false,
         onInit: () => {
-            console.log('Hey Bitch');
             _handleArticleJSONTOHTML(_articles, 0);
         },
         beforeChange: (current: number, next: number) => {

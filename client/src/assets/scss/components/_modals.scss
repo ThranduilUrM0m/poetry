@@ -130,48 +130,52 @@
             .article-card {
                 @apply relative flex flex-col h-full border-[2vh] border-solid border-[rgb(var(--primary-light)/.75)] bg-[rgb(var(--white)/.75)] backdrop-blur-[.25vh] p-[2vh] m-0 overflow-hidden;
 
-                .title {
-                    @apply text-[3vh] font-bold mb-[1vh] text-[rgb(var(--text)/1)];
-                }
-
-                .meta {
-                    @apply flex gap-[1.25vh] text-[2vh] mb-[1vh] text-[rgb(var(--text)/.75)];
-
-                    .author {
-                        @apply font-bold;
+                a {
+                    @apply flex flex-col h-full;
+                    .title {
+                        @apply text-[3vh] font-bold mb-[1vh] text-[rgb(var(--text)/1)];
                     }
-
-                    .username {
-                        @apply text-[rgb(var(--text)/.35)];
-                    }
-
-                    .category {
-                        @apply text-[rgb(var(--primary-dark)/1)] ml-auto;
-                    }
-                }
-
-                .preview {
-                    @apply text-[2vh] text-[rgb(var(--text)/.5)] my-[1.5vh] h-[10vh];
-                }
-
-                .tags {
-                    @apply flex gap-[1vh] mb-[1vh] mt-auto ml-auto w-[60%] truncate;
-                    min-height: min-content;
-                    max-height: 6vh;
-
-                    .tag {
-                        @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
-                        @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
-                        @apply text-[1.75vh] font-semibold;
-
-                        svg {
-                            @apply w-[2vh] h-[2vh];
+    
+                    .meta {
+                        @apply flex gap-[1.25vh] text-[2vh] mb-[1vh] text-[rgb(var(--text)/.75)];
+    
+                        .author {
+                            @apply font-bold;
+                        }
+    
+                        .username {
+                            @apply text-[rgb(var(--text)/.35)];
+                        }
+    
+                        .category {
+                            @apply text-[rgb(var(--primary-dark)/1)] ml-auto;
                         }
                     }
-                }
-
-                .location {
-                    @apply text-[1.75vh] text-[rgb(var(--text)/.35)];
+    
+                    .preview {
+                        @apply text-[2vh] text-[rgb(var(--text)/.5)] my-[1.5vh] truncate;
+                        max-height: 10vh;
+                    }
+    
+                    .tags {
+                        @apply flex gap-[1vh] mb-[1vh] mt-auto ml-auto w-[60%] truncate justify-end;
+                        min-height: min-content;
+                        max-height: 6vh;
+    
+                        .tag {
+                            @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
+                            @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+                            @apply text-[1.75vh] font-semibold;
+    
+                            svg {
+                                @apply w-[2vh] h-[2vh];
+                            }
+                        }
+                    }
+    
+                    .location {
+                        @apply text-[1.75vh] text-[rgb(var(--text)/.35)];
+                    }
                 }
             }
         }
