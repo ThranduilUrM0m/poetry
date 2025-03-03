@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 import { dummyArticles } from '@/data/dummyArticles';
 
 export async function GET(
-    request: Request,
-    { params }: { params: { category: string; slug: string } }
+    req: Request,
+    context: {
+        params: {
+            category: string;
+            slug: string;
+        }
+    }
 ) {
     const article = dummyArticles.find(
-        (article) => article.category === params.category && article.slug === params.slug
+        (article) => article.category === context.params.category && article.slug === context.params.slug
     );
 
     if (!article) {
