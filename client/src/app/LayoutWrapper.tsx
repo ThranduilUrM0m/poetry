@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -52,6 +53,7 @@ export default function LayoutWrapper({ children }: Readonly<{ children: React.R
             {/* Animate Header */}
             {!isDashboard && (
                 <AnimatedWrapper
+                    as={React.Fragment}
                     variants={headerVariants}
                     initial="closed" // Start from the "closed" state
                     animate="open" // Animate to the "open" state
@@ -67,6 +69,7 @@ export default function LayoutWrapper({ children }: Readonly<{ children: React.R
             {/* Animate Footer */}
             {!isDashboard && (
                 <AnimatedWrapper
+                    as={React.Fragment}
                     variants={footerVariants}
                     initial="closed" // Pass initial
                     animate={'open'} // Pass animate

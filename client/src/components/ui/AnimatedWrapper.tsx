@@ -1,5 +1,6 @@
 'use client';
 
+import React, { forwardRef, ReactElement, useRef } from 'react';
 import {
     motion,
     HTMLMotionProps,
@@ -8,14 +9,13 @@ import {
     VariantLabels,
     Transition,
 } from 'framer-motion';
-import React, { forwardRef, ReactElement, useRef } from 'react';
 
 // Define a type for valid HTML element tag names
 type HTMLElementTag = keyof HTMLElementTagNameMap;
 
 // Define a type for the 'as' prop, allowing only valid HTML element tag names
 type AsProp<T extends HTMLElementTag> = {
-    as?: T;
+    as?: T | React.ElementType; // Allow React.ElementType for React.Fragment
 };
 
 // Define animation props
@@ -64,7 +64,7 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     const Component = as || 'div';
 
     // Create a motion component for the dynamically determined element
-    const MotionComponent = motion[Component] as React.ElementType;
+    const MotionComponent = motion[Component as keyof typeof motion] as React.ElementType;
 
     // Ref to track the animated element
     const elementRef = useRef<HTMLElement>(null);

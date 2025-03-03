@@ -3,6 +3,8 @@ import LayoutWrapper from './LayoutWrapper';
 import Providers from '@/components/providers';
 import '@/assets/scss/globals.scss';
 import 'simplebar/dist/simplebar.min.css';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 export const metadata: Metadata = {
     title: 'Create Next App',

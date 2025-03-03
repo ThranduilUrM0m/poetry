@@ -1,15 +1,8 @@
 .home {
-    @apply w-full;
+    @apply w-full h-full;
 
     // Global Section Styles
     &__section {
-
-        &-1,
-        &-2,
-        &-3,
-        &-4 {}
-
-        // Section 1
         &-1 {
             @apply flex justify-stretch;
 
@@ -51,12 +44,12 @@
 
                 &::before {
                     content: '';
-                    @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.25)] top-1/2 -right-0 backdrop-blur-[.75vh] -translate-y-1/2;
+                    @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.5)] top-1/2 -right-0 backdrop-blur-[.75vh] -translate-y-1/2;
                 }
 
                 &::after {
                     content: '';
-                    @apply z-[-1] absolute w-[30vw] h-[20vh] bg-[rgb(var(--primary-light)/.1)] bottom-0 left-1/2 backdrop-blur-[.75vh] -translate-x-1/4;
+                    @apply z-[-1] absolute w-[30vw] h-[20vh] bg-[rgb(var(--primary-light)/.25)] bottom-0 left-1/2 backdrop-blur-[.75vh] -translate-x-1/4;
                 }
             }
 
@@ -79,6 +72,143 @@
                     &::before {
                         content: '';
                         @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.25)] top-1/2 -left-[5vh] backdrop-blur-[.75vh] -translate-y-1/2;
+                    }
+                }
+            }
+        }
+
+        &-2 {
+            @apply flex justify-stretch;
+
+            &-left,
+            &-right {
+                @apply relative;
+            }
+
+            // Left Column
+            &-left {
+                @apply basis-1/3;
+            }
+
+            // Right Column
+            &-right {
+                @apply basis-2/3;
+
+                ._sliderArticles {
+                    @apply relative p-[5vh] w-full h-full;
+
+                    .slick-slider {
+                        @apply relative p-[5vh] w-full h-full;
+
+                        .slick-list {
+                            .slick-track {
+                                .slick-slide {
+                                    @apply bg-[rgb(var(--white)/1)];
+
+                                    &>div {
+                                        ._card {
+                                            @apply relative bg-[rgb(var(--white)/1)] m-0 p-[2.75vh] h-[60vh];
+
+                                            &Body {
+                                                @apply relative overflow-hidden h-full;
+
+                                                ._form {
+                                                    @apply flex flex-col h-full;
+
+                                                    .category_author {
+                                                        @apply relative text-[1.75vh] w-fit h-fit mb-auto text-[rgb(var(--text)/.5)];
+
+                                                        &::before {
+                                                            @apply absolute bg-[rgb(var(--primary)/.25)] w-[200%] h-[.25vh] top-1/2 left-[calc(100%+5vh)] -translate-y-1/2;
+                                                            content: '';
+                                                        }
+                                                    }
+
+                                                    .firstPhrase {
+                                                        @apply text-[4vh] leading-[1.2];
+                                                    }
+
+                                                    h2 {
+                                                        @apply relative font-serif font-medium text-[6vh] text-[rgb(var(--text)/1)] m-0;
+
+                                                        span {
+                                                            @apply text-[rgb(var(--primary)/1)];
+                                                        }
+
+                                                        &::before {
+                                                            @apply absolute bg-[rgb(var(--text)/.5)] w-0 h-[.25vh] left-0 bottom-0 transition-all duration-500 ease-in-out;
+                                                            content: '';
+                                                        }
+                                                    }
+
+                                                    ._button {
+                                                        @apply self-end;
+                                                    }
+                                                    
+                                                    .information {
+                                                        @apply flex items-center gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
+
+                                                        svg {
+                                                            @apply mx-[1.75vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        .slick-dots {
+                            @apply absolute top-1/2 right-0 translate-x-full -translate-y-1/2 w-[4vh] h-[20vh];
+
+                            li {
+                                @apply hidden my-[.5vh] w-[3vh] h-[3vh];
+
+                                &.slick-active {
+                                    @apply h-[11vh];
+
+                                    button {
+                                        @apply p-0 w-full h-full;
+
+                                        &::before {
+                                            @apply block rounded-[2.5vh] bg-[rgb(var(--text)/1)] w-[.3vh] h-full;
+                                            content: '';
+                                        }
+                                    }
+                                }
+
+                                &:not(.slick-active) {
+                                    button {
+                                        @apply p-0 text-[2vh] leading-[3vh] text-[rgb(var(--text)/1)] w-full h-full;
+                                    }
+                                }
+
+                                &:has(+ .slick-active),
+                                &.slick-active,
+                                &.slick-active+li {
+                                    @apply inline-block;
+                                }
+                            }
+                        }
+                    }
+
+                    ._shadowIndex {
+                        @apply absolute opacity-25 m-0 text-[20vh] leading-[20vh] font-serif font-bold text-[rgb(var(--primary)/1)] whitespace-nowrap top-full left-1/2 -translate-x-[65%] -translate-y-[80%] w-fit h-fit;
+
+                        p {
+                            @apply m-0;
+                        }
+
+                        &._number {
+                            @apply top-0 right-0 translate-y-full rotate-90 origin-top-right;
+
+                            &._outlined {
+                                @apply text-transparent stroke-[.1vh] text-[rgb(var(--text)/1)] translate-x-[5%] translate-y-[105%] rotate-90;
+                                content: var(--before-content);
+                            }
+                        }
                     }
                 }
             }

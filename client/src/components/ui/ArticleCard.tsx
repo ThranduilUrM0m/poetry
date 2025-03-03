@@ -1,26 +1,16 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { Hash } from 'lucide-react';
-import { ArticleSuggestion } from '@/types/search';
+import { Article } from '@/types/article';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import _ from 'lodash';
 
 interface ArticleCardProps {
-    readonly article: ArticleSuggestion;
-    readonly onNavigate?: () => void;
+    readonly article: Article;
 }
 
-export default function ArticleCard({ article, onNavigate }: ArticleCardProps) {
-    const router = useRouter();
-
-    const handleClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        if (onNavigate) onNavigate();
-        router.push(`/${article.category}/${article.slug}`);
-    };
-
+export default function ArticleCard({ article }: ArticleCardProps) {
     return (
         <AnimatedWrapper
             as="div"
@@ -28,7 +18,7 @@ export default function ArticleCard({ article, onNavigate }: ArticleCardProps) {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
         >
-            <a href={`/${article.category}/${article.slug}`} onClick={handleClick}>
+            <a href={`/${article.category}/${article.slug}`}>
                 <h3 className="title">{article.title}</h3>
                 <div className="meta">
                     <span className="author">
@@ -48,7 +38,7 @@ export default function ArticleCard({ article, onNavigate }: ArticleCardProps) {
                     ))}
                 </div>
                 <div className="location">
-                    {article.author.city}, {article.author.country}
+                    {article.author.city}, {article.author.country?._country}
                 </div>
             </a>
         </AnimatedWrapper>

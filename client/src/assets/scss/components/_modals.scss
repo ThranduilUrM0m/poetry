@@ -178,6 +178,32 @@
 
         ._footer {
             @apply p-4 border-t;
+            @apply h-[10vh] border-t border-[rgb(var(--hoverGray)/.25)] px-[2.5vh] flex items-center;
+            @apply flex justify-between items-center;
+
+            ._pageNumbers {
+                @apply flex gap-[1vh] items-center justify-center;
+
+                li {
+                    @apply w-[2vh] h-[1vh] rounded-full bg-[rgb(var(--text)/.25)] cursor-pointer transition-all;
+
+                    &.current {
+                        @apply w-[4vh] bg-[rgb(var(--text)/1)];
+                    }
+
+                    &:hover {
+                        @apply bg-[rgb(var(--text)/.5)];
+                    }
+                }
+            }
+
+            .results-info {
+                @apply text-[2vh] text-[rgb(var(--text)/.75)];
+
+                strong {
+                    @apply text-[rgb(var(--text)/1)] font-semibold;
+                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Types } from 'mongoose';
 import { useCombobox } from 'downshift';
 import { AnimatePresence } from 'framer-motion';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
@@ -20,10 +21,26 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     onSuggestionSelect?: (suggestion: S) => void; // Use the generic type S
     onInputChange?: (value: string) => void;
     allArticles?: Array<{
-        // Add this new property
-        id: string;
+        _id: Types.ObjectId;
+        title: string;
+        body: string;
+        author: {
+            username: string;
+            firstname?: string;
+            lastname?: string;
+            city?: string;
+            country?: { _code: string; _country: string };
+        };
         category: string;
-        // ... other article properties
+        isPrivate: boolean;
+        tags: string[];
+        comments: Types.ObjectId[];
+        views: Types.ObjectId[];
+        upvotes: Types.ObjectId[];
+        downvotes: Types.ObjectId[];
+        createdAt: Date;
+        updatedAt: Date;
+        slug?: string;
     }>;
     selectedSuggestions?: S[];
 }
@@ -189,7 +206,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     // Update inputItems when suggestions change
     useEffect(() => {
         const filteredItems = suggestions.filter(
-            (item) => !selectedSuggestions?.some((s) => s.id === item.id)
+            (item) => !selectedSuggestions?.some((s) => s._id === item._id)
         );
         setInputItems(filteredItems);
     }, [suggestions, selectedSuggestions]);
@@ -492,7 +509,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                         );
                                                                     return (
                                                                         <AnimatedWrapper
-                                                                            key={`${typedItem.id}${index}`}
+                                                                            key={`${typedItem._id}${index}`}
                                                                             className={`suggestion-item ${
                                                                                 highlightedIndex ===
                                                                                 globalIndex
@@ -563,6 +580,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                     .source
                                                                                                     .author
                                                                                                     .country
+                                                                                                    ._country
                                                                                             }
                                                                                         </div>
                                                                                     </div>

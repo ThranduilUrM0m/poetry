@@ -38,6 +38,10 @@ export class Article {
 
     @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
     status: string;
+
+    // Timestamp fields will be automatically managed by Mongoose
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 // Create the ArticleSchema

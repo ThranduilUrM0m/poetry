@@ -1,5 +1,9 @@
 import { Document } from 'mongoose';
 export type UserDocument = User & Document;
+interface Country {
+    _code: string;
+    _country: string;
+}
 export declare class User {
     email: string;
     username: string;
@@ -7,10 +11,12 @@ export declare class User {
     firstName?: string;
     lastName?: string;
     city?: string;
-    country?: string;
+    country?: Country;
     phone?: string;
     isVerified: boolean;
     isActive: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, Document<unknown, any, User> & User & {
     _id: import("mongoose").Types.ObjectId;
@@ -21,3 +27,4 @@ export declare const UserSchema: import("mongoose").Schema<User, import("mongoos
 } & {
     __v: number;
 }>;
+export {};

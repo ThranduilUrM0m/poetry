@@ -12,6 +12,8 @@ export declare class Article {
     upvotes: Types.ObjectId[];
     downvotes: Types.ObjectId[];
     status: string;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 export declare const ArticleSchema: import("mongoose").Schema<Article, import("mongoose").Model<Article, any, any, any, Document<unknown, any, Article> & Article & {
     _id: Types.ObjectId;

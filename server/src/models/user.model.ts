@@ -6,8 +6,13 @@ import * as passwordHash from 'password-hash'; // Password hashing utility
 // Create a custom type that combines User class with Mongoose Document
 export type UserDocument = User & Document;
 
+interface Country {
+    _code: string; // Country code (e.g., 'MA')
+    _country: string; // Country name (e.g., 'Morocco')
+}
+
 // Define User schema using decorators
-@Schema()
+@Schema({ timestamps: true }) // Add timestamps option here
 export class User {
     // Required fields with unique constraints
     @Prop({ required: true, unique: true })
@@ -29,8 +34,8 @@ export class User {
     @Prop()
     city?: string;
 
-    @Prop()
-    country?: string;
+    @Prop({ type: { _code: String, _country: String } }) // Define the structure of the country object
+    country?: Country;
 
     @Prop()
     phone?: string;
@@ -41,6 +46,10 @@ export class User {
 
     @Prop({ default: false })
     isActive: boolean;
+
+    // Timestamp fields will be automatically managed by Mongoose
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 // Create Mongoose schema from the User class

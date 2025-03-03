@@ -39,8 +39,7 @@ body {
         min-height: 100vh;
 
         section {
-            @apply relative my-[10vh];
-            min-height: calc(100vh - 20vh);
+            @apply relative h-[100vh] py-[10vh];
         }
     }
 }

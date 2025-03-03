@@ -14,28 +14,6 @@ export declare class AuthService {
         user: Omit<AuthUser, "password">;
         access_token: string;
     }>;
-    register(userData: Partial<User>): Promise<{
-        email: string;
-        username: string;
-        firstName?: string;
-        lastName?: string;
-        city?: string;
-        country?: string;
-        phone?: string;
-        isVerified: boolean;
-        isActive: boolean;
-        _id: unknown;
-        $locals: Record<string, unknown>;
-        $op: "save" | "validate" | "remove" | null;
-        $where: Record<string, unknown>;
-        baseModelName?: string;
-        collection: import("mongoose").Collection;
-        db: import("mongoose").Connection;
-        errors?: import("mongoose").Error.ValidationError;
-        id?: any;
-        isNew: boolean;
-        schema: import("mongoose").Schema;
-        __v: number;
-    }>;
+    register(userData: Partial<User>): Promise<Omit<User, 'password'>>;
 }
 export {};

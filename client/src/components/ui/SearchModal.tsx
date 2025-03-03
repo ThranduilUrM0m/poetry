@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, JSX } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { Search, Hash, UserSearch } from 'lucide-react'; // Add Hash and UserSearch imports
+import { Search, Hash, UserSearch } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
@@ -14,7 +13,8 @@ import Overlay from '@/components/ui/Overlay';
 import SearchResults from '@/components/ui/SearchResults';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { dummyArticles } from '@/data/dummyArticles';
-import { SearchSuggestion, ArticleSuggestion } from '@/types/search';
+import { SearchSuggestion } from '@/types/search';
+import { Article } from '@/types/article';
 
 import _ from 'lodash';
 
@@ -36,12 +36,22 @@ const modalVariants = {
         y: 0,
         scale: 1,
         display: 'block',
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.2,
+            when: 'afterChildren',
+        },
     },
     closed: {
         opacity: 0,
         x: '-50%',
         y: -50,
         scale: 0.95,
+        transition: {
+            staggerChildren: 0.05,
+            staggerDirection: -1,
+            when: 'afterChildren',
+        },
         transitionEnd: {
             display: 'none',
         },
@@ -50,7 +60,7 @@ const modalVariants = {
 
 // Add this helper function
 const getCompatibleSuggestions = (
-    articles: ArticleSuggestion[],
+    articles: Article[],
     selected: SearchSuggestion[],
     current: SearchSuggestion[]
 ): SearchSuggestion[] => {
@@ -102,15 +112,27 @@ export default function SearchModal({
     isSearchOpen: boolean;
     onSearchClose: () => void;
 }>) {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-
     const modalRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
-    const [articleSuggestions, setArticleSuggestions] = useState<ArticleSuggestion[]>([]);
+    const [articleSuggestions, setArticleSuggestions] = useState<Article[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [transformedSuggestions, setTransformedSuggestions] = useState<SearchSuggestion[]>([]);
     const [selectedSuggestions, setSelectedSuggestions] = useState<SearchSuggestion[]>([]);
+
+    // Add pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const cardsPerPage = 4; // Shows 9 cards per page
+
+    const handleClickPage = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+    // Calculate pagination values
+    const getPaginatedArticles = (articles: Article[]) => {
+        const indexOfLastCard = currentPage * cardsPerPage;
+        const indexOfFirstCard = indexOfLastCard - cardsPerPage;
+        return articles.slice(indexOfFirstCard, indexOfLastCard);
+    };
 
     // Use the schema in the useForm hook
     const {
@@ -138,15 +160,15 @@ export default function SearchModal({
         clearErrors('searchQuery');
     };
 
-    const generateSearchSuggestions = (articles: ArticleSuggestion[]): SearchSuggestion[] => {
+    const generateSearchSuggestions = (articles: Article[]): SearchSuggestion[] => {
         const createSuggestion = (
-            article: ArticleSuggestion,
+            article: Article,
             type: 'title' | 'category' | 'author' | 'tag',
             title: string,
             priority: number,
             icon?: JSX.Element
         ): SearchSuggestion => ({
-            id: `${article.id}-${type}`,
+            _id: `${article._id}-${type}`,
             title,
             type,
             source: article,
@@ -172,10 +194,10 @@ export default function SearchModal({
 
     const getFuzzyMatches = (
         searchTerm: string,
-        articles: ArticleSuggestion[]
+        articles: Article[]
     ): {
-        exactMatches: ArticleSuggestion[];
-        similarMatches: ArticleSuggestion[];
+        exactMatches: Article[];
+        similarMatches: Article[];
     } => {
         const searchLower = _.toLower(searchTerm);
 
@@ -219,9 +241,9 @@ export default function SearchModal({
     };
 
     const filterArticlesBySuggestions = (
-        articles: ArticleSuggestion[],
+        articles: Article[],
         suggestions: SearchSuggestion[]
-    ): ArticleSuggestion[] => {
+    ): Article[] => {
         if (suggestions.length === 0) return articles;
 
         const groupedSuggestions = _.groupBy(suggestions, 'type');
@@ -302,7 +324,7 @@ export default function SearchModal({
 
     const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
         // Don't add duplicate selections
-        if (selectedSuggestions.some((s) => s.id === suggestion.id)) {
+        if (selectedSuggestions.some((s) => s._id === suggestion._id)) {
             return;
         }
 
@@ -329,7 +351,7 @@ export default function SearchModal({
     };
 
     const handleRemoveSuggestion = (suggestionToRemove: SearchSuggestion) => {
-        const newSelections = selectedSuggestions.filter((s) => s.id !== suggestionToRemove.id);
+        const newSelections = selectedSuggestions.filter((s) => s._id !== suggestionToRemove._id);
         setSelectedSuggestions(newSelections);
 
         // Refilter articles with remaining selections
@@ -356,10 +378,13 @@ export default function SearchModal({
         };
 
         const handleClickOutside = (event: MouseEvent) => {
-            if (overlayRef.current && overlayRef.current.contains(event.target as Node)) {
+            if (
+                modalRef.current &&
+                !modalRef.current.contains(event.target as Node) && // Click is outside the modal
+                overlayRef.current &&
+                overlayRef.current.contains(event.target as Node) // Click is on the overlay
+            ) {
                 onSearchClose();
-            } else if (modalRef.current && modalRef.current.contains(event.target as Node)) {
-                return;
             }
         };
 
@@ -368,21 +393,11 @@ export default function SearchModal({
             document.addEventListener('mousedown', handleClickOutside);
         }
 
-        // Listen for route changes using pathname and searchParams
-        const handleRouteChange = () => {
-            if (isSearchOpen) {
-                onSearchClose();
-            }
-        };
-
-        // Trigger handleRouteChange when pathname or searchParams change
-        handleRouteChange();
-
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isSearchOpen, onSearchClose, pathname, searchParams]);
+    }, [isSearchOpen, onSearchClose]);
 
     return (
         <AnimatePresence mode="wait">
@@ -463,43 +478,47 @@ export default function SearchModal({
                         <div className="_body">
                             <SearchResults
                                 selectedSuggestions={selectedSuggestions}
-                                articleSuggestions={articleSuggestions}
+                                articleSuggestions={getPaginatedArticles(articleSuggestions)}
                                 onRemoveSuggestion={handleRemoveSuggestion}
                                 onClearAllSuggestions={handleClearAllSuggestions}
+                                onSearchClose={onSearchClose}
                             />
                         </div>
 
                         {/* Footer */}
-                        {/* <div className="_footer">
-                                <div className="flex justify-between items-center">
-                                    <p className="text-sm text-gray-600">
-                                        Showing{' '}
-                                        <strong>
-                                            {currentPage * cardsPerPage - cardsPerPage + 1} -{' '}
-                                            {Math.min(
-                                                currentPage * cardsPerPage,
-                                                _.size(filteredArticles)
-                                            )}
-                                        </strong>{' '}
-                                        of <strong>{_.size(filteredArticles)}</strong> articles.
-                                    </p>
-                                    <div className="flex space-x-1">
-                                        {_.times(totalPages, (page: number) => (
-                                            <button
-                                                key={page + 1}
-                                                onClick={() => handlePageClick(page + 1)}
-                                                className={`px-2 py-1 border rounded ${
-                                                    currentPage === page + 1
-                                                        ? 'bg-blue-500 text-white'
-                                                        : 'bg-white text-blue-500'
-                                                }`}
-                                            >
-                                                {page + 1}
-                                            </button>
-                                        ))}
-                                    </div>
+                        <div className="_footer">
+                            <div className="results-info">
+                                <div>
+                                    Showing&nbsp;
+                                    <strong>{currentPage * cardsPerPage - cardsPerPage + 1}</strong>
+                                    &nbsp;to&nbsp;
+                                    <strong>
+                                        {Math.min(
+                                            currentPage * cardsPerPage,
+                                            articleSuggestions.length
+                                        )}
+                                    </strong>
+                                    &nbsp;of&nbsp;
+                                    <strong>{articleSuggestions.length}</strong>
+                                    &nbsp;articles.
                                 </div>
-                            </div> */}
+                            </div>
+                            <ul className="_pageNumbers">
+                                {_.map(
+                                    _.range(
+                                        1,
+                                        Math.ceil(articleSuggestions.length / cardsPerPage) + 1
+                                    ),
+                                    (number) => (
+                                        <li
+                                            key={number}
+                                            onClick={() => handleClickPage(number)}
+                                            className={currentPage === number ? 'current' : ''}
+                                        ></li>
+                                    )
+                                )}
+                            </ul>
+                        </div>
                     </AnimatedWrapper>
                 </>
             )}

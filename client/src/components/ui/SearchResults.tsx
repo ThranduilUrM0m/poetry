@@ -1,11 +1,13 @@
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import SimpleBar from 'simplebar-react';
 
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import ArticleCard from '@/components/ui/ArticleCard';
-import { SearchSuggestion, ArticleSuggestion } from '@/types/search';
+import { SearchSuggestion } from '@/types/search';
+import { Article } from '@/types/article';
 
 // Animation variants
 const containerVariants = {
@@ -28,9 +30,10 @@ const cardVariants = {
 
 interface SearchResultsProps {
     readonly selectedSuggestions: ReadonlyArray<SearchSuggestion>;
-    readonly articleSuggestions: ReadonlyArray<ArticleSuggestion>;
+    readonly articleSuggestions: ReadonlyArray<Article>;
     readonly onRemoveSuggestion: (suggestion: SearchSuggestion) => void;
     readonly onClearAllSuggestions: () => void;
+    readonly onSearchClose: () => void;
 }
 
 export default function SearchResults({
@@ -38,7 +41,16 @@ export default function SearchResults({
     articleSuggestions,
     onRemoveSuggestion,
     onClearAllSuggestions,
+    onSearchClose,
 }: Readonly<SearchResultsProps>) {
+    const router = useRouter();
+
+    const handleArticleClick = (article: Article) => {
+        onSearchClose(); // Close the modal
+        // Use the article's slug and category for navigation
+        router.push(`/${article.category.toLowerCase()}/${article.slug}`);
+    };
+
     return (
         <AnimatedWrapper
             className="search-results-container"
@@ -69,7 +81,7 @@ export default function SearchResults({
                                     <AnimatePresence>
                                         {selectedSuggestions.map((suggestion) => (
                                             <AnimatedWrapper
-                                                key={suggestion.id}
+                                                key={suggestion._id}
                                                 className={`selected-tag ${suggestion.type}`}
                                                 variants={tagVariants}
                                                 initial="initial"
@@ -102,7 +114,8 @@ export default function SearchResults({
                         <AnimatePresence>
                             {articleSuggestions.map((article, index) => (
                                 <AnimatedWrapper
-                                    key={article.id}
+                                    key={article._id.toString()} // Convert ObjectId to string
+                                    onClick={() => handleArticleClick(article)}
                                     className="article-card-wrapper"
                                     variants={cardVariants}
                                     initial="initial"

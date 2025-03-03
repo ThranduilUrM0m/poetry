@@ -41,8 +41,8 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "city", void 0);
 __decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
+    (0, mongoose_1.Prop)({ type: { _code: String, _country: String } }),
+    __metadata("design:type", Object)
 ], User.prototype, "country", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
@@ -57,7 +57,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], User.prototype, "isActive", void 0);
 exports.User = User = __decorate([
-    (0, mongoose_1.Schema)()
+    (0, mongoose_1.Schema)({ timestamps: true })
 ], User);
 exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
 exports.UserSchema.methods.authenticate = function (password) {

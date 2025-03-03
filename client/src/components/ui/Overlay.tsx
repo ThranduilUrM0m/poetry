@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 
 const overlayVariants = {
     open: {
@@ -22,17 +22,18 @@ interface OverlayProps {
     zIndex?: number; // Add zIndex prop
 }
 
-/* It needs to be on AnimatedWrapper */
 export default function Overlay({ isVisible, onClick, className = '', zIndex = 10 }: OverlayProps) {
     return (
-        <motion.div
-            className={`__overlay ${className}`}
+        <AnimatedWrapper
+            as="div"
             style={{ zIndex }} // Apply zIndex here
+            onClick={onClick}
+            className={`__overlay ${className}`}
             variants={overlayVariants}
             initial="closed"
             animate={isVisible ? 'open' : 'closed'}
-            transition={{ duration: 0.2 }}
-            onClick={onClick}
-        />
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.5 }}
+        ></AnimatedWrapper>
     );
 }

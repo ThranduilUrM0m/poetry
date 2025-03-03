@@ -250,4 +250,49 @@ form {
             }
         }
     }
+
+    ._button {
+        @apply relative m-0 border-none bg-transparent h-[7vh] text-[2vh] font-[600] z-[1];
+
+        .buttonBorders {
+            @apply absolute top-0 left-0 w-full h-full border-[.1vh] border-[rgb(var(--white)/.25)] bg-transparent;
+            
+            .borderTop,
+            .borderRight,
+            .borderBottom,
+            .borderLeft {
+                @apply absolute bg-[rgb(var(--text)/1)];
+            }
+
+            .borderTop,
+            .borderBottom {
+                @apply w-full h-[.1vh];
+            }
+
+            .borderLeft,
+            .borderRight {
+                @apply h-full w-[.1vh];
+            }
+
+            .borderTop {
+                @apply top-0 origin-left;
+            }
+
+            .borderRight {
+                @apply right-0 origin-top;
+            }
+
+            .borderBottom {
+                @apply bottom-0 origin-right;
+            }
+
+            .borderLeft {
+                @apply left-0 origin-bottom;
+            }
+        }
+
+        span {
+            @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+        }
+    }
 }
