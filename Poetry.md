@@ -132,3 +132,92 @@ For any modifications or additional features, pricing may be adjusted accordingl
 **Contact:** [Your Email]  
 
 Thank you for considering this proposal! Looking forward to working with you.
+
+# Project Handover Guide - Qasida
+
+## 1. Transferring Firebase Project Ownership
+
+To transfer the Firebase project to your client's Google account, follow these steps:
+
+### **Add the Client as a Project Owner:**
+1. Sign in to the [Firebase Console](https://console.firebase.google.com/).
+2. Select your project (`poetry`).
+3. Click the **Settings** icon (⚙️) and choose **Users and Permissions**.
+4. Click **Add Member**.
+5. Enter the client's Google account email.
+6. Set the role to **Project > Owner**.
+7. Click **Add**.
+
+### **Client Accepts the Invitation:**
+- The client will receive an email invitation.
+- They should accept the invitation to gain owner access.
+
+### **Remove Your Access (Optional):**
+- After confirming the client's ownership and ensuring everything functions correctly, you can remove your account from the project.
+
+*Note:* Transferring ownership ensures that all Firebase services, including Firestore, Authentication, and Hosting, are accessible to the new owner. ([Support Docs](https://support.google.com/firebase/answer/7000272?hl=en))
+
+---
+
+## 2. Setting Up Billing Alerts in Google Cloud
+
+To prevent unexpected charges and monitor usage, set up billing alerts:
+
+### **Access the Billing Console:**
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Navigate to **Billing**.
+
+### **Create a Budget:**
+1. Select **Budgets & alerts**.
+2. Click **Create Budget**.
+
+### **Configure Budget Details:**
+- **Name:** Enter a recognizable name (e.g., "Qasida Project Budget").
+- **Scope:** Choose the project (`poetry`).
+- **Amount:** Set your desired budget limit (e.g., $0 to receive alerts for any usage).
+
+### **Set Alert Thresholds:**
+- Define percentages at which you want to receive alerts (e.g., 50%, 90%, 100%).
+
+### **Configure Notifications:**
+- Specify email addresses to receive alerts.
+
+### **Save the Budget:**
+- Review and save your budget settings.
+
+*Note:* Setting a budget does not cap the spending but sends alerts when thresholds are reached. To enforce spending limits, consider setting up programmatic notifications. ([Google Cloud Docs](https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications))
+
+---
+
+## 3. Updating the Project Repository
+
+After transferring ownership and setting up billing alerts, update the project repository to reflect these changes:
+
+### **Clone the Repository:**
+If not already done, clone the repository:
+```bash
+git clone https://github.com/ThranduilUrM0m/poetry.git
+```
+
+### **Update Configuration Files:**
+- Ensure that all configuration files (e.g., `.env`, `firebaseConfig.js`) are updated with the client's Firebase project details.
+
+### **Review Documentation:**
+- Update any documentation to reflect the new project ownership and configuration.
+
+### **Commit and Push Changes:**
+```bash
+git add .
+git commit -m "Updated project ownership and configuration details"
+git push origin main
+```
+
+---
+
+## 4. Post-Transfer Checklist
+
+- **Verify Access:** Ensure the client can access all necessary services in Firebase and Google Cloud.
+- **Test Functionality:** Confirm that the application functions correctly under the new ownership.
+- **Monitor Billing:** Regularly check billing reports to ensure no unexpected charges occur.
+
+By following this guide, you can effectively transfer the project to your client, ensuring they have full control and are protected from unforeseen expenses. If you require further assistance, feel free to reach out.

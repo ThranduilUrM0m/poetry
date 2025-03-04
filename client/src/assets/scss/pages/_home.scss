@@ -129,27 +129,23 @@
                                                     }
 
                                                     h2 {
-                                                        @apply relative font-serif font-medium text-[6vh] text-[rgb(var(--text)/1)] m-0;
+                                                        @apply relative font-medium text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[1.2];
+                                                        font-family: 'Abril Fatface', cursive;
 
                                                         span {
                                                             @apply text-[rgb(var(--primary)/1)];
                                                         }
-
-                                                        &::before {
-                                                            @apply absolute bg-[rgb(var(--text)/.5)] w-0 h-[.25vh] left-0 bottom-0 transition-all duration-500 ease-in-out;
-                                                            content: '';
-                                                        }
                                                     }
 
                                                     ._button {
-                                                        @apply self-end;
+                                                        @apply self-end w-1/4;
                                                     }
                                                     
                                                     .information {
-                                                        @apply flex items-center gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
+                                                        @apply flex items-center justify-center w-1/4 gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
 
                                                         svg {
-                                                            @apply mx-[1.75vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                            @apply mx-[.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
                                                         }
                                                     }
                                                 }
@@ -161,10 +157,10 @@
                         }
 
                         .slick-dots {
-                            @apply absolute top-1/2 right-0 translate-x-full -translate-y-1/2 w-[4vh] h-[20vh];
+                            @apply absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-[5vh] h-[20vh];
 
                             li {
-                                @apply hidden my-[.5vh] w-[3vh] h-[3vh];
+                                @apply hidden m-[.5vh] w-[3vh] h-[3vh];
 
                                 &.slick-active {
                                     @apply h-[11vh];
@@ -173,15 +169,23 @@
                                         @apply p-0 w-full h-full;
 
                                         &::before {
-                                            @apply block rounded-[2.5vh] bg-[rgb(var(--text)/1)] w-[.3vh] h-full;
+                                            @apply rounded-[2.5vh] bg-[rgb(var(--text)/1)] w-[.3vh] h-full left-1/2 -translate-x-1/2;
                                             content: '';
                                         }
+                                    }
+
+                                    &:first-of-type {
+                                        @apply mt-[4vh]
                                     }
                                 }
 
                                 &:not(.slick-active) {
                                     button {
                                         @apply p-0 text-[2vh] leading-[3vh] text-[rgb(var(--text)/1)] w-full h-full;
+
+                                        &::before {
+                                            @apply hidden;
+                                        }
                                     }
                                 }
 
@@ -195,18 +199,24 @@
                     }
 
                     ._shadowIndex {
-                        @apply absolute opacity-25 m-0 text-[20vh] leading-[20vh] font-serif font-bold text-[rgb(var(--primary)/1)] whitespace-nowrap top-full left-1/2 -translate-x-[65%] -translate-y-[80%] w-fit h-fit;
+                        @apply absolute opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
+                        font-family: 'Abril Fatface', cursive;
 
                         p {
                             @apply m-0;
                         }
 
+                        &._word {
+                            @apply bottom-0 left-0 translate-y-[10vh];
+                        }
+
                         &._number {
-                            @apply top-0 right-0 translate-y-full rotate-90 origin-top-right;
+                            @apply flex top-0 right-0 translate-y-full rotate-90 origin-top-right;
 
                             &._outlined {
-                                @apply text-transparent stroke-[.1vh] text-[rgb(var(--text)/1)] translate-x-[5%] translate-y-[105%] rotate-90;
+                                @apply text-transparent -translate-x-[5%] translate-y-[105%];
                                 content: var(--before-content);
+                                -webkit-text-stroke: .1vh rgb(var(--text)/1);
                             }
                         }
                     }

@@ -177,29 +177,31 @@ export default function HomePage() {
                                                             extractFirstPhrase(_article.body)}
                                                     </span>
 
-                                                    <h2 className="align-self-start">
+                                                    <h2>
                                                         {_article.title}
                                                         <br />
                                                         by{' '}
                                                         <span>
-                                                            {_article.author &&
-                                                                _article.author &&
-                                                                (_.isEmpty(
-                                                                    _article.author.username
+                                                        {_.isEmpty(
+                                                                    _article.author.lastname
                                                                 ) &&
-                                                                _.isEmpty(_article.author.firstname)
+                                                                    _.isEmpty(
+                                                                        _article.author.firstname
+                                                                    )
                                                                     ? _article.author.username
                                                                     : !_.isEmpty(
-                                                                          _article.author.username
-                                                                      )
-                                                                    ? `${_article.author.username} ${_article.author.firstname}`
-                                                                    : _article.author.firstname)}
+                                                                        _article.author.lastname
+                                                                    )
+                                                                        ? _article.author.lastname +
+                                                                        ' ' +
+                                                                        _article.author.firstname
+                                                                        : _article.author.firstname}
                                                         </span>
                                                     </h2>
 
                                                     <Link
                                                         href={`/blog/${_article._id}`}
-                                                        className="_button w-1/4"
+                                                        className="_button"
                                                     >
                                                         <div className="buttonBorders">
                                                             <div className="borderTop"></div>
@@ -213,12 +215,11 @@ export default function HomePage() {
                                                     </Link>
 
                                                     <div className="information">
-                                                        <b>{_.size(_article.views)}</b>
-                                                        <span style={{ margin: '0 4px' }}>
-                                                            Views
+                                                        <span>
+                                                            <b>{_.size(_article.views)}</b> Views
                                                         </span>
                                                         <Squircle/>
-                                                        <span style={{ marginLeft: '4px' }}>
+                                                        <span>
                                                             {formatDistanceToNow(
                                                                 new Date(_article.updatedAt),
                                                                 { addSuffix: true }
@@ -226,7 +227,7 @@ export default function HomePage() {
                                                         </span>
                                                     </div>
 
-                                                    <div className="_shadowIndex">
+                                                    <div className="_shadowIndex _word">
                                                         <p>
                                                             {(() => {
                                                                 const words =
@@ -252,11 +253,11 @@ export default function HomePage() {
                                 )}
                             </Slider>
                         )}
-                        <div className="_shadowIndex _number d-flex" data-text="">
+                        <div className="_shadowIndex _number" data-text="">
                             <p></p>
                             <b className="pink_dot">.</b>
                         </div>
-                        <div className="_shadowIndex _number d-flex _outlined" data-text="">
+                        <div className="_shadowIndex _number _outlined" data-text="">
                             <p></p>
                             <b className="pink_dot">.</b>
                         </div>
