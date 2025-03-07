@@ -14,11 +14,11 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     type?: 'text' | 'email' | 'password' | 'checkbox';
     icon?: React.ReactNode;
     error?: string;
-    suggestions?: S[]; // Use the generic type S for suggestions
+    suggestions?: S[];
     control: Control<T>;
     rules?: object;
     onClear?: () => void;
-    onSuggestionSelect?: (suggestion: S) => void; // Use the generic type S
+    onSuggestionSelect?: (suggestion: S) => void;
     onInputChange?: (value: string) => void;
     allArticles?: Array<{
         _id: Types.ObjectId;
@@ -29,7 +29,10 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
             firstname?: string;
             lastname?: string;
             city?: string;
-            country?: { _code: string; _country: string };
+            country?: {
+                _code: string;
+                _country: string;
+            };
         };
         category: string;
         isPrivate: boolean;
@@ -57,7 +60,7 @@ const SimpleBarVariants = {
     },
     closed: {
         opacity: 0,
-        y: -10, // Slight upward movement for a smooth exit
+        y: -10,
         transition: {
             duration: 0.25,
             ease: 'easeInOut',
@@ -157,7 +160,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     onClear,
     onSuggestionSelect,
     onInputChange,
-    allArticles = [], // Add this new prop
+    allArticles = [],
     selectedSuggestions = [],
 }: FormFieldProps<T, S>) => {
     const [inputItems, setInputItems] = useState<S[]>(suggestions);
@@ -170,10 +173,16 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     // Use a ref to store the `onChange` function from react-hook-form
     const onChangeRef = useRef<(value: string) => void>(() => {});
 
+    // Check if we're using suggestions/autocomplete functionality
+    const usingSuggestions = !!suggestions.length && !!onSuggestionSelect;
+
+    // Always use the hook, but make it work differently based on usingSuggestions
     const { getMenuProps, getInputProps, getItemProps, highlightedIndex } = useCombobox({
         items: inputItems,
-        isOpen: isSimpleBarOpen && inputItems.length > 0,
+        isOpen: usingSuggestions && isSimpleBarOpen && inputItems.length > 0,
         onInputValueChange: ({ inputValue }) => {
+            if (!usingSuggestions) return;
+
             setInputValue(inputValue || '');
             setIsSimpleBarOpen(true);
             if (!_.isUndefined(inputValue)) {
@@ -190,12 +199,14 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             }
         },
         onSelectedItemChange: ({ selectedItem }) => {
+            if (!usingSuggestions) return;
+
             if (selectedItem && onSuggestionSelect) {
                 onSuggestionSelect(selectedItem);
-                setInputValue(''); // Clear the input value
-                setAutocompleteSuggestion(''); // Clear the autocomplete suggestion
-                setIsSimpleBarOpen(false); // Close the suggestions dropdown
-                onChangeRef.current?.(''); // Clear the form value (from react-hook-form)
+                setInputValue('');
+                setAutocompleteSuggestion('');
+                setIsSimpleBarOpen(false);
+                onChangeRef.current?.('');
             }
         },
         itemToString: (item) => (item ? item.title : ''),
@@ -203,31 +214,34 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     getInputProps({}, { suppressRefError: true });
     getMenuProps({}, { suppressRefError: true });
 
-    // Update inputItems when suggestions change
+    // Update inputItems when suggestions change - only if using suggestions
     useEffect(() => {
-        const filteredItems = suggestions.filter(
-            (item) => !selectedSuggestions?.some((s) => s._id === item._id)
-        );
-        setInputItems(filteredItems);
-    }, [suggestions, selectedSuggestions]);
+        if (usingSuggestions) {
+            const filteredItems = suggestions.filter(
+                (item) => !selectedSuggestions?.some((s) => s._id === item._id)
+            );
+            setInputItems(filteredItems);
+        }
+    }, [suggestions, selectedSuggestions, usingSuggestions]);
 
-    // Group suggestions by type instead of source
+    // Group suggestions by type - only if using suggestions
     const groupedSuggestions = useMemo(() => {
-        return (
-            _.chain(inputItems)
-                .groupBy('type')
-                // Sort groups in specific order: tags, categories, authors, titles
-                .toPairs()
-                .sortBy(([type]) => {
-                    const order = { tag: 1, category: 2, author: 3, title: 4 };
-                    return order[type as keyof typeof order] || 5;
-                })
-                .value()
-        );
-    }, [inputItems]);
+        if (!usingSuggestions) return [];
 
-    // Update autocomplete suggestion when input or suggestions change
+        return _.chain(inputItems)
+            .groupBy('type')
+            .toPairs()
+            .sortBy(([type]) => {
+                const order = { tag: 1, category: 2, author: 3, title: 4 };
+                return order[type as keyof typeof order] || 5;
+            })
+            .value();
+    }, [inputItems, usingSuggestions]);
+
+    // Update autocomplete suggestion when input or suggestions change - only if using suggestions
     useEffect(() => {
+        if (!usingSuggestions) return;
+
         if (!inputValue) {
             setAutocompleteSuggestion('');
             return;
@@ -254,10 +268,12 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         } else {
             setAutocompleteSuggestion('');
         }
-    }, [inputValue, inputItems]);
+    }, [inputValue, inputItems, usingSuggestions]);
 
-    // Add click outside handler
+    // Add click outside handler - only if using suggestions
     useEffect(() => {
+        if (!usingSuggestions) return;
+
         const handleClickOutside = (event: MouseEvent) => {
             if (formGroupRef.current && !formGroupRef.current.contains(event.target as Node)) {
                 setIsSimpleBarOpen(false);
@@ -269,7 +285,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
+    }, [usingSuggestions]);
 
     const renderAutocomplete = () => {
         if (!autocompleteSuggestion || !inputValue) return null;
@@ -341,22 +357,28 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 // Store the `onChange` function in the ref
                 onChangeRef.current = onChange;
 
-                const inputProps = {
-                    ...getInputProps({
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                            const newValue = e.target.value;
-                            onChange(newValue);
-                            setInputValue(newValue);
-                        },
-                        onBlur,
-                        ref,
-                        value: value || '',
-                    }),
+                // Create input props
+                const baseInputProps = {
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                        const newValue = e.target.value;
+                        onChange(newValue);
+                        setInputValue(newValue);
+                    },
+                    onBlur,
+                    ref,
+                    value: value || '',
                     onFocus: () => {
                         setIsFocused(true);
-                        setIsSimpleBarOpen(true);
+                        if (usingSuggestions) {
+                            setIsSimpleBarOpen(true);
+                        }
                     },
                 };
+
+                // Add downshift props with suppressRefError if using suggestions
+                const downshiftInputProps = usingSuggestions
+                    ? getInputProps(baseInputProps, { suppressRefError: true })
+                    : baseInputProps;
 
                 return (
                     <div
@@ -385,7 +407,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 className={`_input ${value ? '_focused' : ''} ${
                                     icon ? '__icon' : ''
                                 } ${error ? '__error' : ''}`}
-                                {...inputProps}
+                                {...downshiftInputProps}
                                 autoComplete="off"
                                 style={{
                                     color: !autocompleteSuggestion ? 'inherit' : 'transparent',
@@ -393,28 +415,29 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                             />
                         </div>
 
-                        {/* Autocorrect */}
-                        {/* The words typped are not matching the autocorrect */}
-                        <AnimatePresence mode="wait">
-                            {autocompleteSuggestion && (
-                                <AnimatedWrapper
-                                    className="_autocorrectWrapper"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    {renderAutocomplete()}
-                                </AnimatedWrapper>
-                            )}
-                        </AnimatePresence>
+                        {/* Autocorrect - only if using suggestions */}
+                        {usingSuggestions && (
+                            <AnimatePresence mode="wait">
+                                {autocompleteSuggestion && (
+                                    <AnimatedWrapper
+                                        className="_autocorrectWrapper"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        {renderAutocomplete()}
+                                    </AnimatedWrapper>
+                                )}
+                            </AnimatePresence>
+                        )}
 
                         {/* Clear button */}
                         <AnimatePresence mode="wait">
                             {onClear && value && (
                                 <AnimatedWrapper
                                     as="button"
-                                    type="button" // Add this line to prevent form submission
+                                    type="button"
                                     onClick={handleClear(onChange)}
                                     aria-label="Clear Search"
                                     className="_clearButton"
@@ -464,79 +487,154 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                             )}
                         </AnimatePresence>
 
-                        {/* Suggestions */}
-                        <AnimatePresence mode="wait">
-                            {isSimpleBarOpen && inputItems.length > 0 && (
-                                <AnimatedWrapper
-                                    variants={SimpleBarVariants}
-                                    initial="closed"
-                                    animate="open"
-                                    exit="closed"
-                                >
-                                    <SimpleBar
-                                        className="_SimpleBar"
-                                        style={{ maxHeight: '40vh' }}
-                                        forceVisible="y"
-                                        autoHide={false}
+                        {/* Suggestions - only if using suggestions */}
+                        {usingSuggestions && (
+                            <AnimatePresence mode="wait">
+                                {isSimpleBarOpen && inputItems.length > 0 && (
+                                    <AnimatedWrapper
+                                        variants={SimpleBarVariants}
+                                        initial="closed"
+                                        animate="open"
+                                        exit="closed"
                                     >
-                                        <ul className="_SimpleBar-Group" {...getMenuProps()}>
-                                            <AnimatePresence>
-                                                {groupedSuggestions.map(([type, items]) => (
-                                                    <AnimatedWrapper
-                                                        key={type}
-                                                        className="suggestion-group"
-                                                        variants={suggestionGroupVariants}
-                                                        initial="initial"
-                                                        animate="animate"
-                                                        exit="exit"
-                                                    >
+                                        <SimpleBar
+                                            className="_SimpleBar"
+                                            style={{ maxHeight: '40vh' }}
+                                            forceVisible="y"
+                                            autoHide={false}
+                                        >
+                                            <ul
+                                                className="_SimpleBar-Group"
+                                                {...getMenuProps({}, { suppressRefError: true })}
+                                            >
+                                                <AnimatePresence>
+                                                    {groupedSuggestions.map(([type, items]) => (
                                                         <AnimatedWrapper
-                                                            className="suggestion-group-header"
+                                                            key={type}
+                                                            className="suggestion-group"
                                                             variants={suggestionGroupVariants}
+                                                            initial="initial"
+                                                            animate="animate"
+                                                            exit="exit"
                                                         >
-                                                            {type === 'tag' && 'Tags'}
-                                                            {type === 'category' && 'Categories'}
-                                                            {type === 'author' && 'Authors'}
-                                                            {type === 'title' && 'Articles'}
-                                                        </AnimatedWrapper>
-                                                        <ul className={`suggestionList-${type}`}>
-                                                            <AnimatePresence>
-                                                                {items.map((item, index) => {
-                                                                    const typedItem = item as S;
-                                                                    const globalIndex =
-                                                                        inputItems.indexOf(
-                                                                            typedItem
-                                                                        );
-                                                                    return (
-                                                                        <AnimatedWrapper
-                                                                            key={`${typedItem._id}${index}`}
-                                                                            className={`suggestion-item ${
-                                                                                highlightedIndex ===
-                                                                                globalIndex
-                                                                                    ? 'highlighted'
-                                                                                    : ''
-                                                                            }`}
-                                                                            variants={
-                                                                                suggestionItemVariants
-                                                                            }
-                                                                            initial="initial"
-                                                                            animate="animate"
-                                                                            exit="exit"
-                                                                            whileHover="hover"
-                                                                            whileTap="tap"
-                                                                            custom={typedItem.type}
-                                                                            {...getItemProps({
-                                                                                item: typedItem,
-                                                                                index: globalIndex,
-                                                                            })}
-                                                                        >
-                                                                            <span
-                                                                                className={`suggestion ${typedItem.type}`}
+                                                            <AnimatedWrapper
+                                                                className="suggestion-group-header"
+                                                                variants={suggestionGroupVariants}
+                                                            >
+                                                                {type === 'tag' && 'Tags'}
+                                                                {type === 'category' &&
+                                                                    'Categories'}
+                                                                {type === 'author' && 'Authors'}
+                                                                {type === 'title' && 'Articles'}
+                                                            </AnimatedWrapper>
+                                                            <ul
+                                                                className={`suggestionList-${type}`}
+                                                            >
+                                                                <AnimatePresence>
+                                                                    {items.map((item, index) => {
+                                                                        const typedItem = item as S;
+                                                                        const globalIndex =
+                                                                            inputItems.indexOf(
+                                                                                typedItem
+                                                                            );
+                                                                        return (
+                                                                            <AnimatedWrapper
+                                                                                key={`${typedItem._id}${index}`}
+                                                                                className={`suggestion-item ${
+                                                                                    highlightedIndex ===
+                                                                                    globalIndex
+                                                                                        ? 'highlighted'
+                                                                                        : ''
+                                                                                }`}
+                                                                                variants={
+                                                                                    suggestionItemVariants
+                                                                                }
+                                                                                initial="initial"
+                                                                                animate="animate"
+                                                                                exit="exit"
+                                                                                whileHover="hover"
+                                                                                whileTap="tap"
+                                                                                custom={
+                                                                                    typedItem.type
+                                                                                }
+                                                                                {...getItemProps({
+                                                                                    item: typedItem,
+                                                                                    index: globalIndex,
+                                                                                })}
                                                                             >
-                                                                                {typedItem.type ===
-                                                                                'author' ? (
-                                                                                    <div className="author-suggestion">
-                                                                                        <div className="author-info">
+                                                                                <span
+                                                                                    className={`suggestion ${typedItem.type}`}
+                                                                                >
+                                                                                    {typedItem.type ===
+                                                                                    'author' ? (
+                                                                                        <div className="author-suggestion">
+                                                                                            <div className="author-info">
+                                                                                                {typedItem.icon && (
+                                                                                                    <span className="suggestion-icon">
+                                                                                                        {
+                                                                                                            typedItem.icon
+                                                                                                        }
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                <span className="fullname">
+                                                                                                    {
+                                                                                                        typedItem
+                                                                                                            .source
+                                                                                                            .author
+                                                                                                            .firstname
+                                                                                                    }{' '}
+                                                                                                    {
+                                                                                                        typedItem
+                                                                                                            .source
+                                                                                                            .author
+                                                                                                            .lastname
+                                                                                                    }
+                                                                                                </span>
+                                                                                                <span className="username">
+                                                                                                    <span className="at-sign">
+                                                                                                        @
+                                                                                                    </span>
+                                                                                                    {
+                                                                                                        typedItem.title
+                                                                                                    }
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            <div className="location">
+                                                                                                {
+                                                                                                    typedItem
+                                                                                                        .source
+                                                                                                        .author
+                                                                                                        .city
+                                                                                                }
+                                                                                                ,{' '}
+                                                                                                {typedItem
+                                                                                                    .source
+                                                                                                    .author
+                                                                                                    .country
+                                                                                                    ? typedItem
+                                                                                                          .source
+                                                                                                          .author
+                                                                                                          .country
+                                                                                                          ._country
+                                                                                                    : ''}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ) : typedItem.type ===
+                                                                                      'category' ? (
+                                                                                        <div className="category-suggestion">
+                                                                                            <span className="category-name">
+                                                                                                {
+                                                                                                    typedItem.title
+                                                                                                }
+                                                                                            </span>
+                                                                                            <span className="category-count">
+                                                                                                {getCategoryArticleCount(
+                                                                                                    typedItem.title
+                                                                                                )}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <>
                                                                                             {typedItem.icon && (
                                                                                                 <span className="suggestion-icon">
                                                                                                     {
@@ -544,91 +642,26 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                     }
                                                                                                 </span>
                                                                                             )}
-                                                                                            <span className="fullname">
-                                                                                                {
-                                                                                                    typedItem
-                                                                                                        .source
-                                                                                                        .author
-                                                                                                        .firstname
-                                                                                                }{' '}
-                                                                                                {
-                                                                                                    typedItem
-                                                                                                        .source
-                                                                                                        .author
-                                                                                                        .lastname
-                                                                                                }
-                                                                                            </span>
-                                                                                            <span className="username">
-                                                                                                <span className="at-sign">
-                                                                                                    @
-                                                                                                </span>
-                                                                                                {
-                                                                                                    typedItem.title
-                                                                                                }
-                                                                                            </span>
-                                                                                        </div>
-                                                                                        <div className="location">
-                                                                                            {
-                                                                                                typedItem
-                                                                                                    .source
-                                                                                                    .author
-                                                                                                    .city
-                                                                                            }
-                                                                                            ,{' '}
-                                                                                            {typedItem
-                                                                                                .source
-                                                                                                .author
-                                                                                                .country
-                                                                                                ? typedItem
-                                                                                                      .source
-                                                                                                      .author
-                                                                                                      .country
-                                                                                                      ._country
-                                                                                                : ''}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ) : typedItem.type ===
-                                                                                  'category' ? (
-                                                                                    <div className="category-suggestion">
-                                                                                        <span className="category-name">
                                                                                             {
                                                                                                 typedItem.title
                                                                                             }
-                                                                                        </span>
-                                                                                        <span className="category-count">
-                                                                                            {getCategoryArticleCount(
-                                                                                                typedItem.title
-                                                                                            )}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <>
-                                                                                        {typedItem.icon && (
-                                                                                            <span className="suggestion-icon">
-                                                                                                {
-                                                                                                    typedItem.icon
-                                                                                                }
-                                                                                            </span>
-                                                                                        )}
-                                                                                        {
-                                                                                            typedItem.title
-                                                                                        }
-                                                                                    </>
-                                                                                )}
-                                                                            </span>
-                                                                        </AnimatedWrapper>
-                                                                    );
-                                                                })}
-                                                            </AnimatePresence>
-                                                        </ul>
-                                                    </AnimatedWrapper>
-                                                ))}
-                                            </AnimatePresence>
-                                        </ul>
-                                    </SimpleBar>
-                                </AnimatedWrapper>
-                            )}
-                        </AnimatePresence>
+                                                                                        </>
+                                                                                    )}
+                                                                                </span>
+                                                                            </AnimatedWrapper>
+                                                                        );
+                                                                    })}
+                                                                </AnimatePresence>
+                                                            </ul>
+                                                        </AnimatedWrapper>
+                                                    ))}
+                                                </AnimatePresence>
+                                            </ul>
+                                        </SimpleBar>
+                                    </AnimatedWrapper>
+                                )}
+                            </AnimatePresence>
+                        )}
                     </div>
                 );
             }}

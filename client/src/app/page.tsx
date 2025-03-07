@@ -82,6 +82,10 @@ const homeSectionRightVariants = {
     },
 };
 
+/* 
+The inconsistency in the transform none of the first section.
+Just use the styles inside the variants 
+*/
 export default function HomePage() {
     const { isLoaded } = useLoading();
     const [_articles, setArticles] = useState<Article[]>([]);
