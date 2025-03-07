@@ -1,0 +1,138 @@
+.__footerWrapper {
+    @apply z-30 bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-10vh)] h-[75vh] m-[5vh];
+
+    .footer {
+        @apply flex flex-col w-full h-full;
+
+        &__container {
+            @apply flex-1 flex items-center justify-stretch mx-[4vh];
+
+            &-left,
+            &-right {
+                @apply relative;
+            }
+
+            // Left Column
+            &-left {
+                @apply flex flex-col items-center justify-center basis-3/5;
+
+                h2 {
+                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[2.5vh] pl-[14vh];
+
+                    .__lastWord {
+                        @apply text-[rgb(var(--text)/1)] font-[600];
+                    }
+                }
+
+                .newsletter {
+                    @apply relative flex justify-start items-center w-full h-full pl-[14vh] pr-[28vh];
+
+                    ._form {
+                        ._button {
+                            @apply self-end w-2/5;
+                        }
+                    }
+                }
+            }
+
+            // Right Column
+            &-right {
+                @apply basis-2/5;
+
+                h2 {
+                    @apply text-8xl font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
+                    font-family: 'Abril Fatface', cursive;
+
+                    &::before {
+                        content: 'Qasida.';
+                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
+                        font-family: 'Abril Fatface', cursive;
+                    }
+                }
+
+                &-links {
+                    @apply relative h-full w-full flex;
+
+                    div {
+                        @apply m-0 basis-1/4;
+
+                        h3 {
+                            @apply text-xl font-medium text-[rgb(var(--text)/.5)] mb-[3vh];
+                        }
+    
+                        ul {
+                            li {
+                                @apply flex items-center;
+                            }
+                        }
+    
+                        &:first-of-type {
+                            @apply basis-2/4;
+
+                            ul {
+                                @apply flex items-center gap-[5vh] translate-x-[1.75vh];
+
+                                li {
+                                    a {
+                                        @apply relative;
+
+                                        svg {
+                                            @apply stroke-[rgb(var(--text)/.5)] w-[4vh] h-[4vh];
+                                        }
+
+                                        &::before {
+                                            content: '';
+                                            @apply absolute top-1/2 left-1/2 w-[7.5vh] h-[7.5vh] bg-[rgb(var(--hoverGray)/.75)] rounded-[1vh] -translate-x-1/2 -translate-y-1/2 z-[-1];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &__nav {
+            @apply h-[10vh] flex items-center justify-between mx-[4vh] border-t-[.3vh] border-[rgb(var(--text)/.25)];
+
+            &-left,
+            &-right {
+                @apply relative h-full flex items-center justify-center;
+
+                ul {
+                    @apply m-0 flex;
+
+                    li {
+                        @apply flex items-center h-[10vh];
+                    }
+                }
+            }
+
+            &-left {
+                @apply ml-[14vh];
+
+                ul {
+                    li {
+                        @apply gap-[1vh];
+                    }
+                }
+
+                &::before {
+                    @apply absolute bg-[rgb(var(--text)/1)] w-[10vh] h-[.25vh] top-1/2 left-0 -translate-x-[calc(100%+4vh)] -translate-y-1/2;
+                    content: "";
+                }
+            }
+
+            &-right {
+                ul {
+                    li {
+                        a {
+                            @apply flex items-center gap-[1vh];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

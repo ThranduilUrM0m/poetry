@@ -11,7 +11,6 @@ import Overlay from './ui/Overlay';
 import SearchModal from './ui/SearchModal';
 
 import logo from '@/assets/images/b_white_orange..svg';
-/* import NewsletterPopup from './ui/NewsletterPopup'; */
 
 const menuItems = [
     { label: 'Home', href: '/' },

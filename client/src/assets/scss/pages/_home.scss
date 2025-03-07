@@ -16,12 +16,11 @@
                 @apply h-[100vh] -translate-y-[10vh] flex flex-col items-center justify-center;
 
                 &-fadedText {
-                    @apply w-1/2 h-fit text-[rgb(var(--text)/.5)] text-left text-[3vh];
-                    font-family: "Great Vibes", serif;
+                    @apply w-1/2 h-fit text-[rgb(var(--text)/.5)] text-right text-[5vh] font-[600];
                 }
 
                 &-text {
-                    @apply relative w-1/2 h-fit text-left text-[5vh] font-[600] leading-normal;
+                    @apply relative w-1/2 h-fit text-right text-[5vh] font-[600] leading-[1.2];
 
                     .__lastWord {
                         @apply text-[rgb(var(--primary-light)/1)];
@@ -35,7 +34,7 @@
                 }
 
                 &-read {
-                    @apply w-1/2 h-[5vh] mt-[7.5vh] mb-[10vh] flex items-center text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
+                    @apply w-1/2 h-[5vh] mt-[7.5vh] mb-[10vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
 
                     svg {
                         @apply w-[20vh] h-[2vh];
@@ -49,7 +48,7 @@
 
                 &::after {
                     content: '';
-                    @apply z-[-1] absolute w-[30vw] h-[20vh] bg-[rgb(var(--primary-light)/.25)] bottom-0 left-1/2 backdrop-blur-[.75vh] -translate-x-1/4;
+                    @apply z-[-1] absolute w-[30vw] h-[60vh] bg-[rgb(var(--primary-light)/.25)] bottom-0 left-[50vh] backdrop-blur-[.75vh] -translate-x-1/4 translate-y-[40vh];
                 }
             }
 
@@ -113,8 +112,6 @@
                                                 @apply relative overflow-hidden h-full;
 
                                                 ._form {
-                                                    @apply flex flex-col h-full;
-
                                                     .category_author {
                                                         @apply relative text-[1.75vh] w-fit h-fit mb-auto text-[rgb(var(--text)/.5)];
 
@@ -140,7 +137,7 @@
                                                     ._button {
                                                         @apply self-end w-1/4;
                                                     }
-                                                    
+
                                                     .information {
                                                         @apply flex items-center justify-center w-1/4 gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
 
@@ -157,7 +154,7 @@
                         }
 
                         .slick-dots {
-                            @apply absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-[5vh] h-[20vh];
+                            @apply absolute bottom-[5vh] right-0 translate-x-1/2 w-[5vh] h-[20vh];
 
                             li {
                                 @apply hidden m-[.5vh] w-[3vh] h-[3vh];
@@ -222,6 +219,71 @@
                     }
                 }
             }
+        }
+
+        &-3 {
+            @apply flex justify-stretch !py-[5vh];
+
+            &-left,
+            &-right {
+                @apply relative;
+            }
+
+            // Left Column
+            &-left {
+                @apply basis-7/12;
+
+                ._form {
+                    @apply z-10 bg-[rgb(var(--text)/1)] text-[rgb(var(--white)/.75)] absolute p-[5vh] flex flex-col h-full h-3/4 w-3/4 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/4;
+
+                    .aboutMe {
+                        @apply relative text-[1.75vh] w-fit h-fit mb-auto;
+
+                        &::before {
+                            @apply absolute bg-[rgb(var(--white)/.75)] w-[200%] h-[.25vh] top-1/2 left-[calc(100%+5vh)] -translate-y-1/2;
+                            content: '';
+                        }
+                    }
+
+                    .fullName {
+                        @apply font-medium text-[7vh] mt-[2vh] leading-[1.2];
+                    }
+
+                    .text {
+                        @apply relative;
+
+                        span {
+                            @apply text-[rgb(var(--primary)/1)];
+                        }
+                    }
+
+                    ._button {
+                        @apply self-end w-1/4 my-[2vh];
+                    }
+                }
+            }
+
+            // Right Column
+            &-right {
+                @apply relative flex justify-start items-center h-full basis-5/12;
+
+                &-image {
+                    @apply relative w-3/4 h-full;
+
+                    img {
+                        @apply w-full h-full border-[2vh] border-solid border-[rgb(var(--text)/.10)];
+                    }
+                }
+            }
+
+            &::before {
+                content: '';
+                @apply absolute bottom-0 w-full h-1/5 bg-[rgb(var(--primary-light)/1)];
+            }
+        }
+
+        &-4 {
+            @apply bg-[rgb(var(--primary-light)/1)];
         }
     }
 }

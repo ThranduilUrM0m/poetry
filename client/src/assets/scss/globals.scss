@@ -31,15 +31,28 @@
 }
 
 body {
-    @apply m-0 text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth;
+    @apply relative m-0 text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth overflow-x-hidden;
     font-family: vars.$mainFont;
 
-    main {
+    .__mainWrapper, main {
         @apply p-0;
         min-height: 100vh;
 
         section {
             @apply relative h-[100vh] py-[10vh];
         }
+    }
+}
+
+/* Custom NProgress Styles */
+#nprogress {
+    @apply pointer-events-none;
+
+    .bar {
+        @apply fixed bg-[rgb(var(--primary)/1)] h-[1vh] w-full top-0 left-0 z-[1031];
+    }
+    
+    .peg {
+        @apply hidden;
     }
 }

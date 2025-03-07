@@ -1,3 +1,4 @@
+.__headerWrapper,
 .header {
     @apply z-30 fixed top-0 left-0 w-full h-[10vh] bg-transparent;
 
@@ -70,6 +71,14 @@
         &-right {
             &-search {
                 @apply h-full w-[10vh] flex items-center justify-center relative overflow-hidden;
+
+                &.__white svg {
+                    @apply stroke-[rgb(var(--white)/1)];
+                }
+
+                &.__black svg {
+                    @apply stroke-[rgb(var(--text)/1)];
+                }
 
                 svg {
                     @apply w-[4vh] h-[4vh] stroke-[3] stroke-[rgb(var(--white)/1)];

@@ -1,83 +1,81 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import { LoadingContext } from '@/context/LoadingContext';
 
 const headerVariants = {
-    open: {
-        translateY: 0, // Use translateY instead of y
-        opacity: 1,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        translateY: -100, // Use translateY instead of y
-        opacity: 0,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
+    initial: { translateY: -100, opacity: 0 },
+    animate: { translateY: 0, opacity: 1, transition: { duration: 0.5 } },
+};
+
+const contentVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } },
 };
 
 const footerVariants = {
-    open: {
-        translateY: 0, // Use translateY instead of y
-        opacity: 1,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        translateY: 100, // Use translateY instead of y
-        opacity: 0,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
+    initial: { translateY: 100, opacity: 0 },
+    animate: { translateY: 0, opacity: 1, transition: { duration: 0.5, delay: 0.4 } },
 };
 
-export default function LayoutWrapper({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isDashboard = pathname?.startsWith('/dashboard');
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        NProgress.start();
+        setIsLoaded(false);
+
+        const timer = setTimeout(() => {
+            NProgress.done();
+            setIsLoaded(true);
+        }, 500);
+
+        return () => {
+            clearTimeout(timer);
+            NProgress.done();
+        };
+    }, [pathname]);
 
     return (
-        <>
-            {/* Animate Header */}
+        <LoadingContext.Provider value={{ isLoaded }}>
             {!isDashboard && (
                 <AnimatedWrapper
-                    as={React.Fragment}
+                    className="__headerWrapper"
                     variants={headerVariants}
-                    initial="closed" // Start from the "closed" state
-                    animate="open" // Animate to the "open" state
-                    transition={{ duration: 0.25, ease: 'easeInOut' }} // Add transition here
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
                 >
                     <Header />
                 </AnimatedWrapper>
             )}
 
-            {/* Children */}
-            {children}
+            <AnimatedWrapper
+                className="__mainWrapper"
+                variants={contentVariants}
+                initial="initial"
+                animate={isLoaded ? 'animate' : 'initial'}
+            >
+                {children}
+            </AnimatedWrapper>
 
-            {/* Animate Footer */}
             {!isDashboard && (
                 <AnimatedWrapper
-                    as={React.Fragment}
+                    className="__footerWrapper"
                     variants={footerVariants}
-                    initial="closed" // Pass initial
-                    animate={'open'} // Pass animate
-                    transition={{ duration: 0.25, ease: 'easeInOut' }} // Add transition here
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
                 >
                     <Footer />
                 </AnimatedWrapper>
             )}
-        </>
+        </LoadingContext.Provider>
     );
 }

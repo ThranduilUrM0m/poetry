@@ -1,5 +1,5 @@
 form {
-    @apply relative h-full w-full;
+    @apply relative flex flex-col gap-[1vh] h-full w-full;
 
     ._formGroup {
         @apply relative h-[7vh] w-full bg-[rgb(var(--white)/1)];
@@ -33,7 +33,11 @@ form {
             @apply relative z-40 h-full w-full;
 
             ._icon {
-                @apply absolute top-1/2 left-0 -translate-y-1/2 mx-[1vh] w-[4vh] h-[4vh] flex items-center justify-center z-50;
+                @apply absolute top-1/2 left-0 -translate-y-1/2 mx-[1vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
+                
+                svg {
+                    @apply stroke-[rgb(var(--text)/.5)];
+                }
             }
 
             ._input {
@@ -256,7 +260,7 @@ form {
 
         .buttonBorders {
             @apply absolute top-0 left-0 w-full h-full border-[.1vh] border-[rgb(var(--white)/.25)] bg-transparent;
-            
+
             .borderTop,
             .borderRight,
             .borderBottom,
@@ -293,6 +297,25 @@ form {
 
         span {
             @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+        }
+
+        &.__dark {
+            @apply border-none bg-transparent;
+
+            .buttonBorders {
+                @apply border-[rgb(var(--text)/.25)] bg-transparent;
+
+                .borderTop,
+                .borderRight,
+                .borderBottom,
+                .borderLeft {
+                    @apply bg-[rgb(var(--white)/1)];
+                }
+            }
+
+            span {
+                @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+            }
         }
     }
 }

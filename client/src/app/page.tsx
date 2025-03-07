@@ -7,11 +7,12 @@ import { Squircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import _ from 'lodash';
 import $ from 'jquery';
-import HeroImage from '@/components/ui/HeroImage';
+import { HomeSection1, HomeSection2 } from '@/components/ui/HeroImage';
 import LongArrow from '@/components/ui/LongArrow';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { dummyArticles } from '@/data/dummyArticles';
 import { Article } from '@/types/article';
+import { useLoading } from '@/context/LoadingContext';
 
 interface SliderSettings {
     dots: boolean;
@@ -46,7 +47,43 @@ const sliderVariants = {
     },
 };
 
+const homeSectionLeftVariants = {
+    initial: {
+        x: '-100%',
+        opacity: 0,
+    },
+    animate: {
+        x: '0%',
+        opacity: 1,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 20,
+            mass: 1,
+        },
+    },
+};
+
+const homeSectionRightVariants = {
+    initial: {
+        x: '100%',
+        opacity: 0,
+    },
+    animate: {
+        x: '0%',
+        opacity: 1,
+        transition: {
+            type: 'spring',
+            stiffness: 100,
+            damping: 20,
+            mass: 1,
+            delay: 0.2,
+        },
+    },
+};
+
 export default function HomePage() {
+    const { isLoaded } = useLoading();
     const [_articles, setArticles] = useState<Article[]>([]);
 
     useEffect(() => {
@@ -69,7 +106,7 @@ export default function HomePage() {
             ['views'],
             ['desc']
         )[__index];
-    
+
         if (__article && __article.body) {
             const _i = __index + 1;
             const html = $.parseHTML(__article.body);
@@ -115,46 +152,58 @@ export default function HomePage() {
     return (
         <main className="home">
             <section className="home__section-1">
-                <div className="home__section-1-left">
+                <AnimatedWrapper
+                    as="div"
+                    className="home__section-1-left"
+                    variants={homeSectionLeftVariants}
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
+                >
                     <div className="home__section-1-left-fadedText">
-                        <p>Whispers of art, echoes of Morocco.</p>
+                        <p>Hi. I&apos;m Boutaleb!</p>
                     </div>
 
                     <div className="home__section-1-left-text">
                         <h2>
-                            Speaking My Journey in
+                            Welcome to my online
                             <br />
-                            <span className="__lastWord">Words.</span>
+                            <span className="__lastWord">collection</span> of thoughts
+                            <br />
+                            and writings.
                         </h2>
                     </div>
 
-                    <Link href="/desired-path" className="home__section-1-left-read">
+                    <Link href="/__bio" className="home__section-1-left-read">
                         Read the full Bio.
                         <LongArrow />
                     </Link>
-                </div>
-                <div className="home__section-1-right">
+                </AnimatedWrapper>
+                <AnimatedWrapper
+                    as="div"
+                    className="home__section-1-right"
+                    variants={homeSectionRightVariants}
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
+                >
                     <div className="home__section-1-right-image">
-                        <HeroImage />
+                        <HomeSection1 />
                     </div>
                     <div className="home__section-1-right-text">
                         <h1 className="home__section-1-right-text-hello">Hello.</h1>
                     </div>
-                </div>
+                </AnimatedWrapper>
             </section>
 
             <section className="home__section-2">
-                <div className="home__section-2-left">
-                    <figure className="_figure"></figure>
-                </div>
+                <div className="home__section-2-left"></div>
                 <div className="home__section-2-right">
                     <AnimatedWrapper
                         as="div"
                         className="_sliderArticles"
                         variants={sliderVariants}
-                        initial="closed" // Start from the "closed" state
-                        animate="open" // Animate to the "open" state
-                        transition={{ duration: 0.25, ease: 'easeInOut' }} // Add transition here
+                        initial="closed"
+                        animate={isLoaded ? 'open' : 'closed'}
+                        transition={{ duration: 0.25, ease: 'easeInOut', delay: 1 }}
                     >
                         {!_.isEmpty(_articles) && (
                             <Slider {..._sliderArticlesSettings}>
@@ -182,20 +231,16 @@ export default function HomePage() {
                                                         <br />
                                                         by{' '}
                                                         <span>
-                                                        {_.isEmpty(
-                                                                    _article.author.lastname
-                                                                ) &&
-                                                                    _.isEmpty(
-                                                                        _article.author.firstname
-                                                                    )
-                                                                    ? _article.author.username
-                                                                    : !_.isEmpty(
-                                                                        _article.author.lastname
-                                                                    )
-                                                                        ? _article.author.lastname +
-                                                                        ' ' +
-                                                                        _article.author.firstname
-                                                                        : _article.author.firstname}
+                                                            {_.isEmpty(_article.author.lastname) &&
+                                                            _.isEmpty(_article.author.firstname)
+                                                                ? _article.author.username
+                                                                : !_.isEmpty(
+                                                                      _article.author.lastname
+                                                                  )
+                                                                ? _article.author.lastname +
+                                                                  ' ' +
+                                                                  _article.author.firstname
+                                                                : _article.author.firstname}
                                                         </span>
                                                     </h2>
 
@@ -210,7 +255,8 @@ export default function HomePage() {
                                                             <div className="borderLeft"></div>
                                                         </div>
                                                         <span>
-                                                            Read More About it<b className="pink_dot">.</b>
+                                                            Read More About it
+                                                            <b className="pink_dot">.</b>
                                                         </span>
                                                     </Link>
 
@@ -218,7 +264,7 @@ export default function HomePage() {
                                                         <span>
                                                             <b>{_.size(_article.views)}</b> Views
                                                         </span>
-                                                        <Squircle/>
+                                                        <Squircle />
                                                         <span>
                                                             {formatDistanceToNow(
                                                                 new Date(_article.updatedAt),
@@ -264,8 +310,59 @@ export default function HomePage() {
                     </AnimatedWrapper>
                 </div>
             </section>
-            <section className="home__section-3"></section>
-            <section className="home__section-4"></section>
+
+            <section className="home__section-3">
+                <AnimatedWrapper
+                    as="div"
+                    className="home__section-3-left"
+                    variants={homeSectionLeftVariants}
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
+                >
+                    <form className="_form">
+                        <span className="aboutMe">About Me</span>
+
+                        <h2 className="fullName">
+                            Boutaleb
+                            <br />
+                            Zakariae
+                        </h2>
+
+                        <p className="text">
+                            Weaving emotions into words, painting worlds with poetry.
+                            <br />
+                            With verses that stir the soul and imagery that lingers, [Poet&rsquo;s Name] crafts poetry that transcends time. Inspired by life&rsquo;s quiet moments and its grand emotions, each line is a journey through love, loss, hope, and wonder.
+                        </p>
+
+                        <Link href={`/__bio`} className="_button __dark">
+                            <div className="buttonBorders">
+                                <div className="borderTop"></div>
+                                <div className="borderRight"></div>
+                                <div className="borderBottom"></div>
+                                <div className="borderLeft"></div>
+                            </div>
+                            <span>
+                                Read More About it
+                                <b className="pink_dot">.</b>
+                            </span>
+                        </Link>
+                    </form>
+                </AnimatedWrapper>
+                <AnimatedWrapper
+                    as="div"
+                    className="home__section-3-right"
+                    variants={homeSectionRightVariants}
+                    initial="initial"
+                    animate={isLoaded ? 'animate' : 'initial'}
+                >
+                    <div className="home__section-3-right-image">
+                        <HomeSection2 />
+                    </div>
+                </AnimatedWrapper>
+            </section>
+
+            <section className="home__section-4">
+            </section>
         </main>
     );
 }
