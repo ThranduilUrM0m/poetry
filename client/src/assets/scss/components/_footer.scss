@@ -1,5 +1,5 @@
 .__footerWrapper {
-    @apply z-30 bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-10vh)] h-[75vh] m-[5vh];
+    @apply bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-10vh)] h-[75vh] m-[5vh];
 
     .footer {
         @apply flex flex-col w-full h-full;
@@ -17,7 +17,7 @@
                 @apply flex flex-col items-center justify-center basis-3/5;
 
                 h2 {
-                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[2.5vh] pl-[14vh];
+                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[5vh] pl-[14vh];
 
                     .__lastWord {
                         @apply text-[rgb(var(--text)/1)] font-[600];
@@ -80,9 +80,18 @@
                                             @apply stroke-[rgb(var(--text)/.5)] w-[4vh] h-[4vh];
                                         }
 
+                                        span {
+                                            @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+                                            
+                                            &.iconBackground {
+                                                @apply w-[7.5vh] h-[7.5vh];
+                                                @apply bg-[rgb(var(--text)/.15)];
+                                            }
+                                        }
+
                                         &::before {
-                                            content: '';
-                                            @apply absolute top-1/2 left-1/2 w-[7.5vh] h-[7.5vh] bg-[rgb(var(--hoverGray)/.75)] rounded-[1vh] -translate-x-1/2 -translate-y-1/2 z-[-1];
+                                            @apply absolute z-[-1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[7.5vh] h-[7.5vh] bg-[rgb(var(--text)/.1)];
+                                            content: "";
                                         }
                                     }
                                 }
@@ -128,7 +137,9 @@
                 ul {
                     li {
                         a {
-                            @apply flex items-center gap-[1vh];
+                            span {
+                                @apply flex items-center gap-[1vh];
+                            }
                         }
                     }
                 }

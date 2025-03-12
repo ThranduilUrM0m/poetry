@@ -1,22 +1,18 @@
 'use client';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch } from '@/store';
+import { subscribeSubscriber } from '@/slices/subscriberSlice';
+import { selectIsLoading } from '@/slices/subscriberSlice';
 
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { useLoading } from '@/context/LoadingContext';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import FormField from '@/components/ui/FormField';
+import SubmitModal from '@/components/ui/SubmitModal';
 import { AtSign } from 'lucide-react';
-
-const newsletterVariants = {
-    initial: { x: '100%', opacity: 0 },
-    animate: {
-        x: '0%',
-        opacity: 1,
-        transition: { type: 'spring', stiffness: 100, damping: 20, mass: 1, delay: 0.2 },
-    },
-};
 
 interface FormData {
     email: string;
@@ -28,13 +24,19 @@ const validationSchema = Yup.object().shape({
         .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Invalid email format'),
 });
 
-const Newsletter: React.FC = () => {
+export default function Newsletter() {
     const { isLoaded } = useLoading();
+    const dispatch = useDispatch<AppDispatch>();
+    const isLoading = useSelector(selectIsLoading);
+    const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const {
         control,
         handleSubmit,
         setValue,
+        setError,
         formState: { errors },
         clearErrors,
     } = useForm<FormData>({
@@ -47,18 +49,34 @@ const Newsletter: React.FC = () => {
         clearErrors('email');
     };
 
-    const onSubmit = (data: FormData) => {
-        console.log('Form Submitted:', data);
+    const onSubmit = async (data: FormData) => {
+        try {
+            await dispatch(subscribeSubscriber(data.email)).unwrap();
+            setValue('email', '');
+            setError('email', { message: '' }); // Clear any existing errors
+            setSubmitMessage('You will never miss on our news!\nWe promise not to spam you.');
+            setIsSuccess(true);
+            setIsSubmitOpen(true);
+        } catch (error) {
+            setSubmitMessage(`Something went wrong: ${error as string}`);
+            setIsSuccess(false);
+            setIsSubmitOpen(true);
+        }
     };
 
     return (
         <AnimatedWrapper
             as="div"
             className="newsletter"
-            variants={newsletterVariants}
-            initial="initial"
-            animate={isLoaded ? 'animate' : 'initial'}
+            from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
+            to={{
+                transform: isLoaded ? 'translateX(0%)' : 'translateX(100%)',
+                opacity: isLoaded ? 1 : 0,
+            }}
+            config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
+            delay={200} // Delay in milliseconds
         >
+            {/* The focus state for the Floating label is not worknig perfect, maybe after i submit the email it stays focused but it never changes back */}
             <form className="_form" onSubmit={handleSubmit(onSubmit)}>
                 <FormField
                     label="Email"
@@ -70,21 +88,117 @@ const Newsletter: React.FC = () => {
                     onClear={handleClearEmail}
                     icon={<AtSign />}
                 />
-                <Link href={`/blog`} className="_button">
+
+                <button
+                    type="submit"
+                    className="_button"
+                    id="_buttonNewsletter"
+                    disabled={isLoading}
+                >
+                    {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                    <AnimatedWrapper
+                        as="span"
+                        className="buttonBackground"
+                        hover={{
+                            from: { clipPath: 'inset(0 100% 0 0)' },
+                            to: { clipPath: 'inset(0 0 0 0)' },
+                        }}
+                        config={{ mass: 1, tension: 170, friction: 26 }}
+                        parentHoverSelector="#_buttonNewsletter"
+                    ></AnimatedWrapper>
                     <div className="buttonBorders">
-                        <div className="borderTop"></div>
-                        <div className="borderRight"></div>
-                        <div className="borderBottom"></div>
-                        <div className="borderLeft"></div>
+                        {/* Top border: animate width */}
+                        <AnimatedWrapper
+                            as="div"
+                            className="borderTop"
+                            hover={{
+                                from: { width: '0%' },
+                                to: { width: '100%' },
+                                delay: 0,
+                            }}
+                            parentHoverSelector="#_buttonNewsletter" // <-- Updated parent hover selector
+                            onRest={() => {
+                                // Trigger the next animation after this one completes
+                                document
+                                    .querySelector('.borderRight')
+                                    ?.dispatchEvent(new Event('startAnimation'));
+                            }}
+                        />
+                        {/* Right border: animate height */}
+                        <AnimatedWrapper
+                            as="div"
+                            className="borderRight"
+                            hover={{
+                                from: { height: '0%' },
+                                to: { height: '100%' },
+                                delay: 0, // Start immediately after the previous animation
+                            }}
+                            parentHoverSelector="#_buttonNewsletter" // <-- Updated parent hover selector
+                            onRest={() => {
+                                // Trigger the next animation after this one completes
+                                document
+                                    .querySelector('.borderBottom')
+                                    ?.dispatchEvent(new Event('startAnimation'));
+                            }}
+                        />
+                        {/* Bottom border: animate width */}
+                        <AnimatedWrapper
+                            as="div"
+                            className="borderBottom"
+                            hover={{
+                                from: { width: '0%' },
+                                to: { width: '100%' },
+                                delay: 0, // Start immediately after the previous animation
+                            }}
+                            parentHoverSelector="#_buttonNewsletter" // <-- Updated parent hover selector
+                            onRest={() => {
+                                // Trigger the next animation after this one completes
+                                document
+                                    .querySelector('.borderLeft')
+                                    ?.dispatchEvent(new Event('startAnimation'));
+                            }}
+                        />
+                        {/* Left border: animate height */}
+                        <AnimatedWrapper
+                            as="div"
+                            className="borderLeft"
+                            hover={{
+                                from: { height: '0%' },
+                                to: { height: '100%' },
+                                delay: 0, // Start immediately after the previous animation
+                            }}
+                            parentHoverSelector="#_buttonNewsletter" // <-- Updated parent hover selector
+                        />
                     </div>
-                    <span>
-                        Submit
+                    <AnimatedWrapper
+                        as="span"
+                        className="buttonContent"
+                        hover={{
+                            from: {
+                                color: 'rgb(var(--text)/1)',
+                            },
+                            to: {
+                                color: 'rgb(var(--white)/1)',
+                            },
+                        }}
+                        config={{
+                            mass: 1,
+                            tension: 170,
+                            friction: 26,
+                        }}
+                        parentHoverSelector="#_buttonNewsletter"
+                    >
+                        {isLoading ? 'Subscribing...' : 'Subscribe'}
                         <b className="pink_dot">.</b>
-                    </span>
-                </Link>
+                    </AnimatedWrapper>
+                </button>
             </form>
+            <SubmitModal
+                isSubmitOpen={isSubmitOpen}
+                onSubmitClose={() => setIsSubmitOpen(false)}
+                message={submitMessage}
+                isSuccess={isSuccess}
+            />
         </AnimatedWrapper>
     );
-};
-
-export default Newsletter;
+}

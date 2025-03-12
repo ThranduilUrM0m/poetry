@@ -20,8 +20,8 @@ form {
 
         // Floating Label
         ._floatingLabel {
-            @apply absolute z-50 top-1/2 text-[rgb(var(--text)/1)] px-[1vh] opacity-75 text-[2vh];
-
+            @apply absolute z-50 text-[rgb(var(--text)/1)] px-[1vh] text-[2vh];
+            
             &::before {
                 content: '';
                 @apply absolute bg-[rgb(var(--white)/1)] top-full left-0 w-full h-1/4;
@@ -33,7 +33,7 @@ form {
             @apply relative z-40 h-full w-full;
 
             ._icon {
-                @apply absolute top-1/2 left-0 -translate-y-1/2 mx-[1vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
+                @apply absolute top-1/2 left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
                 
                 svg {
                     @apply stroke-[rgb(var(--text)/.5)];
@@ -109,7 +109,7 @@ form {
 
         // Error Text
         .__errorText {
-            @apply absolute top-1/2 right-[1.5vh] -translate-y-1/2 h-[4vh] max-w-[50%] w-fit p-[1vh] m-0 rounded-sm bg-[rgb(var(--redNo)/.25)] flex items-center z-50;
+            @apply absolute h-[4vh] max-w-[50%] w-fit p-[1vh] m-0 rounded-sm bg-[rgb(var(--redNo)/.25)] flex items-center z-50;
 
             span {
                 @apply text-xs text-[rgb(var(--redNo)/1)] truncate;
@@ -259,7 +259,7 @@ form {
         @apply relative m-0 border-none bg-transparent h-[7vh] text-[2vh] font-[600] z-[1];
 
         .buttonBorders {
-            @apply absolute top-0 left-0 w-full h-full border-[.1vh] border-[rgb(var(--white)/.25)] bg-transparent;
+            @apply absolute top-0 left-0 w-full h-full border-[.1vh] border-[rgb(var(--text)/.25)];
 
             .borderTop,
             .borderRight,
@@ -270,41 +270,46 @@ form {
 
             .borderTop,
             .borderBottom {
-                @apply w-full h-[.1vh];
+                @apply h-[.25vh];
+                max-width: 100%;
             }
 
             .borderLeft,
             .borderRight {
-                @apply h-full w-[.1vh];
+                @apply w-[.25vh];
+                max-height: 100%;
             }
 
             .borderTop {
-                @apply top-0 origin-left;
+                @apply top-0 left-0;
             }
 
             .borderRight {
-                @apply right-0 origin-top;
+                @apply right-0 top-0;
             }
 
             .borderBottom {
-                @apply bottom-0 origin-right;
+                @apply bottom-0 right-0;
             }
 
             .borderLeft {
-                @apply left-0 origin-bottom;
+                @apply left-0 bottom-0;
             }
         }
 
         span {
             @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+            
+            &.buttonBackground {
+                @apply w-[calc(100%-2vh)] h-[calc(100%-2vh)];
+                @apply bg-[rgb(var(--text)/.95)];
+            }
         }
 
         &.__dark {
-            @apply border-none bg-transparent;
-
             .buttonBorders {
-                @apply border-[rgb(var(--text)/.25)] bg-transparent;
-
+                @apply border-[rgb(var(--white)/.25)];
+    
                 .borderTop,
                 .borderRight,
                 .borderBottom,
@@ -312,9 +317,13 @@ form {
                     @apply bg-[rgb(var(--white)/1)];
                 }
             }
-
+    
             span {
-                @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
+                @apply text-[rgb(var(--white)/.5)];
+                
+                &.buttonBackground {
+                    @apply bg-[rgb(var(--white)/.95)];
+                }
             }
         }
     }

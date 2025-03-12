@@ -1,10 +1,13 @@
 import { Document, Types } from 'mongoose';
-export type ArticleDocument = Article & Document;
+export type ArticleDocument = Article & Document & {
+    _id: Types.ObjectId;
+};
 export declare class Article {
     title: string;
     body: string;
     author: Types.ObjectId;
     category: string;
+    slug: string;
     isPrivate: boolean;
     tags: string[];
     comments: Types.ObjectId[];

@@ -68,16 +68,13 @@ exports.UserSchema.methods.getToken = function () {
     if (!secret) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jwt.sign({
-        sub: this._id,
-        email: this.email,
-        username: this.username,
-    }, secret, { expiresIn: '24h' });
+    return jwt.sign({ sub: this._id, email: this.email, username: this.username }, secret, {
+        expiresIn: '24h',
+    });
 };
 exports.UserSchema.pre('save', function (next) {
-    if (!this.isModified('password')) {
+    if (!this.isModified('password'))
         return next();
-    }
     this.password = passwordHash.generate(this.password);
     next();
 });

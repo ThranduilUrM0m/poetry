@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticleSchema = exports.Article = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const slugify_ts_1 = require("slugify-ts");
 let Article = class Article {
 };
 exports.Article = Article;
@@ -31,6 +32,10 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Article.prototype, "category", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    __metadata("design:type", String)
+], Article.prototype, "slug", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ default: false }),
     __metadata("design:type", Boolean)
@@ -63,4 +68,16 @@ exports.Article = Article = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Article);
 exports.ArticleSchema = mongoose_1.SchemaFactory.createForClass(Article);
+exports.ArticleSchema.pre('save', function (next) {
+    const article = this;
+    if (article.isModified('title')) {
+        if (typeof article.title === 'string') {
+            const slug = (0, slugify_ts_1.default)(article.title, {
+                enableSmartTruncate: true,
+            }) ?? '';
+            article.slug = slug;
+        }
+    }
+    next();
+});
 //# sourceMappingURL=article.model.js.map

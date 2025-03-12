@@ -25,11 +25,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Apply a default transition to all elements */
-* {
-    @apply transition-all duration-300 ease-in-out;
-}
-
 body {
     @apply relative m-0 text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth overflow-x-hidden;
     font-family: vars.$mainFont;
@@ -55,4 +50,14 @@ body {
     .peg {
         @apply hidden;
     }
+}
+
+.slick-vertical .slick-track {
+    display: block;
+}
+
+.slick-vertical .slick-slide {
+    display: block;
+    height: auto;
+    border: 1px solid transparent;
 }

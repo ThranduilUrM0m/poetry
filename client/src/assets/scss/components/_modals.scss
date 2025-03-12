@@ -12,7 +12,7 @@
             @apply flex h-[10vh] overflow-visible px-[2.5vh];
 
             ._formContainer {
-                @apply w-[100vh] m-auto;
+                @apply w-[100vh] m-auto z-[10];
             }
 
             .__searchClose {
@@ -207,6 +207,57 @@
                 strong {
                     @apply text-[rgb(var(--text)/1)] font-semibold;
                 }
+            }
+        }
+    }
+
+    &__submit {
+        @apply fixed flex flex-col z-30 top-[10vh] left-1/2 w-1/2 h-1/2 bg-[rgb(var(--white)/1)] p-[2.5vh];
+        line-height: normal;
+        box-shadow: 0 0 2vh 2vh rgb(rgb(var(--text)/1) / 0.05);
+    
+        ._header {
+            @apply flex h-[10vh] overflow-visible px-[2.5vh];
+
+            ._headerTitle {
+                @apply w-[100vh] mr-auto content-center;
+            }
+
+            .__submitClose {
+                svg {
+                    @apply relative w-full h-full;
+
+                    g {
+                        line {
+                            @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)] origin-center;
+
+                            &.one {
+                                @apply rotate-45;
+                            }
+
+                            &.two {
+                                @apply -rotate-45;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ._body {
+            @apply flex-grow overflow-hidden p-[2.5vh];
+
+            h2 {
+                @apply text-xl font-medium text-[rgb(var(--text)/.5)] mb-[3vh];
+            }
+        }
+
+        ._footer {
+            @apply h-fit border-t border-[rgb(var(--hoverGray)/.25)] px-[2.5vh] pt-[2.5vh] flex items-center;
+            @apply flex justify-between items-center;
+
+            ._button {
+                @apply self-end w-2/5;
             }
         }
     }

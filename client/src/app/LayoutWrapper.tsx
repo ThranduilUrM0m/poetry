@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import NProgress from 'nprogress';
@@ -9,21 +8,6 @@ import Footer from '@/components/Footer';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { LoadingContext } from '@/context/LoadingContext';
 
-const headerVariants = {
-    initial: { translateY: -100, opacity: 0 },
-    animate: { translateY: 0, opacity: 1, transition: { duration: 0.5 } },
-};
-
-const contentVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } },
-};
-
-const footerVariants = {
-    initial: { translateY: 100, opacity: 0 },
-    animate: { translateY: 0, opacity: 1, transition: { duration: 0.5, delay: 0.4 } },
-};
-
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const isDashboard = pathname?.startsWith('/dashboard');
@@ -32,12 +16,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     useEffect(() => {
         NProgress.start();
         setIsLoaded(false);
-
         const timer = setTimeout(() => {
             NProgress.done();
             setIsLoaded(true);
         }, 500);
-
         return () => {
             clearTimeout(timer);
             NProgress.done();
@@ -49,29 +31,36 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             {!isDashboard && (
                 <AnimatedWrapper
                     className="__headerWrapper"
-                    variants={headerVariants}
-                    initial="initial"
-                    animate={isLoaded ? 'animate' : 'initial'}
+                    from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                    to={{
+                        transform: isLoaded ? 'translateY(0)' : 'translateY(-100%)',
+                        opacity: isLoaded ? 1 : 0,
+                    }}
+                    config={{ mass: 1, tension: 170, friction: 26 }}
                 >
                     <Header />
                 </AnimatedWrapper>
             )}
-
             <AnimatedWrapper
                 className="__mainWrapper"
-                variants={contentVariants}
-                initial="initial"
-                animate={isLoaded ? 'animate' : 'initial'}
+                from={{ transform: 'translateY(-20%)', opacity: 0 }}
+                to={{
+                    transform: isLoaded ? 'translateY(0)' : 'translateY(-20%)',
+                    opacity: isLoaded ? 1 : 0,
+                }}
+                config={{ mass: 1, tension: 170, friction: 26 }}
             >
                 {children}
             </AnimatedWrapper>
-
             {!isDashboard && (
                 <AnimatedWrapper
                     className="__footerWrapper"
-                    variants={footerVariants}
-                    initial="initial"
-                    animate={isLoaded ? 'animate' : 'initial'}
+                    from={{ transform: 'translateY(100%)', opacity: 0 }}
+                    to={{
+                        transform: isLoaded ? 'translateY(0)' : 'translateY(100%)',
+                        opacity: isLoaded ? 1 : 0,
+                    }}
+                    config={{ mass: 1, tension: 170, friction: 26 }}
                 >
                     <Footer />
                 </AnimatedWrapper>

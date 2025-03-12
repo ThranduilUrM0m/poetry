@@ -45,17 +45,9 @@
 
                         g {
                             line {
-                                @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)] origin-center;
-                            }
-                        }
-
-                        &.isMenuOpen {
-                            .one {
-                                @apply rotate-45;
-                            }
-
-                            .two {
-                                @apply -rotate-45;
+                                @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)];
+                                transform-box: fill-box;
+                                transform-origin: center;
                             }
                         }
                     }

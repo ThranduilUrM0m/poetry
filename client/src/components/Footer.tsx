@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import Newsletter from '@/components/ui/Newsletter';
-import { useLoading } from '@/context/LoadingContext';
+import { usePathname } from 'next/navigation';
 import { format } from 'date-fns';
 import { Copyright, Heart, ChevronUp, Instagram, Facebook, Twitter as XIcon } from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import AnimatedWrapper from './ui/AnimatedWrapper';
+import { config } from '@react-spring/web';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import Newsletter from '@/components/ui/Newsletter';
+import { useLoading } from '@/context/LoadingContext';
 
 const AboutItems = [
     { label: 'About me', href: '/about' },
@@ -25,45 +26,12 @@ const SocialItems = [
     { label: 'Behance', href: 'https://www.behance.net/boutaleblcoder', icon: XIcon }, // Using X (Twitter) icon for Behance
 ];
 
-/* const navVariants = {
-    open: {
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2,
-            when: 'afterChildren',
-        },
-    },
-    closed: {
-        transition: {
-            staggerChildren: 0.05,
-            staggerDirection: -1,
-            when: 'afterChildren',
-        },
-    },
-};
-
-const itemVariants = {
-    open: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            duration: 0.4,
-            ease: [0.6, 0.05, -0.01, 0.9],
-        },
-    },
-    closed: {
-        y: 50,
-        opacity: 0,
-        transition: {
-            duration: 0.4,
-            ease: [0.6, 0.05, -0.01, 0.9],
-        },
-    },
-}; */
-
 export default function Footer() {
     const { isLoaded } = useLoading();
     const pathname = usePathname();
+
+    // Define the smooth beautiful configuration
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
     const getFooterClass = () => {
         if (pathname === '/login') return 'footer _login';
@@ -86,103 +54,122 @@ export default function Footer() {
                     <h2>Qasida</h2>
                     <div className="footer__container-right-links">
                         <div>
-                        <AnimatedWrapper
-                            as="h3"
-                            key="__titleSocial"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        >
-                            Find Me
-                        </AnimatedWrapper>
-                        <AnimatedWrapper
-                            as="ul"
-                            className="__ul-Social"
-                            initial="initial"
-                            animate={isLoaded ? 'animate' : 'initial'}
-                        >
-                            {SocialItems.map((item) => (
-                                <AnimatedWrapper
-                                    as="li"
-                                    key={item.href}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    <Link
-                                        href={item.href}
-                                        className={`${pathname === item.href ? 'active' : ''}`}
+                            <h3>
+                                Find Me
+                            </h3>
+                            <AnimatedWrapper
+                                as="ul"
+                                className="__ul-Social"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: isLoaded ? 1 : 0 }}
+                                config={smoothConfig}
+                            >
+                                {SocialItems.map((item) => (
+                                    <AnimatedWrapper
+                                        as="li"
+                                        id={`_iconSocial${item.label}`}
+                                        key={item.href}
+                                        hover={{
+                                            from: { scale: 1 },
+                                            to: { scale: 1.1 },
+                                        }}
+                                        click={{
+                                            from: { scale: 1 },
+                                            to: { scale: 0.9 },
+                                        }}
+                                        config={config.wobbly}
                                     >
-                                        {/* Render icon as a JSX element */}
-                                        <item.icon />
-                                    </Link>
-                                </AnimatedWrapper>
-                            ))}
-                        </AnimatedWrapper>
+                                        <Link
+                                            href={item.href}
+                                            className={`${pathname === item.href ? 'active' : ''}`}
+                                        >
+                                            <AnimatedWrapper
+                                                as="span"
+                                                className="iconBackground"
+                                                hover={{
+                                                    from: { clipPath: 'inset(0 100% 0 0)' },
+                                                    to: { clipPath: 'inset(0 0 0 0)' },
+                                                }}
+                                                config={config.wobbly}
+                                                parentHoverSelector={`#_iconSocial${item.label}`}
+                                            ></AnimatedWrapper>
+                                            <item.icon />
+                                        </Link>
+                                    </AnimatedWrapper>
+                                ))}
+                            </AnimatedWrapper>
                         </div>
 
                         <div>
-                        <AnimatedWrapper
-                            as="h3"
-                            key="__titleAbout"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        >
-                            About
-                        </AnimatedWrapper>
-                        <AnimatedWrapper
-                            as="ul"
-                            className="__ul-About"
-                            initial="initial"
-                            animate={isLoaded ? 'animate' : 'initial'}
-                        >
-                            {AboutItems.map((item) => (
-                                <AnimatedWrapper
-                                    as="li"
-                                    key={item.href}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    <Link
-                                        href={item.href}
-                                        className={`${pathname === item.href ? 'active' : ''}`}
+                            <h3>
+                                About
+                            </h3>
+                            <AnimatedWrapper
+                                as="ul"
+                                className="__ul-About"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: isLoaded ? 1 : 0 }}
+                                config={smoothConfig}
+                            >
+                                {AboutItems.map((item) => (
+                                    <AnimatedWrapper
+                                        as="li"
+                                        key={item.href}
+                                        hover={{
+                                            from: { transform: 'translateX(0vh)' },
+                                            to: { transform: 'translateX(0.5vh)' },
+                                        }}
+                                        click={{
+                                            from: { scale: 1 },
+                                            to: { scale: 0.9 },
+                                        }}
+                                        config={config.wobbly}
                                     >
-                                        {item.label}
-                                    </Link>
-                                </AnimatedWrapper>
-                            ))}
-                        </AnimatedWrapper>
+                                        <Link
+                                            href={item.href}
+                                            className={`${pathname === item.href ? 'active' : ''}`}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </AnimatedWrapper>
+                                ))}
+                            </AnimatedWrapper>
                         </div>
 
                         <div>
-                        <AnimatedWrapper
-                            as="h3"
-                            key="__titleLegal"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        >
-                            Legal
-                        </AnimatedWrapper>
-                        <AnimatedWrapper
-                            as="ul"
-                            className="__ul-Legal"
-                            initial="initial"
-                            animate={isLoaded ? 'animate' : 'initial'}
-                        >
-                            {LegalItems.map((item) => (
-                                <AnimatedWrapper
-                                    as="li"
-                                    key={item.href}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    <Link
-                                        href={item.href}
-                                        className={`${pathname === item.href ? 'active' : ''}`}
+                            <h3>
+                                Legal
+                            </h3>
+                            <AnimatedWrapper
+                                as="ul"
+                                className="__ul-Legal"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: isLoaded ? 1 : 0 }}
+                                config={smoothConfig}
+                            >
+                                {LegalItems.map((item) => (
+                                    <AnimatedWrapper
+                                        as="li"
+                                        key={item.href}
+                                        hover={{
+                                            from: { transform: 'translateX(0vh)' },
+                                            to: { transform: 'translateX(0.5vh)' },
+                                        }}
+                                        click={{
+                                            from: { scale: 1 },
+                                            to: { scale: 0.9 },
+                                        }}
+                                        config={config.wobbly}
                                     >
-                                        {item.label}
-                                    </Link>
-                                </AnimatedWrapper>
-                            ))}
-                        </AnimatedWrapper>
+                                        <Link
+                                            href={item.href}
+                                            className={`${pathname === item.href ? 'active' : ''}`}
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </AnimatedWrapper>
+                                ))}
+                            </AnimatedWrapper>
                         </div>
                     </div>
                 </div>
@@ -192,43 +179,53 @@ export default function Footer() {
                     <AnimatedWrapper
                         as="ul"
                         className="__ul"
-                        initial="initial"
-                        animate={isLoaded ? 'animate' : 'initial'}
+                        from={{ opacity: 0 }}
+                        to={{ opacity: isLoaded ? 1 : 0 }}
+                        config={smoothConfig}
                     >
-                        {/* Copyright Text instead of Link */}
-                        <AnimatedWrapper
-                            as="li"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        >
-                            Copyrights
-                            <Copyright size={16} />
+                        <li>
+                            Copyrights <Copyright size={16} />
                             <span>{format(new Date(), 'yyyy')}</span> - With <Heart size={16} />{' '}
                             from boutaleb.
-                        </AnimatedWrapper>
+                        </li>
                     </AnimatedWrapper>
                 </div>
                 <div className="footer__nav-right">
                     <AnimatedWrapper
                         as="ul"
                         className="__ul"
-                        initial="initial"
-                        animate={isLoaded ? 'animate' : 'initial'}
+                        from={{ opacity: 0 }}
+                        to={{ opacity: isLoaded ? 1 : 0 }}
+                        config={smoothConfig}
                     >
-                        <AnimatedWrapper
-                            as="li"
-                            key="/"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        >
+                        <li>
                             <Link
                                 href="#"
+                                id='_backToTop'
                                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                             >
-                                Back to the top
-                                <ChevronUp size={16} />
+                                <AnimatedWrapper
+                                    as="span" // Use a span to wrap the text and arrow
+                                    hover={{
+                                        from: { transform: 'translateY(0vh)' },
+                                        to: { transform: 'translateY(-0.5vh)' },
+                                    }}
+                                    config={config.wobbly}
+                                    parentHoverSelector="#_backToTop"
+                                >
+                                    Back to the top.
+                                    <AnimatedWrapper
+                                        as={ChevronUp}
+                                        hover={{
+                                            from: { transform: 'translateY(0vh)' },
+                                            to: { transform: 'translateY(-0.75vh)' },
+                                        }}
+                                        config={config.wobbly}
+                                        parentHoverSelector="#_backToTop"
+                                    />
+                                </AnimatedWrapper>
                             </Link>
-                        </AnimatedWrapper>
+                        </li>
                     </AnimatedWrapper>
                 </div>
             </nav>

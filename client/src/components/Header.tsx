@@ -1,15 +1,13 @@
 'use client';
-
 import { useEffect, useRef, useState } from 'react';
+import { config } from '@react-spring/web';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence } from 'framer-motion';
-import AnimatedWrapper from './ui/AnimatedWrapper';
-import Overlay from './ui/Overlay';
-import SearchModal from './ui/SearchModal';
-
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import Overlay from '@/components/ui/Overlay';
+import SearchModal from '@/components/ui/SearchModal';
 import logo from '@/assets/images/b_white_orange..svg';
 
 const menuItems = [
@@ -19,75 +17,6 @@ const menuItems = [
     { label: 'Contact', href: '/contact' },
 ];
 
-/* const useDimensions = (ref: React.RefObject<HTMLDivElement | null>) => {
-    const dimensions = useRef({ width: 0, height: 0 });
-
-    useEffect(() => {
-        if (ref.current) {
-            dimensions.current.width = ref.current.offsetWidth;
-            dimensions.current.height = ref.current.offsetHeight;
-        }
-    }, [ref]);
-
-    return dimensions.current;
-}; */
-
-const sidebarVariants = {
-    open: {
-        clipPath: 'circle(150vh at 15vh 5vh)',
-        transition: {
-            type: 'spring',
-            stiffness: 400,
-            restDelta: 2,
-        },
-    },
-    closed: {
-        clipPath: 'circle(0vh at 15vh 5vh)',
-        transition: {
-            delay: 0.2,
-            type: 'spring',
-            stiffness: 400,
-            damping: 40,
-        },
-    },
-};
-
-const navVariants = {
-    open: {
-        transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2,
-            when: 'afterChildren',
-        },
-    },
-    closed: {
-        transition: {
-            staggerChildren: 0.05,
-            staggerDirection: -1,
-            when: 'afterChildren',
-        },
-    },
-};
-
-const itemVariants = {
-    open: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            duration: 0.4,
-            ease: [0.6, 0.05, -0.01, 0.9],
-        },
-    },
-    closed: {
-        y: 50,
-        opacity: 0,
-        transition: {
-            duration: 0.4,
-            ease: [0.6, 0.05, -0.01, 0.9],
-        },
-    },
-};
-
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -95,7 +24,6 @@ export default function Header() {
     const menuRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
     const backgroundRef = useRef<HTMLDivElement>(null);
-    /* const { height } = useDimensions(menuRef); */
 
     const getHeaderClass = () => {
         if (pathname === '/login') return 'header _login';
@@ -109,97 +37,110 @@ export default function Header() {
                 setIsMenuOpen(!isMenuOpen);
             }
         };
-
         const handleClickOutside = (event: MouseEvent) => {
             if (overlayRef.current && overlayRef.current.contains(event.target as Node)) {
-                // Click is on the overlay; close the menu
                 setIsMenuOpen(false);
-            } else if (
-                backgroundRef.current &&
-                backgroundRef.current.contains(event.target as Node)
-            ) {
-                // Click is inside the background; keep the menu open
-                return;
             }
         };
-
         if (isMenuOpen) {
             document.addEventListener('keydown', handleEscape);
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isMenuOpen, setIsMenuOpen]);
+    }, [isMenuOpen]);
+
+    // Smooth beautiful config
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+
+    // Update the config to be used for all hamburger animations
+    const hamburgerConfig = {
+        ...config.wobbly,
+        duration: 300, // Add a consistent duration
+    };
+
+    // Add stagger timing configuration
+    const staggerConfig = {
+        backgroundDuration: 600, // Background animation duration in ms
+        itemStaggerDelay: 100,   // Delay between each item in ms
+    };
 
     return (
         <header className={getHeaderClass()}>
             <nav className="header__nav">
                 <div className="header__nav-left">
-                    {/* The animatepresence unmouts abruptly */}
-                    <AnimatePresence>
-                        {isMenuOpen && (
-                            <Overlay
-                                isVisible={isMenuOpen}
-                                onClick={() => setIsMenuOpen(false)}
-                                zIndex={10}
-                            />
-                        )}
-                    </AnimatePresence>
-
+                    {/* Overlay for the menu */}
+                    {isMenuOpen && (
+                        <Overlay
+                            isVisible={isMenuOpen}
+                            onClick={() => setIsMenuOpen(false)}
+                            zIndex={10}
+                        />
+                    )}
                     <div className="header__nav-left-hamburger" ref={menuRef}>
-                        <AnimatePresence mode="wait">
-                            {isMenuOpen && (
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="__background"
-                                    ref={backgroundRef}
-                                    variants={sidebarVariants}
-                                    initial="closed"
-                                    animate="open"
-                                    exit="closed"
-                                >
+                        {/* Sidebar background */}
+                        <AnimatedWrapper
+                            as="div"
+                            className="__background"
+                            ref={backgroundRef}
+                            from={{ clipPath: 'circle(0vh at 15vh 5vh)' }}
+                            to={{
+                                clipPath: isMenuOpen
+                                    ? 'circle(150vh at 15vh 5vh)'
+                                    : 'circle(0vh at 15vh 5vh)',
+                            }}
+                            config={{ ...smoothConfig, duration: staggerConfig.backgroundDuration }}
+                        >
+                            {/* Menu items */}
+                            <AnimatedWrapper
+                                as="ul"
+                                className="__ul"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: isMenuOpen ? 1 : 0 }}
+                                config={smoothConfig}
+                                delay={staggerConfig.backgroundDuration * 0.5} // Start halfway through background animation
+                            >
+                                {menuItems.map((item, index) => (
                                     <AnimatedWrapper
-                                        as="ul"
-                                        className="__ul"
-                                        variants={navVariants}
-                                        initial="closed"
-                                        animate="open"
-                                        exit="closed"
+                                        as="li"
+                                        key={item.href}
+                                        from={{ 
+                                            transform: 'translateX(-50px)',
+                                            opacity: 0 
+                                        }}
+                                        to={{ 
+                                            transform: isMenuOpen ? 'translateX(0)' : 'translateX(-50px)',
+                                            opacity: isMenuOpen ? 1 : 0
+                                        }}
+                                        config={smoothConfig}
+                                        delay={staggerConfig.backgroundDuration + (index * staggerConfig.itemStaggerDelay)}
+                                        hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
+                                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                                     >
-                                        {menuItems.map((item) => (
-                                            <AnimatedWrapper
-                                                as="li"
-                                                key={item.href}
-                                                variants={itemVariants}
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                            >
-                                                <Link
-                                                    href={item.href}
-                                                    className={`${
-                                                        pathname === item.href ? 'active' : ''
-                                                    }`}
-                                                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                                >
-                                                    {item.label}
-                                                </Link>
-                                            </AnimatedWrapper>
-                                        ))}
+                                        <Link
+                                            href={item.href}
+                                            className={`${pathname === item.href ? 'active' : ''}`}
+                                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                        >
+                                            {item.label}
+                                        </Link>
                                     </AnimatedWrapper>
-                                </AnimatedWrapper>
-                            )}
-                        </AnimatePresence>
-
+                                ))}
+                            </AnimatedWrapper>
+                        </AnimatedWrapper>
+                        {/* Hamburger button */}
                         <AnimatedWrapper
                             as="button"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
                             className="__hamburger"
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.5 }}
+                            from={{ transform: 'rotate(0deg)' }}
+                            to={{ transform: isMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                            hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
+                            click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
+                            config={hamburgerConfig}
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -207,43 +148,66 @@ export default function Header() {
                                 className={`${isMenuOpen ? 'isMenuOpen' : ''}`}
                             >
                                 <g>
-                                    <line
+                                    <AnimatedWrapper
+                                        as="line"
                                         className="one"
-                                        x1={`${isMenuOpen ? '24.5' : '19.5'}`}
-                                        y1={`${isMenuOpen ? '49.5' : '43.5'}`}
-                                        x2={`${isMenuOpen ? '75.5' : '80.5'}`}
-                                        y2={`${isMenuOpen ? '49.5' : '43.5'}`}
-                                    ></line>
-                                    <line
+                                        x1="24.5"
+                                        y1="43.5"
+                                        x2="75.5"
+                                        y2="43.5"
+                                        from={{
+                                            transform: 'translate(0, 0) rotate(0deg)',
+                                            transformOrigin: 'center',
+                                        }}
+                                        to={{
+                                            transform: isMenuOpen
+                                                ? 'translate(0, 6px) rotate(45deg)'
+                                                : 'translate(0, 0) rotate(0deg)',
+                                            transformOrigin: 'center',
+                                        }}
+                                        config={hamburgerConfig}
+                                    />
+                                    <AnimatedWrapper
+                                        as="line"
                                         className="two"
-                                        x1={`${isMenuOpen ? '24.5' : '19.5'}`}
-                                        y1={`${isMenuOpen ? '50.5' : '56.5'}`}
-                                        x2={`${isMenuOpen ? '75.5' : '80.5'}`}
-                                        y2={`${isMenuOpen ? '50.5' : '56.5'}`}
-                                    ></line>
+                                        x1="24.5"
+                                        y1="56.5"
+                                        x2="75.5"
+                                        y2="56.5"
+                                        from={{
+                                            transform: 'translate(0, 0) rotate(0deg)',
+                                            transformOrigin: 'center',
+                                        }}
+                                        to={{
+                                            transform: isMenuOpen
+                                                ? 'translate(0, -6px) rotate(-45deg)'
+                                                : 'translate(0, 0) rotate(0deg)',
+                                            transformOrigin: 'center',
+                                        }}
+                                        config={hamburgerConfig}
+                                    />
                                 </g>
                             </svg>
                         </AnimatedWrapper>
                     </div>
-
                     <Link href="/" className="header__nav-left-logo">
                         <Image src={logo} alt="Logo" width={32} height={32} />
                     </Link>
                 </div>
                 <div className="header__nav-right">
-                    {/* Make the Search black upon scrolling past the first section in home */}
+                    {/* Search button */}
                     <AnimatedWrapper
                         as="button"
                         onClick={() => setIsSearchOpen(true)}
                         className="header__nav-right-search"
-                        whileHover={{ scale: 1.16 }}
-                        whileTap={{ scale: 0.5 }}
+                        config={smoothConfig}
+                        hover={{ from: { scale: 1 }, to: { scale: 1.16 } }}
+                        click={{ from: { scale: 1 }, to: { scale: 0.5 } }}
                     >
                         <Search />
                     </AnimatedWrapper>
                 </div>
             </nav>
-
             <SearchModal isSearchOpen={isSearchOpen} onSearchClose={() => setIsSearchOpen(false)} />
         </header>
     );

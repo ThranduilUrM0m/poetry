@@ -1,61 +1,41 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useRouter } from 'next/navigation';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
-import { selectCurrentArticle, setCurrentArticle } from '@/slices/articleSlice';
+import type { AppDispatch } from '@/store';
+import {
+    fetchArticleBySlug,
+    selectCurrentArticle,
+    selectIsLoading,
+    selectError,
+} from '@/slices/articleSlice';
 
 export default function ArticlePage() {
-    const { category, slug } = useParams();
-    const dispatch = useDispatch();
-    const router = useRouter();
+    const params = useParams();
+    const category = Array.isArray(params.category) ? params.category[0] : params.category;
+    const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+    const dispatch = useDispatch<AppDispatch>();
     const article = useSelector(selectCurrentArticle);
+    const isLoading = useSelector(selectIsLoading);
+    const error = useSelector(selectError);
 
     useEffect(() => {
-        if (!category || !slug) {
-            return;
+        if (category && slug) {
+            dispatch(fetchArticleBySlug({ category, slug }));
         }
+    }, [category, slug, dispatch]);
 
-        const fetchArticle = async () => {
-            try {
-                const response = await fetch(`/api/articles/${category}/${slug}`, {
-                    cache: 'no-store', // Disable caching to ensure fresh data
-                });
-
-                if (!response.ok) {
-                    throw new Error('Article not found');
-                }
-
-                const data = await response.json();
-                dispatch(setCurrentArticle(data));
-            } catch (error) {
-                console.error('Error fetching article:', error);
-                router.push('/404');
-            }
-        };
-
-        fetchArticle();
-    }, [category, slug, dispatch, router]); // Dependencies ensure effect runs on param changes
-
-    if (!article) {
-        return <div>Loading...</div>;
-    }
+    if (isLoading) return <p>Loading article...</p>;
+    if (error) return <p>Error: {error}</p>;
+    if (!article) return <p>Article not found</p>;
 
     return (
-        <AnimatedWrapper
-            className="article-page"
-            // ...existing animation props...
-        >
-            <article className="article-content">
-                <h1>{article.title}</h1>
-                <div className="meta">
-                    <p>Category: {category}</p>
-                    {/* <p>Author: {article.author.firstname} {article.author.lastname}</p> */}
-                    {/* ...other metadata... */}
-                </div>
-                <div className="content">{article.body}</div>
-            </article>
-        </AnimatedWrapper>
+        <div>
+            <h1>{article.title}</h1>
+            <p>{article.body}</p>
+            <p>Category: {article.category}</p>
+            <p>Author: {article.author.username}</p>
+        </div>
     );
 }

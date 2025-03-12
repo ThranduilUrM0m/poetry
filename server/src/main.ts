@@ -1,14 +1,10 @@
-﻿/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* import { IoAdapter } from '@nestjs/platform-socket.io'; */
-import { NestFactory } from '@nestjs/core';
+﻿import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableCors();
-  await app.listen(process.env.PORT ?? 5000);
+    const app = await NestFactory.create(AppModule);
+    app.enableCors(); // Enable CORS for frontend communication
+    await app.listen(process.env.PORT ?? 5000); // Use environment variable for port or default to 5000
 }
+
 bootstrap();

@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Types } from 'mongoose';
 import { useCombobox } from 'downshift';
-import { AnimatePresence } from 'framer-motion';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import SimpleBar from 'simplebar-react';
+import { useTransition, useSpring } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { SearchSuggestion } from '@/types/search';
+import { Article } from '@/types/article';
 import _ from 'lodash';
 
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
@@ -20,133 +20,10 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     onClear?: () => void;
     onSuggestionSelect?: (suggestion: S) => void;
     onInputChange?: (value: string) => void;
-    allArticles?: Array<{
-        _id: Types.ObjectId;
-        title: string;
-        body: string;
-        author: {
-            username: string;
-            firstname?: string;
-            lastname?: string;
-            city?: string;
-            country?: {
-                _code: string;
-                _country: string;
-            };
-        };
-        category: string;
-        isPrivate: boolean;
-        tags: string[];
-        comments: Types.ObjectId[];
-        views: Types.ObjectId[];
-        upvotes: Types.ObjectId[];
-        downvotes: Types.ObjectId[];
-        createdAt: Date;
-        updatedAt: Date;
-        slug?: string;
-    }>;
+    allArticles?: Array<Article>;
     selectedSuggestions?: S[];
+    fuzzyMatchThreshold?: number; // Add threshold for fuzzy matching
 }
-
-// Modal variants
-const SimpleBarVariants = {
-    open: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        opacity: 0,
-        y: -10,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-};
-
-const floatingLabelVariants = {
-    focused: {
-        y: '-100%',
-        x: '1vh',
-        top: 0,
-        scale: 0.85,
-        opacity: 1,
-        transition: {
-            duration: 0.2,
-            ease: 'easeOut',
-        },
-    },
-    unfocused: {
-        y: '-50%',
-        x: '6vh',
-        scale: 1,
-        opacity: 0.75,
-        transition: {
-            duration: 0.2,
-            ease: 'easeOut',
-        },
-    },
-};
-
-const clearButtonVariants = {
-    open: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        y: 25,
-        opacity: 0,
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-};
-
-const errorTextVariants = {
-    open: {
-        opacity: 1,
-        top: '50%',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-    closed: {
-        opacity: 0,
-        top: '100%',
-        transition: {
-            duration: 0.25,
-            ease: 'easeInOut',
-        },
-    },
-};
-
-// Add new animation variants
-const suggestionGroupVariants = {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
-};
-
-const suggestionItemVariants = {
-    initial: { opacity: 0, x: -10 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -10 },
-    hover: (type: string) => ({
-        backgroundColor: type === 'tag' ? 'rgb(var(--pink)/.15)' : 'rgb(var(--primary-light)/.5)',
-        scale: 1.02,
-    }),
-    tap: { scale: 0.98 },
-};
 
 const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     label,
@@ -162,45 +39,109 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     onInputChange,
     allArticles = [],
     selectedSuggestions = [],
+    fuzzyMatchThreshold = 0.4, // Default threshold for fuzzy matching
 }: FormFieldProps<T, S>) => {
+    // Define the smooth beautiful configuration
+    const smoothConfig = {
+        mass: 1,
+        tension: 170,
+        friction: 26,
+    };
+
     const [inputItems, setInputItems] = useState<S[]>(suggestions);
     const [isFocused, setIsFocused] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [autocompleteSuggestion, setAutocompleteSuggestion] = useState('');
     const [isSimpleBarOpen, setIsSimpleBarOpen] = useState(false);
     const formGroupRef = useRef<HTMLDivElement>(null);
-
-    // Use a ref to store the `onChange` function from react-hook-form
     const onChangeRef = useRef<(value: string) => void>(() => {});
 
-    // Check if we're using suggestions/autocomplete functionality
     const usingSuggestions = !!suggestions.length && !!onSuggestionSelect;
 
-    // Always use the hook, but make it work differently based on usingSuggestions
+    // Compute the master suggestion list based on the original suggestions prop,
+    // filtering out any suggestions that have already been selected.
+    const masterSuggestionList = useMemo(() => {
+        return suggestions.filter((item) => !selectedSuggestions?.some((s) => s._id === item._id));
+    }, [suggestions, selectedSuggestions]);
+
+    // Enhanced similarity check function
+    const getStringSimilarity = (str1: string, str2: string): number => {
+        const s1 = _.toLower(str1);
+        const s2 = _.toLower(str2);
+        // Check for exact substring match first
+        if (s1.includes(s2) || s2.includes(s1)) {
+            return 1;
+        }
+        // Calculate a simple similarity based on character differences
+        const matrix: number[] = [];
+        const chars = s1.split('');
+        chars.forEach((char, i) => {
+            matrix[i] = s2[i] === char ? 0 : 1;
+        });
+        const distance = matrix.reduce((sum, n) => sum + n, 0);
+        return 1 - distance / Math.max(s1.length, s2.length);
+    };
+
+    // Enhanced filter function with proper suggestion handling
+    const filterSuggestions = useMemo(
+        () => (inputVal: string, items: S[]): S[] => {
+            const searchTerm = _.toLower(inputVal).trim();
+            if (!searchTerm) return items;
+
+            // First try exact matches
+            const exactMatches = items.filter(item => 
+                _.toLower(item.title).includes(searchTerm)
+            );
+
+            if (exactMatches.length > 0) {
+                return _.orderBy(exactMatches, [
+                    item => ({title: 0, category: 1, tag: 2, author: 3})[item.type] || 4,
+                    'title'
+                ]);
+            }
+
+            // Fallback to fuzzy matching
+            return items
+                .map(item => ({
+                    item,
+                    similarity: getStringSimilarity(item.title, searchTerm)
+                }))
+                .filter(({ similarity }) => similarity >= fuzzyMatchThreshold)
+                .sort((a, b) => {
+                    const typeOrder = { title: 0, category: 1, tag: 2, author: 3 };
+                    const typeDiff = 
+                        (typeOrder[a.item.type as keyof typeof typeOrder] || 4) -
+                        (typeOrder[b.item.type as keyof typeof typeOrder] || 4);
+                    return typeDiff || b.similarity - a.similarity;
+                })
+                .map(({ item }) => item);
+        },
+        [fuzzyMatchThreshold]
+    );
+
+    // Reset suggestions to master list
+    const resetSuggestions = () => {
+        setInputItems(masterSuggestionList);
+        setAutocompleteSuggestion('');
+        setIsSimpleBarOpen(true);
+    };
+
     const { getMenuProps, getInputProps, getItemProps, highlightedIndex } = useCombobox({
         items: inputItems,
         isOpen: usingSuggestions && isSimpleBarOpen && inputItems.length > 0,
-        onInputValueChange: ({ inputValue }) => {
+        onInputValueChange: ({ inputValue: newValue = '' }) => {
             if (!usingSuggestions) return;
-
-            setInputValue(inputValue || '');
-            setIsSimpleBarOpen(true);
-            if (!_.isUndefined(inputValue)) {
-                // Filter suggestions based on input
-                const filteredItems = _.filter(suggestions, (item) =>
-                    _.includes(_.toLower(item.title), _.toLower(inputValue))
-                );
-                setInputItems(filteredItems);
-                if (onInputChange) {
-                    onInputChange(inputValue);
-                }
-            } else {
-                setInputItems(suggestions);
+            setInputValue(newValue);
+            // Always filter on the master suggestion list
+            const filtered = filterSuggestions(newValue, masterSuggestionList);
+            setInputItems(filtered);
+            if (onInputChange) {
+                onInputChange(newValue);
             }
+            setIsSimpleBarOpen(true);
         },
         onSelectedItemChange: ({ selectedItem }) => {
             if (!usingSuggestions) return;
-
             if (selectedItem && onSuggestionSelect) {
                 onSuggestionSelect(selectedItem);
                 setInputValue('');
@@ -211,23 +152,19 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         },
         itemToString: (item) => (item ? item.title : ''),
     });
-    getInputProps({}, { suppressRefError: true });
     getMenuProps({}, { suppressRefError: true });
+    getInputProps({}, { suppressRefError: true });
 
-    // Update inputItems when suggestions change - only if using suggestions
+    // When the suggestions prop or selectedSuggestions change, reset the inputItems state.
     useEffect(() => {
         if (usingSuggestions) {
-            const filteredItems = suggestions.filter(
-                (item) => !selectedSuggestions?.some((s) => s._id === item._id)
-            );
-            setInputItems(filteredItems);
+            setInputItems(masterSuggestionList);
         }
-    }, [suggestions, selectedSuggestions, usingSuggestions]);
+    }, [masterSuggestionList, usingSuggestions]);
 
-    // Group suggestions by type - only if using suggestions
+    // Group suggestions by type for display
     const groupedSuggestions = useMemo(() => {
         if (!usingSuggestions) return [];
-
         return _.chain(inputItems)
             .groupBy('type')
             .toPairs()
@@ -238,49 +175,40 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             .value();
     }, [inputItems, usingSuggestions]);
 
-    // Update autocomplete suggestion when input or suggestions change - only if using suggestions
+    // Update autocomplete suggestion based on master list, not the already filtered inputItems.
     useEffect(() => {
         if (!usingSuggestions) return;
-
         if (!inputValue) {
             setAutocompleteSuggestion('');
             return;
         }
-
-        const inputLower = _.toLower(inputValue);
-        const matchingSuggestions = inputItems.filter((item) =>
-            _.includes(_.toLower(item.title), inputLower)
-        );
-
-        if (matchingSuggestions.length > 0) {
-            // First try exact title matches
-            const exactMatch = matchingSuggestions.find(
-                (item) => item.type === 'title' && _.startsWith(_.toLower(item.title), inputLower)
+        const filtered = filterSuggestions(inputValue, masterSuggestionList);
+        if (filtered.length > 0) {
+            const exactMatch = filtered.find(
+                (item) =>
+                    item.type === 'title' &&
+                    _.startsWith(_.toLower(item.title), _.toLower(inputValue))
             );
-
             if (exactMatch) {
                 setAutocompleteSuggestion(exactMatch.title);
             } else {
-                // Otherwise use the highest priority match
-                const bestMatch = _.minBy(matchingSuggestions, 'priority');
-                setAutocompleteSuggestion(bestMatch?.title || '');
+                const bestMatch = filtered[0];
+                // Already sorted by priority and similarity
+                setAutocompleteSuggestion(bestMatch.title);
             }
         } else {
             setAutocompleteSuggestion('');
         }
-    }, [inputValue, inputItems, usingSuggestions]);
+    }, [inputValue, masterSuggestionList, usingSuggestions, filterSuggestions]);
 
-    // Add click outside handler - only if using suggestions
     useEffect(() => {
         if (!usingSuggestions) return;
-
         const handleClickOutside = (event: MouseEvent) => {
             if (formGroupRef.current && !formGroupRef.current.contains(event.target as Node)) {
                 setIsSimpleBarOpen(false);
                 setIsFocused(false);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
@@ -289,10 +217,8 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
 
     const renderAutocomplete = () => {
         if (!autocompleteSuggestion || !inputValue) return null;
-
         const suggestionLower = _.toLower(autocompleteSuggestion);
         const inputLower = _.toLower(inputValue);
-
         if (!_.includes(suggestionLower, inputLower)) {
             return (
                 <span className="_autocomplete">
@@ -300,11 +226,8 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 </span>
             );
         }
-
         const parts = [];
         const matchIndex = suggestionLower.indexOf(inputLower);
-
-        // Add pre-match text if it exists
         if (matchIndex > 0) {
             parts.push(
                 <span key="prefix" className="_suggestion">
@@ -312,15 +235,11 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 </span>
             );
         }
-
-        // Add the matched text
         parts.push(
             <span key="match" className="_typed">
                 {autocompleteSuggestion.slice(matchIndex, matchIndex + inputValue.length)}
             </span>
         );
-
-        // Add post-match text if it exists
         const postMatchIndex = matchIndex + inputValue.length;
         if (postMatchIndex < autocompleteSuggestion.length) {
             parts.push(
@@ -329,24 +248,58 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 </span>
             );
         }
-
         return <span className="_autocomplete">{parts}</span>;
     };
 
-    // Clear button event handler
+    // Modify handleClear to reset input state and suggestions using the master list
     const handleClear = (onChange: (value: string) => void) => {
         return (e: React.MouseEvent) => {
             e.preventDefault();
+            e.stopPropagation();
             onChange('');
             setInputValue('');
+            setAutocompleteSuggestion('');
+            resetSuggestions();
+            setIsSimpleBarOpen(true);
             onClear?.();
         };
     };
 
-    const getCategoryArticleCount = (categoryName: string): number => {
-        // Count articles that have this category
-        return allArticles.filter((article) => article.category === categoryName).length;
-    };
+    // Floating label animation
+    const floatingLabelSpring = useSpring({
+        transform:
+            isFocused || inputValue
+                ? 'translateY(-100%) translateX(1vh)'
+                : 'translateY(-50%) translateX(6vh)',
+        scale: isFocused || inputValue ? 0.85 : 1,
+        top: isFocused || inputValue ? '0' : '50%',
+        opacity: isFocused || inputValue ? 1 : 0.75,
+        config: smoothConfig,
+    });
+
+    // Clear button animation
+    const clearButtonSpring = useSpring({
+        opacity: inputValue ? 1 : 0,
+        transform: inputValue ? 'translateY(0)' : 'translateY(25%)',
+        config: smoothConfig,
+    });
+
+    // Error text animation
+    const errorTextSpring = useSpring({
+        opacity: error ? 1 : 0,
+        top: error ? '50%' : '100%',
+        transform: error ? 'translateY(-100%)' : 'translateY(0)',
+        right: inputValue ? '6vh' : '1.5vh',
+        config: smoothConfig,
+    });
+
+    // Suggestions animation
+    const suggestionsTransition = useTransition(isSimpleBarOpen && inputItems.length > 0, {
+        from: { opacity: 0, transform: 'translateY(-10%)' },
+        enter: { opacity: 1, transform: 'translateY(0)' },
+        leave: { opacity: 0, transform: 'translateY(-10%)' },
+        config: smoothConfig,
+    });
 
     return (
         <Controller
@@ -354,17 +307,20 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             control={control}
             rules={rules}
             render={({ field: { onChange, onBlur, value, ref } }) => {
-                // Store the `onChange` function in the ref
                 onChangeRef.current = onChange;
-
-                // Create input props
                 const baseInputProps = {
                     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
                         const newValue = e.target.value;
                         onChange(newValue);
                         setInputValue(newValue);
+                        if (!newValue) {
+                            resetSuggestions();
+                        }
                     },
-                    onBlur,
+                    onBlur: () => {
+                        setIsFocused(false);
+                        onBlur();
+                    },
                     ref,
                     value: value || '',
                     onFocus: () => {
@@ -374,12 +330,9 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                         }
                     },
                 };
-
-                // Add downshift props with suppressRefError if using suggestions
                 const downshiftInputProps = usingSuggestions
                     ? getInputProps(baseInputProps, { suppressRefError: true })
                     : baseInputProps;
-
                 return (
                     <div
                         ref={formGroupRef}
@@ -392,13 +345,10 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                             as="label"
                             htmlFor={name}
                             className="_floatingLabel"
-                            variants={floatingLabelVariants}
-                            initial="unfocused"
-                            animate={isFocused || value ? 'focused' : 'unfocused'}
+                            animationStyle={floatingLabelSpring}
                         >
                             {label}
                         </AnimatedWrapper>
-
                         {/* _formControl */}
                         <div className="_formControl">
                             {icon && <div className="_icon">{icon}</div>}
@@ -414,227 +364,120 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 }}
                             />
                         </div>
-
-                        {/* Autocorrect - only if using suggestions */}
-                        {usingSuggestions && (
-                            <AnimatePresence mode="wait">
-                                {autocompleteSuggestion && (
-                                    <AnimatedWrapper
-                                        className="_autocorrectWrapper"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        {renderAutocomplete()}
-                                    </AnimatedWrapper>
-                                )}
-                            </AnimatePresence>
+                        {/* Autocorrect */}
+                        {usingSuggestions && autocompleteSuggestion && (
+                            <AnimatedWrapper
+                                as="div"
+                                className="_autocorrectWrapper"
+                                style={{ opacity: 1 }}
+                            >
+                                {renderAutocomplete()}
+                            </AnimatedWrapper>
                         )}
-
                         {/* Clear button */}
-                        <AnimatePresence mode="wait">
-                            {onClear && value && (
-                                <AnimatedWrapper
-                                    as="button"
-                                    type="button"
-                                    onClick={handleClear(onChange)}
-                                    aria-label="Clear Search"
-                                    className="_clearButton"
-                                    variants={clearButtonVariants}
-                                    initial="closed"
-                                    animate={value ? 'open' : 'closed'}
-                                    exit="closed"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.5 }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                                        <g>
-                                            <line
-                                                className="one"
-                                                x1="29.5"
-                                                y1="49.5"
-                                                x2="70.5"
-                                                y2="49.5"
-                                            ></line>
-                                            <line
-                                                className="two"
-                                                x1="29.5"
-                                                y1="50.5"
-                                                x2="70.5"
-                                                y2="50.5"
-                                            ></line>
-                                        </g>
-                                    </svg>
-                                </AnimatedWrapper>
-                            )}
-                        </AnimatePresence>
-
+                        {onClear && value && (
+                            <AnimatedWrapper
+                                as="button"
+                                type="button"
+                                onClick={handleClear(onChange)}
+                                aria-label="Clear Search"
+                                className="_clearButton"
+                                animationStyle={clearButtonSpring}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                                    <g>
+                                        <line
+                                            className="one"
+                                            x1="29.5"
+                                            y1="49.5"
+                                            x2="70.5"
+                                            y2="49.5"
+                                        ></line>
+                                        <line
+                                            className="two"
+                                            x1="29.5"
+                                            y1="50.5"
+                                            x2="70.5"
+                                            y2="50.5"
+                                        ></line>
+                                    </g>
+                                </svg>
+                            </AnimatedWrapper>
+                        )}
                         {/* Error text */}
-                        <AnimatePresence mode="wait">
-                            {error && (
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="__errorText"
-                                    role="alert"
-                                    variants={errorTextVariants}
-                                    initial="closed"
-                                    animate={error ? 'open' : 'closed'}
-                                    exit="closed"
-                                >
-                                    <span>{error}</span>
-                                </AnimatedWrapper>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Suggestions - only if using suggestions */}
-                        {usingSuggestions && (
-                            <AnimatePresence mode="wait">
-                                {isSimpleBarOpen && inputItems.length > 0 && (
-                                    <AnimatedWrapper
-                                        variants={SimpleBarVariants}
-                                        initial="closed"
-                                        animate="open"
-                                        exit="closed"
-                                    >
-                                        <SimpleBar
-                                            className="_SimpleBar"
-                                            style={{ maxHeight: '40vh' }}
-                                            forceVisible="y"
-                                            autoHide={false}
-                                        >
-                                            <ul
-                                                className="_SimpleBar-Group"
-                                                {...getMenuProps({}, { suppressRefError: true })}
+                        {error && (
+                            <AnimatedWrapper
+                                as="div"
+                                className="__errorText"
+                                role="alert"
+                                animationStyle={errorTextSpring}
+                            >
+                                <span>{error}</span>
+                            </AnimatedWrapper>
+                        )}
+                        {/* Suggestions */}
+                        {usingSuggestions &&
+                            suggestionsTransition(
+                                (style, item) =>
+                                    item && (
+                                        <AnimatedWrapper as="div" animationStyle={style}>
+                                            <SimpleBar
+                                                className="_SimpleBar"
+                                                style={{ maxHeight: '40vh' }}
+                                                forceVisible="y"
+                                                autoHide={false}
                                             >
-                                                <AnimatePresence>
+                                                <ul
+                                                    className="_SimpleBar-Group"
+                                                    {...getMenuProps(
+                                                        {},
+                                                        { suppressRefError: true }
+                                                    )}
+                                                >
                                                     {groupedSuggestions.map(([type, items]) => (
                                                         <AnimatedWrapper
                                                             key={type}
+                                                            as="div"
                                                             className="suggestion-group"
-                                                            variants={suggestionGroupVariants}
-                                                            initial="initial"
-                                                            animate="animate"
-                                                            exit="exit"
                                                         >
-                                                            <AnimatedWrapper
-                                                                className="suggestion-group-header"
-                                                                variants={suggestionGroupVariants}
-                                                            >
+                                                            <div className="suggestion-group-header">
                                                                 {type === 'tag' && 'Tags'}
                                                                 {type === 'category' &&
                                                                     'Categories'}
                                                                 {type === 'author' && 'Authors'}
                                                                 {type === 'title' && 'Articles'}
-                                                            </AnimatedWrapper>
+                                                            </div>
                                                             <ul
                                                                 className={`suggestionList-${type}`}
                                                             >
-                                                                <AnimatePresence>
-                                                                    {items.map((item, index) => {
-                                                                        const typedItem = item as S;
-                                                                        const globalIndex =
-                                                                            inputItems.indexOf(
-                                                                                typedItem
-                                                                            );
-                                                                        return (
-                                                                            <AnimatedWrapper
-                                                                                key={`${typedItem._id}${index}`}
-                                                                                className={`suggestion-item ${
-                                                                                    highlightedIndex ===
-                                                                                    globalIndex
-                                                                                        ? 'highlighted'
-                                                                                        : ''
-                                                                                }`}
-                                                                                variants={
-                                                                                    suggestionItemVariants
-                                                                                }
-                                                                                initial="initial"
-                                                                                animate="animate"
-                                                                                exit="exit"
-                                                                                whileHover="hover"
-                                                                                whileTap="tap"
-                                                                                custom={
-                                                                                    typedItem.type
-                                                                                }
-                                                                                {...getItemProps({
-                                                                                    item: typedItem,
-                                                                                    index: globalIndex,
-                                                                                })}
+                                                                {items.map((item, index) => {
+                                                                    const typedItem = item as S;
+                                                                    const globalIndex =
+                                                                        inputItems.indexOf(
+                                                                            typedItem
+                                                                        );
+                                                                    return (
+                                                                        <AnimatedWrapper
+                                                                            key={`${typedItem._id}${index}`}
+                                                                            as="li"
+                                                                            className={`suggestion-item ${
+                                                                                highlightedIndex ===
+                                                                                globalIndex
+                                                                                    ? 'highlighted'
+                                                                                    : ''
+                                                                            }`}
+                                                                            {...getItemProps({
+                                                                                item: typedItem,
+                                                                                index: globalIndex,
+                                                                            })}
+                                                                        >
+                                                                            <span
+                                                                                className={`suggestion ${typedItem.type}`}
                                                                             >
-                                                                                <span
-                                                                                    className={`suggestion ${typedItem.type}`}
-                                                                                >
-                                                                                    {typedItem.type ===
-                                                                                    'author' ? (
-                                                                                        <div className="author-suggestion">
-                                                                                            <div className="author-info">
-                                                                                                {typedItem.icon && (
-                                                                                                    <span className="suggestion-icon">
-                                                                                                        {
-                                                                                                            typedItem.icon
-                                                                                                        }
-                                                                                                    </span>
-                                                                                                )}
-                                                                                                <span className="fullname">
-                                                                                                    {
-                                                                                                        typedItem
-                                                                                                            .source
-                                                                                                            .author
-                                                                                                            .firstname
-                                                                                                    }{' '}
-                                                                                                    {
-                                                                                                        typedItem
-                                                                                                            .source
-                                                                                                            .author
-                                                                                                            .lastname
-                                                                                                    }
-                                                                                                </span>
-                                                                                                <span className="username">
-                                                                                                    <span className="at-sign">
-                                                                                                        @
-                                                                                                    </span>
-                                                                                                    {
-                                                                                                        typedItem.title
-                                                                                                    }
-                                                                                                </span>
-                                                                                            </div>
-                                                                                            <div className="location">
-                                                                                                {
-                                                                                                    typedItem
-                                                                                                        .source
-                                                                                                        .author
-                                                                                                        .city
-                                                                                                }
-                                                                                                ,{' '}
-                                                                                                {typedItem
-                                                                                                    .source
-                                                                                                    .author
-                                                                                                    .country
-                                                                                                    ? typedItem
-                                                                                                          .source
-                                                                                                          .author
-                                                                                                          .country
-                                                                                                          ._country
-                                                                                                    : ''}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    ) : typedItem.type ===
-                                                                                      'category' ? (
-                                                                                        <div className="category-suggestion">
-                                                                                            <span className="category-name">
-                                                                                                {
-                                                                                                    typedItem.title
-                                                                                                }
-                                                                                            </span>
-                                                                                            <span className="category-count">
-                                                                                                {getCategoryArticleCount(
-                                                                                                    typedItem.title
-                                                                                                )}
-                                                                                            </span>
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        <>
+                                                                                {typedItem.type ===
+                                                                                'author' ? (
+                                                                                    <div className="author-suggestion">
+                                                                                        <div className="author-info">
                                                                                             {typedItem.icon && (
                                                                                                 <span className="suggestion-icon">
                                                                                                     {
@@ -642,26 +485,97 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                     }
                                                                                                 </span>
                                                                                             )}
+                                                                                            <span className="fullname">
+                                                                                                {
+                                                                                                    typedItem
+                                                                                                        .source
+                                                                                                        .author
+                                                                                                        .firstName
+                                                                                                }{' '}
+                                                                                                {
+                                                                                                    typedItem
+                                                                                                        .source
+                                                                                                        .author
+                                                                                                        .lastName
+                                                                                                }
+                                                                                            </span>
+                                                                                            <span className="username">
+                                                                                                <span className="at-sign">
+                                                                                                    {' '}
+                                                                                                    @{' '}
+                                                                                                </span>
+                                                                                                {
+                                                                                                    typedItem.title
+                                                                                                }
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div className="location">
+                                                                                            {
+                                                                                                typedItem
+                                                                                                    .source
+                                                                                                    .author
+                                                                                                    .city
+                                                                                            }
+                                                                                            ,{' '}
+                                                                                            {typedItem
+                                                                                                .source
+                                                                                                .author
+                                                                                                .country
+                                                                                                ? typedItem
+                                                                                                      .source
+                                                                                                      .author
+                                                                                                      .country
+                                                                                                      ._country
+                                                                                                : ''}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : typedItem.type ===
+                                                                                  'category' ? (
+                                                                                    <div className="category-suggestion">
+                                                                                        <span className="category-name">
                                                                                             {
                                                                                                 typedItem.title
                                                                                             }
-                                                                                        </>
-                                                                                    )}
-                                                                                </span>
-                                                                            </AnimatedWrapper>
-                                                                        );
-                                                                    })}
-                                                                </AnimatePresence>
+                                                                                        </span>
+                                                                                        <span className="category-count">
+                                                                                            {
+                                                                                                allArticles.filter(
+                                                                                                    (
+                                                                                                        article
+                                                                                                    ) =>
+                                                                                                        article.category ===
+                                                                                                        typedItem.title
+                                                                                                )
+                                                                                                    .length
+                                                                                            }
+                                                                                        </span>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        {typedItem.icon && (
+                                                                                            <span className="suggestion-icon">
+                                                                                                {
+                                                                                                    typedItem.icon
+                                                                                                }
+                                                                                            </span>
+                                                                                        )}
+                                                                                        {
+                                                                                            typedItem.title
+                                                                                        }
+                                                                                    </>
+                                                                                )}
+                                                                            </span>
+                                                                        </AnimatedWrapper>
+                                                                    );
+                                                                })}
                                                             </ul>
                                                         </AnimatedWrapper>
                                                     ))}
-                                                </AnimatePresence>
-                                            </ul>
-                                        </SimpleBar>
-                                    </AnimatedWrapper>
-                                )}
-                            </AnimatePresence>
-                        )}
+                                                </ul>
+                                            </SimpleBar>
+                                        </AnimatedWrapper>
+                                    )
+                            )}
                     </div>
                 );
             }}

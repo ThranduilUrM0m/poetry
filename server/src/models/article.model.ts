@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import slugify from 'slugify-ts';
 
-// Define the ArticleDocument type
-export type ArticleDocument = Article & Document;
+export type ArticleDocument = Article & Document & { _id: Types.ObjectId };
 
 @Schema({ timestamps: true })
 export class Article {
@@ -17,6 +17,9 @@ export class Article {
 
     @Prop({ required: true })
     category: string;
+
+    @Prop({ required: true, unique: true })
+    slug: string;
 
     @Prop({ default: false })
     isPrivate: boolean;
@@ -39,10 +42,22 @@ export class Article {
     @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
     status: string;
 
-    // Timestamp fields will be automatically managed by Mongoose
     createdAt?: Date;
     updatedAt?: Date;
 }
 
-// Create the ArticleSchema
 export const ArticleSchema = SchemaFactory.createForClass(Article);
+
+ArticleSchema.pre('save', function (next) {
+    const article = this as ArticleDocument; // Explicitly type `this` as `ArticleDocument`
+    if (article.isModified('title')) {
+        if (typeof article.title === 'string') {
+            const slug: string =
+                slugify(article.title, {
+                    enableSmartTruncate: true, // Enable smart truncation
+                }) ?? '';
+            article.slug = slug;
+        }
+    }
+    next();
+});

@@ -11,8 +11,10 @@ declare const JwtStrategy_base: new (...args: [opt: import("passport-jwt").Strat
 export declare class JwtStrategy extends JwtStrategy_base {
     private userModel;
     constructor(userModel: Model<UserDocument>);
-    validate(payload: JwtPayload): Promise<import("mongoose").Document<unknown, {}, UserDocument> & User & import("mongoose").Document<unknown, any, any> & Required<{
-        _id: unknown;
+    validate(payload: JwtPayload): Promise<import("mongoose").Document<unknown, {}, UserDocument> & User & import("mongoose").Document<unknown, any, any> & {
+        _id: import("mongoose").Types.ObjectId;
+    } & Required<{
+        _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
     }>;

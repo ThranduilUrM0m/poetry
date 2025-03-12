@@ -11,6 +11,8 @@ interface ArticleCardProps {
 }
 
 export default function ArticleCard({ article }: ArticleCardProps) {
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+
     const extractFirstPhrase = (htmlContent: string) => {
         // Create a temporary div to parse HTML
         const tempDiv = document.createElement('div');
@@ -29,14 +31,15 @@ export default function ArticleCard({ article }: ArticleCardProps) {
         <AnimatedWrapper
             as="div"
             className="article-card"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            config={smoothConfig}
+            hover={{ to: { scale: 1.02 } }} // Replaces whileHover
+            click={{ to: { scale: 0.98 } }} // Replaces whileTap
         >
             <a href={`/${article.category}/${article.slug}`}>
                 <h3 className="title">{article.title}</h3>
                 <div className="meta">
                     <span className="author">
-                        by {article.author.firstname} {article.author.lastname}
+                        by {article.author.firstName} {article.author.lastName}
                     </span>
                     <span className="username">@{article.author.username}</span>
                     <span className="category">{article.category}</span>
