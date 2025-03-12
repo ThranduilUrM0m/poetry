@@ -28,7 +28,7 @@ jobs:
       - name: Install Dependencies and Build Frontend (Client)
         run: |
           cd client
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
 
       - name: Copy Next.js Build to Functions Directory
@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependencies and Build Backend (Server)
         run: |
           cd server
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
       
       - name: Install Dependencies and Build Firebase Functions
