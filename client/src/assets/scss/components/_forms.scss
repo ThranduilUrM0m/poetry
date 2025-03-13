@@ -1,6 +1,6 @@
 form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
-
+    
     ._formGroup {
         @apply relative h-[7vh] w-full bg-[rgb(var(--white)/1)];
 
@@ -33,7 +33,7 @@ form {
             @apply relative z-40 h-full w-full;
 
             ._icon {
-                @apply absolute top-1/2 left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
+                @apply absolute top-[3.5vh] left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
                 
                 svg {
                     @apply stroke-[rgb(var(--text)/.5)];
@@ -41,7 +41,7 @@ form {
             }
 
             ._input {
-                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)] pl-[2vh] text-[2.5vh];
+                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--text)/.1)] pl-[2vh] text-[2.5vh];
 
                 &._focused {
                     @apply outline-none border border-[rgb(var(--hoverGray)/1)] border-solid;

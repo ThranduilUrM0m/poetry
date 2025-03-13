@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { format } from 'date-fns';
-import { Copyright, Heart, ChevronUp, Instagram, Facebook, Twitter as XIcon } from 'lucide-react';
+import { Copyright, Heart, ChevronUp } from 'lucide-react';
+import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { config } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import Newsletter from '@/components/ui/Newsletter';
@@ -21,9 +22,9 @@ const LegalItems = [
 ];
 
 const SocialItems = [
-    { label: 'Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: Instagram },
-    { label: 'Facebook', href: 'https://fb.me/boutaleblcoder', icon: Facebook },
-    { label: 'Behance', href: 'https://www.behance.net/boutaleblcoder', icon: XIcon }, // Using X (Twitter) icon for Behance
+    { label: 'Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: FaInstagram },
+    { label: 'Facebook', href: 'https://fb.me/boutaleblcoder', icon: FaFacebookF },
+    { label: 'X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
 ];
 
 export default function Footer() {

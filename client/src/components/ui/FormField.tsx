@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useCombobox } from 'downshift';
+import { useCombobox, UseComboboxGetInputPropsOptions } from 'downshift';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import SimpleBar from 'simplebar-react';
 import { useTransition, useSpring } from '@react-spring/web';
@@ -11,7 +11,7 @@ import _ from 'lodash';
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     label: string;
     name: Path<T>;
-    type?: 'text' | 'email' | 'password' | 'checkbox';
+    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea'; // Add textarea type
     icon?: React.ReactNode;
     error?: string;
     suggestions?: S[];
@@ -84,38 +84,39 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
 
     // Enhanced filter function with proper suggestion handling
     const filterSuggestions = useMemo(
-        () => (inputVal: string, items: S[]): S[] => {
-            const searchTerm = _.toLower(inputVal).trim();
-            if (!searchTerm) return items;
+        () =>
+            (inputVal: string, items: S[]): S[] => {
+                const searchTerm = _.toLower(inputVal).trim();
+                if (!searchTerm) return items;
 
-            // First try exact matches
-            const exactMatches = items.filter(item => 
-                _.toLower(item.title).includes(searchTerm)
-            );
+                // First try exact matches
+                const exactMatches = items.filter((item) =>
+                    _.toLower(item.title).includes(searchTerm)
+                );
 
-            if (exactMatches.length > 0) {
-                return _.orderBy(exactMatches, [
-                    item => ({title: 0, category: 1, tag: 2, author: 3})[item.type] || 4,
-                    'title'
-                ]);
-            }
+                if (exactMatches.length > 0) {
+                    return _.orderBy(exactMatches, [
+                        (item) => ({ title: 0, category: 1, tag: 2, author: 3 }[item.type] || 4),
+                        'title',
+                    ]);
+                }
 
-            // Fallback to fuzzy matching
-            return items
-                .map(item => ({
-                    item,
-                    similarity: getStringSimilarity(item.title, searchTerm)
-                }))
-                .filter(({ similarity }) => similarity >= fuzzyMatchThreshold)
-                .sort((a, b) => {
-                    const typeOrder = { title: 0, category: 1, tag: 2, author: 3 };
-                    const typeDiff = 
-                        (typeOrder[a.item.type as keyof typeof typeOrder] || 4) -
-                        (typeOrder[b.item.type as keyof typeof typeOrder] || 4);
-                    return typeDiff || b.similarity - a.similarity;
-                })
-                .map(({ item }) => item);
-        },
+                // Fallback to fuzzy matching
+                return items
+                    .map((item) => ({
+                        item,
+                        similarity: getStringSimilarity(item.title, searchTerm),
+                    }))
+                    .filter(({ similarity }) => similarity >= fuzzyMatchThreshold)
+                    .sort((a, b) => {
+                        const typeOrder = { title: 0, category: 1, tag: 2, author: 3 };
+                        const typeDiff =
+                            (typeOrder[a.item.type as keyof typeof typeOrder] || 4) -
+                            (typeOrder[b.item.type as keyof typeof typeOrder] || 4);
+                        return typeDiff || b.similarity - a.similarity;
+                    })
+                    .map(({ item }) => item);
+            },
         [fuzzyMatchThreshold]
     );
 
@@ -272,7 +273,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 ? 'translateY(-100%) translateX(1vh)'
                 : 'translateY(-50%) translateX(6vh)',
         scale: isFocused || inputValue ? 0.85 : 1,
-        top: isFocused || inputValue ? '0' : '50%',
+        top: isFocused || inputValue ? '0' : '3.5vh',
         opacity: isFocused || inputValue ? 1 : 0.75,
         config: smoothConfig,
     });
@@ -309,8 +310,8 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             render={({ field: { onChange, onBlur, value, ref } }) => {
                 onChangeRef.current = onChange;
                 const baseInputProps = {
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                        const newValue = e.target.value;
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                        const newValue = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
                         onChange(newValue);
                         setInputValue(newValue);
                         if (!newValue) {
@@ -331,7 +332,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                     },
                 };
                 const downshiftInputProps = usingSuggestions
-                    ? getInputProps(baseInputProps, { suppressRefError: true })
+                    ? getInputProps(baseInputProps as UseComboboxGetInputPropsOptions, { suppressRefError: true })
                     : baseInputProps;
                 return (
                     <div
@@ -352,17 +353,30 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                         {/* _formControl */}
                         <div className="_formControl">
                             {icon && <div className="_icon">{icon}</div>}
-                            <input
-                                type={type}
-                                className={`_input ${value ? '_focused' : ''} ${
-                                    icon ? '__icon' : ''
-                                } ${error ? '__error' : ''}`}
-                                {...downshiftInputProps}
-                                autoComplete="off"
-                                style={{
-                                    color: !autocompleteSuggestion ? 'inherit' : 'transparent',
-                                }}
-                            />
+                            {type === 'textarea' ? (
+                                <textarea
+                                    className={`_input ${value ? '_focused' : ''} ${
+                                        icon ? '__icon' : ''
+                                    } ${error ? '__error' : ''}`}
+                                    {...downshiftInputProps}
+                                    autoComplete="off"
+                                    style={{
+                                        color: !autocompleteSuggestion ? 'inherit' : 'transparent',
+                                    }}
+                                />
+                            ) : (
+                                <input
+                                    type={type}
+                                    className={`_input ${value ? '_focused' : ''} ${
+                                        icon ? '__icon' : ''
+                                    } ${error ? '__error' : ''}`}
+                                    {...downshiftInputProps}
+                                    autoComplete="off"
+                                    style={{
+                                        color: !autocompleteSuggestion ? 'inherit' : 'transparent',
+                                    }}
+                                />
+                            )}
                         </div>
                         {/* Autocorrect */}
                         {usingSuggestions && autocompleteSuggestion && (

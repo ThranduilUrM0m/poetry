@@ -1,0 +1,94 @@
+.contact {
+    @apply w-full h-full;
+
+    // Global Section Styles
+    &__section {
+        &-1 {
+            @apply flex justify-stretch;
+
+            ._formContainer {
+                @apply relative flex flex-col items-center justify-center w-full h-full;
+
+                &_corps {
+                    @apply flex w-full h-full;
+
+                    &-left,
+                    &-right {
+                        @apply relative h-[calc(100%-4vh)] mx-[2vh] my-[2vh] p-[2.5vh];
+                    }
+
+                    // Left Column
+                    &-left {
+                        @apply flex flex-col items-center justify-center basis-3/4 mx-[5vh] px-[5vh] bg-[rgb(var(--white)/1)];
+
+                        form {
+                            @apply gap-[3.75vh];
+
+                            ._row {
+                                @apply flex gap-[4vh] w-full;
+
+                                &.__header {
+                                    @apply flex-col gap-0;
+
+                                    h2 {
+                                        @apply text-[7vh] font-medium text-[rgb(var(--text)/.5)];
+                                    }
+
+                                    p {
+                                        @apply text-[rgb(var(--text)/.5)];
+                                    }
+                                }
+
+                                &.__textarea {
+                                    @apply flex-1;
+
+                                    ._formGroup {
+                                        @apply h-full;
+                                    }
+                                }
+
+                                ._button {
+                                    @apply w-1/4 ml-auto;
+                                }
+                            }
+                        }
+                    }
+
+                    // Right Column
+                    &-right {
+                        @apply relative basis-1/4 flex flex-col justify-center gap-[5vh];
+
+                        .__group {
+
+                            h3 {
+                                @apply text-xl font-medium text-[rgb(var(--text)/.95)];
+                            }
+
+                            p {
+                                @apply text-[rgb(var(--text)/.75)];
+                            }
+
+                            ul {
+                                @apply mt-[2.5vh];
+
+                                li {
+                                    a {
+                                        @apply flex flex-row gap-[1.25vh] text-[rgb(var(--text)/1)] content-center mb-[1.25vh];
+
+                                        svg {
+                                            @apply w-[2.75vh] h-[2.75vh];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &-4 {
+            @apply bg-[rgb(var(--primary-light)/1)];
+        }
+    }
+}
