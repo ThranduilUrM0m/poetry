@@ -13,6 +13,7 @@ const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 interface SubmitModalProps {
     isSubmitOpen: boolean;
     onSubmitClose: () => void;
+    header: string;
     message: string;
     isSuccess: boolean;
 }
@@ -20,6 +21,7 @@ interface SubmitModalProps {
 export default function SubmitModal({
     isSubmitOpen,
     onSubmitClose,
+    header,
     message,
     isSuccess,
 }: Readonly<SubmitModalProps>) {
@@ -72,7 +74,7 @@ export default function SubmitModal({
                 {/* Header */}
                 <div className="_header">
                     <h2 className="_headerTitle">
-                        {isSuccess ? "You're In!" : 'There seems to be a problem!'}
+                        {isSuccess ? header : 'There seems to be a problem!'}
                     </h2>
                     <AnimatedWrapper
                         as="button"

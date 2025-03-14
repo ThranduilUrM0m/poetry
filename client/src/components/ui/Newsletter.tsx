@@ -29,6 +29,7 @@ export default function Newsletter() {
     const dispatch = useDispatch<AppDispatch>();
     const isLoading = useSelector(selectIsLoading);
     const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+    const [submitHeader, setSubmitHeader] = useState('');
     const [submitMessage, setSubmitMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -54,10 +55,12 @@ export default function Newsletter() {
             await dispatch(subscribeSubscriber(data.email)).unwrap();
             setValue('email', '');
             setError('email', { message: '' }); // Clear any existing errors
+            setSubmitHeader('You are officially In.');
             setSubmitMessage('You will never miss on our news!\nWe promise not to spam you.');
             setIsSuccess(true);
             setIsSubmitOpen(true);
         } catch (error) {
+            setSubmitHeader('We are sorry!');
             setSubmitMessage(`Something went wrong: ${error as string}`);
             setIsSuccess(false);
             setIsSubmitOpen(true);
@@ -196,6 +199,7 @@ export default function Newsletter() {
             <SubmitModal
                 isSubmitOpen={isSubmitOpen}
                 onSubmitClose={() => setIsSubmitOpen(false)}
+                header={submitHeader}
                 message={submitMessage}
                 isSuccess={isSuccess}
             />

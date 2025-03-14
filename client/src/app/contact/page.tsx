@@ -1,9 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
-import { subscribeSubscriber } from '@/slices/subscriberSlice';
-import { selectIsLoading } from '@/slices/subscriberSlice';
 import { config } from '@react-spring/web';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -14,11 +12,26 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import FormField from '@/components/ui/FormField';
 import SubmitModal from '@/components/ui/SubmitModal';
 import { AtSign, User, Phone, MessageSquare } from 'lucide-react';
-import { FaFacebookF, FaInstagram, FaXTwitter, FaWhatsapp } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
+import {
+    sendContactEmail,
+    selectIsLoading,
+    selectError,
+    selectSuccessMessage,
+    clearContactState,
+} from '@/slices/contactSlice';
 
 const contactMeItems = [
-    { label: 'DM me on Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: FaInstagram },
-    { label: 'Connect with me on Facebook', href: 'https://fb.me/boutaleblcoder', icon: FaFacebookF },
+    {
+        label: 'DM me on Instagram',
+        href: 'https://www.instagram.com/boutaleblcoder',
+        icon: FaInstagram,
+    },
+    {
+        label: 'Connect with me on Facebook',
+        href: 'https://fb.me/boutaleblcoder',
+        icon: FaFacebookF,
+    },
     { label: 'Follow me on X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
 ];
 
@@ -36,7 +49,7 @@ const validationSchema = Yup.object().shape({
         .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Invalid email format'),
     firstname: Yup.string()
         .default('')
-        .required('Please provide a valid fisrt name.')
+        .required('Please provide a valid first name.')
         .test(
             'min-length',
             'Must be at least 2 characters.',
@@ -69,7 +82,10 @@ export default function ContactPage() {
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
     const isLoading = useSelector(selectIsLoading);
+    const error = useSelector(selectError);
+    const successMessage = useSelector(selectSuccessMessage);
     const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+    const [submitHeader, setSubmitHeader] = useState('');
     const [submitMessage, setSubmitMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -80,6 +96,7 @@ export default function ContactPage() {
         setError,
         formState: { errors },
         clearErrors,
+        reset, // Add reset here
     } = useForm<FormData>({
         resolver: yupResolver(validationSchema),
         defaultValues: {
@@ -98,18 +115,30 @@ export default function ContactPage() {
 
     const onSubmit = async (data: FormData) => {
         try {
-            await dispatch(subscribeSubscriber(data.email)).unwrap();
-            setValue('email', '');
-            setError('email', { message: '' }); // Clear any existing errors
-            setSubmitMessage('You will never miss on our news!\nWe promise not to spam you.');
+            await dispatch(sendContactEmail(data)).unwrap();
+            setSubmitHeader('Thank you for reaching out!');
+            setSubmitMessage(successMessage || 'Your message has been sent successfully!');
             setIsSuccess(true);
             setIsSubmitOpen(true);
+            reset(); // Reset the form fields here
         } catch (error) {
-            setSubmitMessage(`Something went wrong: ${error as string}`);
+            if (error instanceof Error) {
+                setError('email', { type: 'manual', message: error.message });
+            }
+            setSubmitHeader("We're sorry!");
+            setSubmitMessage(`Something went wrong`);
             setIsSuccess(false);
             setIsSubmitOpen(true);
         }
     };
+
+    useEffect(() => {
+        if (error) {
+            setSubmitMessage(error);
+            setIsSuccess(false);
+            setIsSubmitOpen(true);
+        }
+    }, [error]);
 
     return (
         <main className="contact">
@@ -137,7 +166,7 @@ export default function ContactPage() {
                             config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
                             delay={200} // Delay in milliseconds
                         >
-                            {/* The focus state for the Floating label is not worknig perfect, maybe after i submit the email it stays focused but it never changes back */}
+                            {/* The focus state for the Floating label is not working perfect, maybe after I submit the email it stays focused but it never changes back */}
                             <form className="_form" onSubmit={handleSubmit(onSubmit)}>
                                 <div className="_row __header">
                                     <h2>Reach out to me</h2>
@@ -308,7 +337,7 @@ export default function ContactPage() {
                                             }}
                                             parentHoverSelector="#_buttonContact"
                                         >
-                                            {isLoading ? 'Subscribing...' : 'Subscribe'}
+                                            {isLoading ? 'Submitting...' : 'Submit'}
                                             <b className="pink_dot">.</b>
                                         </AnimatedWrapper>
                                     </button>
@@ -395,7 +424,11 @@ export default function ContactPage() {
 
                     <SubmitModal
                         isSubmitOpen={isSubmitOpen}
-                        onSubmitClose={() => setIsSubmitOpen(false)}
+                        onSubmitClose={() => {
+                            setIsSubmitOpen(false);
+                            dispatch(clearContactState());
+                        }}
+                        header={submitHeader}
                         message={submitMessage}
                         isSuccess={isSuccess}
                     />

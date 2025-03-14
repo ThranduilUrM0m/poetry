@@ -69,3 +69,38 @@ const handle = app.getRequestHandler();
 export const nextSSR = functions.https.onRequest((req, res) => {
   return app.prepare().then(() => handle(req, res));
 });
+
+// Configure the email transport using the default SMTP transport and a GMail account.
+// For Gmail, enable these:
+// 1. https://www.google.com/settings/security/lesssecureapps
+// 2. https://accounts.google.com/DisplayUnlockCaptcha
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: functions.config().gmail.email,
+        pass: functions.config().gmail.password,
+    },
+});
+
+export const sendContactEmail = functions.https.onRequest((req, res) => {
+    const { email, phone, firstname, lastname, message } = req.body;
+
+    const mailOptions = {
+        from: email,
+        to: functions.config().gmail.email,
+        subject: 'Contact Form Submission',
+        text: `
+            First Name: ${firstname}
+            Last Name: ${lastname}
+            Phone: ${phone}
+            Message: ${message}
+        `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        return res.status(200).send('Email sent successfully');
+    });
+});

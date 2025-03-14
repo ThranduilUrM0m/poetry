@@ -214,7 +214,7 @@
     &__submit {
         @apply fixed flex flex-col z-30 top-[10vh] left-1/2 w-1/2 h-1/2 bg-[rgb(var(--white)/1)] p-[2.5vh];
         line-height: normal;
-        box-shadow: 0 0 2vh 2vh rgb(rgb(var(--text)/1) / 0.05);
+        box-shadow: 0 1vh 2.5vh 1vh rgb(var(--text)/.1);
     
         ._header {
             @apply flex h-[10vh] overflow-visible px-[2.5vh];
