@@ -54,7 +54,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Article', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
-], Comment.prototype, "_article", void 0);
+], Comment.prototype, "article", void 0);
 exports.Comment = Comment = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Comment);

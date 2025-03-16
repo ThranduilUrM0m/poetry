@@ -18,6 +18,7 @@ import { Comment } from '@/types/article';
 import { config } from '@react-spring/web';
 
 interface SliderSettings {
+    className?: string;
     dots?: boolean;
     infinite?: boolean;
     speed?: number;
@@ -109,13 +110,15 @@ export default function AboutPage() {
         dots: false,
         infinite: true,
         speed: 2000,
-        slidesToShow: 1, // Show 1 main slide at a time
-        slidesToScroll: 1,
+
+        className: "center",
+        centerMode: true,
+        centerPadding: "25%",
+        slidesToShow: 4,
+
         vertical: true,
         verticalSwiping: true,
-        centerMode: true,
-        centerPadding: '25%', // Creates space for previous/next slides
-        autoplay: true,
+        autoplay: false,
         arrows: false,
         swipeToSlide: false,
         onInit: () => {
@@ -130,13 +133,15 @@ export default function AboutPage() {
         dots: false,
         infinite: true,
         speed: 2000,
-        slidesToShow: 1, // Show 1 main slide at a time
-        slidesToScroll: 1,
+
+        className: "center",
+        centerMode: true,
+        centerPadding: "25%",
+        slidesToShow: 4,
+
         vertical: true,
         verticalSwiping: true,
-        centerMode: true,
-        centerPadding: '25%', // Creates space for previous/next slides
-        autoplay: true,
+        autoplay: false,
         arrows: false,
         swipeToSlide: false,
         onInit: () => {
@@ -245,8 +250,8 @@ export default function AboutPage() {
                                                     {comment._comment_body}
                                                 </span>
 
-                                                <h2 className="_article__title">
-                                                    <span>{comment._article.title}</span>
+                                                <h2 className={`_article__title ${/[\u0600-\u06FF]/.test(comment.article.title) ? '_article__title__arabic' : ''}`}>
+                                                    <span>{comment.article?.title}</span>
                                                 </h2>
 
                                                 <div className="information">
@@ -309,8 +314,8 @@ export default function AboutPage() {
                                                 {comment._comment_body}
                                             </span>
 
-                                            <h2 className="_article__title">
-                                                <span>{comment._article.title}</span>
+                                            <h2 className={`_article__title ${/[\u0600-\u06FF]/.test(comment.article.title) ? '_article__title__arabic' : ''}`}>
+                                                <span>{comment.article.title}</span>
                                             </h2>
 
                                             <div className="information">

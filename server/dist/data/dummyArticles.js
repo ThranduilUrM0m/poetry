@@ -37,7 +37,7 @@ exports.dummyComments = [
         _comment_fingerprint: 'de70188181ebae2f3d8b4ef269f6c227',
         _comment_upvotes: [],
         _comment_downvotes: [],
-        _article: new mongoose_1.Types.ObjectId('5e93853e0289c153a8737041'),
+        article: new mongoose_1.Types.ObjectId('5e93853e0289c153a8737041'),
         createdAt: new Date('2023-08-28T13:32:27.354+00:00'),
         updatedAt: new Date('2023-08-28T13:41:46.929+00:00'),
     },

@@ -10,7 +10,7 @@ export declare class Comment {
     _comment_fingerprint: string;
     _comment_upvotes: Types.ObjectId[];
     _comment_downvotes: Types.ObjectId[];
-    _article: Types.ObjectId;
+    article: Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
 }

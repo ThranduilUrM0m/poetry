@@ -33,7 +33,7 @@ export class Comment {
     _comment_downvotes: Types.ObjectId[];
 
     @Prop({ type: Types.ObjectId, ref: 'Article', required: true })
-    _article: Types.ObjectId;
+    article: Types.ObjectId;
 
     createdAt?: Date;
     updatedAt?: Date;

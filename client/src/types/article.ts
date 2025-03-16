@@ -47,7 +47,7 @@ export interface Comment {
     _comment_fingerprint: string;
     _comment_upvotes: Upvote[];
     _comment_downvotes: Downvote[];
-    _article: Article; // Add _article field to Comment
+    article: Article; // Add _article field to Comment
     createdAt: string;
     updatedAt: string;
 }

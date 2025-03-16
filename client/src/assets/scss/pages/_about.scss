@@ -68,7 +68,7 @@
                     @apply relative w-full h-full px-[5vh];
 
                     .slick-slider {
-                        @apply relative w-full h-full px-[5vh];
+                        @apply relative w-full h-full px-[5vh] content-center;
 
                         .slick-list {
                             @apply h-full;
@@ -77,8 +77,6 @@
                                 @apply h-full;
 
                                 .slick-slide {
-                                    @apply border-[.25vh] border-[rgb(var(--white)/1)];
-
                                     &>div {
                                         @apply w-full h-full px-[2vh];
 
@@ -106,8 +104,8 @@
                                                         @apply relative font-medium text-[4vh] text-[rgb(var(--text)/1)] leading-[1.2];
                                                         font-family: 'Abril Fatface', cursive;
 
-                                                        span {
-                                                            @apply text-[rgb(var(--primary)/1)];
+                                                        &__arabic {
+                                                            @apply text-end;
                                                         }
                                                     }
 
@@ -121,11 +119,6 @@
                                                 }
                                             }
                                         }
-                                    }
-
-                                    // Adjacent slides
-                                    &:not(.slick-current) {
-                                        @apply transform scale-90 opacity-75;
                                     }
                                 }
                             }

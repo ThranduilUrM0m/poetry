@@ -21,8 +21,31 @@ let CommentService = class CommentService {
     constructor(commentModel) {
         this.commentModel = commentModel;
     }
-    async getCommentsWithArticleTitle() {
-        return this.commentModel.find().populate('_article', 'title').exec();
+    async createComment(data) {
+        const newComment = new this.commentModel(data);
+        return newComment.save();
+    }
+    async getAllComments() {
+        const comments = await this.commentModel.find().populate('article');
+        return comments;
+    }
+    async getCommentById(id) {
+        const comment = await this.commentModel.findById(id).populate('article');
+        if (!comment)
+            throw new common_1.NotFoundException('Comment not found');
+        return comment;
+    }
+    async deleteComment(id) {
+        const comment = await this.commentModel.findByIdAndDelete(id);
+        if (!comment)
+            throw new common_1.NotFoundException('Comment not found');
+        return { message: 'Comment deleted successfully' };
+    }
+    async updateComment(id, data) {
+        const comment = await this.commentModel.findByIdAndUpdate(id, data, { new: true });
+        if (!comment)
+            throw new common_1.NotFoundException('Comment not found');
+        return comment;
     }
 };
 exports.CommentService = CommentService;
