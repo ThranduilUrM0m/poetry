@@ -32,4 +32,23 @@ export class ArticleService {
         if (!article) throw new NotFoundException('Article not found');
         return { message: 'Article deleted successfully' };
     }
+
+    async updateArticle(slug: string, data: Partial<Article>): Promise<Article> {
+        const article = await this.articleModel.findOneAndUpdate({ slug }, data, { new: true });
+        if (!article) throw new NotFoundException('Article not found');
+        return article;
+    }
+
+    async updateArticles(data: Partial<Article>[]): Promise<Article[]> {
+        const updatedArticles: Article[] = [];
+        for (const articleData of data) {
+            const article = await this.articleModel.findOneAndUpdate(
+                { slug: articleData.slug },
+                articleData,
+                { new: true }
+            );
+            if (article) updatedArticles.push(article);
+        }
+        return updatedArticles;
+    }
 }

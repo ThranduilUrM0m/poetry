@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { ArticleModule } from './modules/article.module';
 import { SubscriberModule } from './modules/subscriber.module';
 import { ContactModule } from './modules/contact.module';
+import { CommentModule } from './modules/comment.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { ContactModule } from './modules/contact.module';
         ArticleModule,
         SubscriberModule,
         ContactModule,
+        CommentModule,
     ],
     controllers: [AppController],
     providers: [AppService],

@@ -49,6 +49,12 @@ let ArticleController = class ArticleController {
         }
         return article;
     }
+    async updateArticle(slug, data) {
+        return this.articleService.updateArticle(slug, data);
+    }
+    async updateArticles(data) {
+        return this.articleService.updateArticles(data);
+    }
     async deleteArticle(slug) {
         return this.articleService.deleteArticle(slug);
     }
@@ -75,6 +81,21 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "getArticleBySlug", null);
+__decorate([
+    (0, common_1.Put)(':slug'),
+    __param(0, (0, common_1.Param)('slug')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ArticleController.prototype, "updateArticle", null);
+__decorate([
+    (0, common_1.Put)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Array]),
+    __metadata("design:returntype", Promise)
+], ArticleController.prototype, "updateArticles", null);
 __decorate([
     (0, common_1.Delete)(':slug'),
     __param(0, (0, common_1.Param)('slug')),

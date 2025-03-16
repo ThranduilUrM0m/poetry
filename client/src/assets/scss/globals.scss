@@ -45,7 +45,8 @@ body {
     @apply pointer-events-none;
 
     .bar {
-        @apply fixed bg-[rgb(var(--primary)/1)] h-[1vh] w-full top-0 left-0 z-[1031];
+        @apply fixed bg-[rgb(var(--primary)/1)] h-[.25vh] w-full top-0 left-0 z-[1031];
+        box-shadow: 0 0 2vh 2vh rgb(rgb(var(--primary)/1) / 0.05);
     }
     
     .peg {

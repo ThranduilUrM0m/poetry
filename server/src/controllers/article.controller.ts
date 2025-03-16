@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, NotFoundException, Put } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
 import { Article } from '../models/article.model';
 import { dummyArticles, dummyUsers } from '../data/dummyArticles';
@@ -50,6 +50,16 @@ export class ArticleController {
             return this.populateDummyAuthor(dummyArticle) as Article;
         }
         return article;
+    }
+
+    @Put(':slug')
+    async updateArticle(@Param('slug') slug: string, @Body() data: Partial<Article>) {
+        return this.articleService.updateArticle(slug, data);
+    }
+
+    @Put()
+    async updateArticles(@Body() data: Partial<Article>[]) {
+        return this.articleService.updateArticles(data);
     }
 
     @Delete(':slug')

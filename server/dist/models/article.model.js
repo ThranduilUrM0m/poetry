@@ -64,6 +64,10 @@ __decorate([
     (0, mongoose_1.Prop)({ enum: ['pending', 'approved', 'rejected'], default: 'pending' }),
     __metadata("design:type", String)
 ], Article.prototype, "status", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Article.prototype, "isBio", void 0);
 exports.Article = Article = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Article);

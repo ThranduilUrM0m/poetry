@@ -15,6 +15,7 @@ export declare class Article {
     upvotes: Types.ObjectId[];
     downvotes: Types.ObjectId[];
     status: string;
+    isBio: boolean;
     createdAt?: Date;
     updatedAt?: Date;
 }

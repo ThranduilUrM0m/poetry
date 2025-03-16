@@ -1,7 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dummyArticles = exports.dummyUsers = void 0;
+exports.dummyArticles = exports.dummyUsers = exports.dummyComments = exports.dummyDownvotes = exports.dummyUpvotes = exports.dummyViews = void 0;
 const mongoose_1 = require("mongoose");
+exports.dummyViews = [
+    {
+        _id: new mongoose_1.Types.ObjectId('64ebeafd91e1bea198845f89'),
+        _viewer: 'de70188181ebae2f3d8b4ef269f6c227',
+        createdAt: new Date('2023-08-26T22:31:57.536Z'),
+        updatedAt: new Date('2023-08-26T22:31:57.536Z'),
+    },
+    {
+        _id: new mongoose_1.Types.ObjectId('66a8ec668c35b3ebd6c01fd3'),
+        _viewer: '502eac3e6a7d71288b56c1ed233afe2b',
+        createdAt: new Date('2024-07-30T14:36:38.817Z'),
+        updatedAt: new Date('2024-07-30T14:36:38.817Z'),
+    },
+];
+exports.dummyUpvotes = [
+    {
+        _id: new mongoose_1.Types.ObjectId('64ebb261f0c23054c88e4800'),
+        _upvoter: 'de70188181ebae2f3d8b4ef269f6c227',
+        createdAt: new Date('2023-08-27T20:30:25.368+00:00'),
+        updatedAt: new Date('2023-08-27T20:30:25.368+00:00'),
+    },
+];
+exports.dummyDownvotes = [];
+exports.dummyComments = [
+    {
+        _id: new mongoose_1.Types.ObjectId('64eca1eb693faca7ec603d60'),
+        Parent: null,
+        _comment_isOK: true,
+        _comment_author: 'Zakariae',
+        _comment_email: '',
+        _comment_body: 'Glad to have made your acquaintance',
+        _comment_isPrivate: false,
+        _comment_fingerprint: 'de70188181ebae2f3d8b4ef269f6c227',
+        _comment_upvotes: [],
+        _comment_downvotes: [],
+        _article: new mongoose_1.Types.ObjectId('5e93853e0289c153a8737041'),
+        createdAt: new Date('2023-08-28T13:32:27.354+00:00'),
+        updatedAt: new Date('2023-08-28T13:41:46.929+00:00'),
+    },
+];
 exports.dummyUsers = [
     {
         _id: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
@@ -34,6 +74,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['نظرةالعالمتهم'],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e93936d0289c153a8737044'),
@@ -50,6 +91,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['sadisme'],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e7552999374103e40c5570e'),
@@ -66,6 +108,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['teachlove', 'stopviolence'],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e938cce0289c153a8737042'),
@@ -82,6 +125,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['tolerance'],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e9396300289c153a8737045'),
@@ -98,6 +142,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['vivre'],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('671d13b291cf6e74fb8bb9ef'),
@@ -114,6 +159,7 @@ exports.dummyArticles = [
         downvotes: [],
         createdAt: new Date('2024-10-26T15:27:14.380Z'),
         updatedAt: new Date('2024-10-26T15:27:14.380Z'),
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e938dac0289c153a8737043'),
@@ -130,6 +176,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: [],
         views: [],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5f2fde4558803f59e4e07cdd'),
@@ -149,6 +196,7 @@ exports.dummyArticles = [
             new mongoose_1.Types.ObjectId('64ebeafd91e1bea198845f89'),
             new mongoose_1.Types.ObjectId('66a8ec668c35b3ebd6c01fd3'),
         ],
+        isBio: false,
     },
     {
         _id: new mongoose_1.Types.ObjectId('5e9368cf0289c153a8737040'),
@@ -165,6 +213,7 @@ exports.dummyArticles = [
         isPrivate: false,
         tags: ['tomyex', 'sweaters'],
         views: [],
+        isBio: false,
     },
 ];
 //# sourceMappingURL=dummyArticles.js.map

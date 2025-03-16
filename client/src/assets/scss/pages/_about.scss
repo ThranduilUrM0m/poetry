@@ -1,0 +1,161 @@
+.about {
+    @apply w-full h-full;
+
+    &__section {
+        &-1 {
+            @apply flex justify-stretch;
+
+            &-left,
+            &-right {
+                @apply relative basis-1/2;
+            }
+
+            // Left Column
+            &-left {
+                @apply h-[100vh] p-[10vh] flex flex-col items-start justify-between;
+                @apply bg-[rgb(var(--primary-light)/.1)];
+
+                &-fadedText {
+                    @apply w-full h-fit text-[rgb(var(--text)/.5)] text-right text-[5vh] font-[600];
+
+                    &::before {
+                        content: '';
+                        @apply opacity-25 z-[-1] absolute w-full h-[1vh] bottom-0 -left-1/2 -translate-y-full;
+                    }
+                }
+
+                &-text {
+                    @apply relative w-3/4 h-fit text-right text-[2.5vh] font-[500] leading-[1.2];
+
+                    &::before {
+                        content: 'About Me.';
+                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[15vh] -translate-y-full;
+                        font-family: 'Abril Fatface', cursive;
+                    }
+                }
+            }
+
+            // Right Column
+            &-right {
+                @apply relative h-full flex flex-col items-center justify-center;
+
+                &-image {
+                    @apply relative w-1/2 h-3/4;
+                }
+
+                &-read {
+                    @apply w-1/2 h-[5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium translate-y-full;
+
+                    span {
+                        @apply flex items-center;
+
+                        svg {
+                            @apply w-[20vh] h-[2vh];
+                        }
+                    }
+                }
+            }
+        }
+
+        &-2 {
+            @apply flex;
+
+            &-left,
+            &-right {
+                @apply relative basis-1/2;
+
+                ._sliderComments {
+                    @apply relative w-full h-full px-[5vh];
+
+                    .slick-slider {
+                        @apply relative w-full h-full px-[5vh];
+
+                        .slick-list {
+                            @apply h-full;
+
+                            .slick-track {
+                                @apply h-full;
+
+                                .slick-slide {
+                                    @apply border-[.25vh] border-[rgb(var(--white)/1)];
+
+                                    &>div {
+                                        @apply w-full h-full px-[2vh];
+
+                                        ._card {
+                                            @apply relative m-0 p-[2.75vh];
+
+                                            &Body {
+                                                @apply relative overflow-hidden h-full;
+
+                                                ._form {
+                                                    ._comment_author {
+                                                        @apply relative text-[1.75vh] w-fit h-fit mb-auto text-[rgb(var(--text)/.5)] translate-x-[20vh];
+
+                                                        &::before {
+                                                            @apply absolute bg-[rgb(var(--primary-light)/.75)] w-[15vh] h-[.5vh] top-1/2 left-0 -translate-x-[20vh] -translate-y-1/2;
+                                                            content: '';
+                                                        }
+                                                    }
+
+                                                    ._comment_body {
+                                                        @apply text-[2vh] leading-[1.2] text-center w-3/4 self-center;
+                                                    }
+
+                                                    ._article__title {
+                                                        @apply relative font-medium text-[4vh] text-[rgb(var(--text)/1)] leading-[1.2];
+                                                        font-family: 'Abril Fatface', cursive;
+
+                                                        span {
+                                                            @apply text-[rgb(var(--primary)/1)];
+                                                        }
+                                                    }
+
+                                                    .information {
+                                                        @apply flex items-end justify-end w-full gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)];
+
+                                                        svg {
+                                                            @apply mx-[.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Adjacent slides
+                                    &:not(.slick-current) {
+                                        @apply transform scale-90 opacity-75;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    ._shadowIndex {
+                        @apply absolute opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
+                        font-family: 'Abril Fatface', cursive;
+
+                        p {
+                            @apply m-0;
+                        }
+
+                        &._word {
+                            @apply bottom-0 left-0 translate-y-[10vh];
+                        }
+
+                        &._number {
+                            @apply flex top-0 right-0 translate-y-full rotate-90 origin-top-right;
+
+                            &._outlined {
+                                @apply text-transparent -translate-x-[5%] translate-y-[105%];
+                                content: var(--before-content);
+                                -webkit-text-stroke: .1vh rgb(var(--text)/1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

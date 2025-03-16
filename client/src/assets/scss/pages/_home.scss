@@ -103,14 +103,6 @@
                     .slick-slider {
                         @apply relative p-[5vh] w-full h-full;
 
-                        /* &.dragging {
-                            cursor: grabbing;
-                            
-                            .slick-slide {
-                                pointer-events: none;
-                            }
-                        } */
-
                         .slick-list {
                             .slick-track {
                                 .slick-slide {
@@ -214,97 +206,6 @@
                             }
                         }
                     }
-
-                    /* ._button {
-                        position: relative;
-                        overflow: hidden;
-                        transition: color 0.4s ease;
-
-                        .buttonBorders {
-                            div {
-                                position: absolute;
-                                background: rgb(var(--text));
-                                transition: transform 0.4s ease;
-                                transform: scale(0);
-                            }
-
-                            .borderTop {
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 1px;
-                                transform-origin: left;
-                            }
-
-                            .borderRight {
-                                top: 0;
-                                right: 0;
-                                width: 1px;
-                                height: 100%;
-                                transform-origin: top;
-                            }
-
-                            .borderBottom {
-                                bottom: 0;
-                                right: 0;
-                                width: 100%;
-                                height: 1px;
-                                transform-origin: right;
-                            }
-
-                            .borderLeft {
-                                bottom: 0;
-                                left: 0;
-                                width: 1px;
-                                height: 100%;
-                                transform-origin: bottom;
-                            }
-                        }
-
-                        &:hover {
-                            color: rgb(var(--white));
-
-                            &::before {
-                                transform: scaleX(1);
-                            }
-
-                            .buttonBorders {
-                                div {
-                                    transform: scale(1);
-                                }
-
-                                .borderTop {
-                                    transition-delay: 0s;
-                                }
-
-                                .borderRight {
-                                    transition-delay: 0.1s;
-                                }
-
-                                .borderBottom {
-                                    transition-delay: 0.2s;
-                                }
-
-                                .borderLeft {
-                                    transition-delay: 0.3s;
-                                }
-                            }
-                        }
-
-                        &::before {
-                            content: '';
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background: rgb(var(--text));
-                            transform: scaleX(0);
-                            transform-origin: left;
-                            transition: transform 0.4s ease;
-                            z-index: -1;
-                        }
-                    } */
 
                     ._shadowIndex {
                         @apply absolute opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;

@@ -1,6 +1,13 @@
 'use client';
 import React, { forwardRef, ReactElement, useRef, useState, useEffect } from 'react';
-import { animated, useSpring, useSpringRef, SpringConfig, SpringValue } from '@react-spring/web';
+import {
+    animated,
+    useSpring,
+    useSpringRef,
+    SpringConfig,
+    SpringValue,
+    useTrail,
+} from '@react-spring/web';
 import { useGesture } from '@use-gesture/react';
 import { useInView } from 'react-intersection-observer';
 
@@ -60,6 +67,13 @@ type AnimationProps = {
         to?: React.CSSProperties;
         trigger?: () => boolean;
     };
+    trail?: {
+        items: React.ReactNode[];
+        from: React.CSSProperties;
+        to: React.CSSProperties;
+        config?: SpringConfig;
+        delay?: number;
+    };
 };
 
 type AnimationStyle =
@@ -111,6 +125,7 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
         keyboard,
         touch,
         custom,
+        trail,
         htmlFor,
         type,
         animationStyle,
@@ -139,6 +154,14 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
             if (onRest) onRest();
         },
     }));
+
+    // Handle trail animations
+    const trailSprings = useTrail(trail ? trail.items.length : 0, {
+        from: trail?.from || {},
+        to: trail?.to || {},
+        config: trail?.config,
+        delay: trail?.delay,
+    });
 
     // Set initial state on mount.
     useEffect(() => {
@@ -335,7 +358,18 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
             htmlFor={htmlFor}
             type={type}
         >
-            {children}
+            {trail && Array.isArray(children)
+                ? trailSprings.map((style, index) => {
+                      const TrailComponent =
+                          (animated[as as keyof typeof animated] as React.ElementType) ||
+                          animated(as);
+                      return (
+                          <TrailComponent key={index} style={style}>
+                              {children[index]}
+                          </TrailComponent>
+                      );
+                  })
+                : children}
         </AnimatedComponent>
     );
 };

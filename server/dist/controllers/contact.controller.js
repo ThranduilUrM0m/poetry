@@ -51,8 +51,8 @@ let ContactController = class ContactController {
             const mailOptions = {
                 from: data.email,
                 to: gmailUser,
-                subject: 'Contact Form Submission',
-                text: `First Name: ${data.firstname}\nLast Name: ${data.lastname}\nPhone: ${data.phone}\nMessage: ${data.message}`,
+                subject: 'Contact Form',
+                text: `First Name: ${data.firstname}\nLast Name: ${data.lastname}\nEmail: ${data.email}\nPhone: ${data.phone}\nMessage: ${data.message}`,
             };
             await transporter.sendMail(mailOptions);
             return { message: 'Email sent successfully' };

@@ -7,6 +7,8 @@ export declare class ArticleController {
     createArticle(data: Partial<Article>): Promise<Article>;
     getAllArticles(): Promise<Article[]>;
     getArticleBySlug(category: string, slug: string): Promise<Article>;
+    updateArticle(slug: string, data: Partial<Article>): Promise<Article>;
+    updateArticles(data: Partial<Article>[]): Promise<Article[]>;
     deleteArticle(slug: string): Promise<{
         message: string;
     }>;

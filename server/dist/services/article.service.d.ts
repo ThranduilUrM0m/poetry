@@ -10,4 +10,6 @@ export declare class ArticleService {
     deleteArticle(slug: string): Promise<{
         message: string;
     }>;
+    updateArticle(slug: string, data: Partial<Article>): Promise<Article>;
+    updateArticles(data: Partial<Article>[]): Promise<Article[]>;
 }

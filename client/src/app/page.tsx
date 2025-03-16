@@ -71,9 +71,12 @@ export default function HomePage() {
 
         if (__article && __article.body) {
             const _i = __index + 1;
+
+            /* Replace this ._home ._s2 ._figure with target where to put the first image of a poem */
             const html = $.parseHTML(__article.body);
             const firstImage = $(html).find('img').first()[0]; // Get the first image element as a DOM element
             $('._home ._s2 ._figure').html(firstImage); // Pass the DOM element to .html()
+            
             $('._number p').html(_i < 10 ? '0' + _i : '' + _i);
             $('._number p').attr('data-text', _i < 10 ? '0' + _i : '' + _i);
         }
@@ -189,6 +192,7 @@ export default function HomePage() {
                         {isLoading && <p>Loading articles...</p>}
                         {error && <p className="text-red-500">Error: {error}</p>}
 
+                        {/* Slider */}
                         {!_.isEmpty(articles) && (
                             <Slider {..._sliderArticlesSettings}>
                                 {_.map(
@@ -230,14 +234,16 @@ export default function HomePage() {
                                                     <Link
                                                         href={`/blog/${_article._id}`}
                                                         className="_button"
-                                                        id='_buttonArticle'
+                                                        id="_buttonArticle"
                                                     >
                                                         {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
                                                         <AnimatedWrapper
                                                             as="span"
                                                             className="buttonBackground"
                                                             hover={{
-                                                                from: { clipPath: 'inset(0 100% 0 0)' },
+                                                                from: {
+                                                                    clipPath: 'inset(0 100% 0 0)',
+                                                                },
                                                                 to: { clipPath: 'inset(0 0 0 0)' },
                                                             }}
                                                             config={{
@@ -391,6 +397,8 @@ export default function HomePage() {
                                 )}
                             </Slider>
                         )}
+                        {/* Slider */}
+
                         <div className="_shadowIndex _number" data-text="">
                             <p></p>
                             <b className="pink_dot">.</b>
@@ -436,7 +444,7 @@ export default function HomePage() {
                             loss, hope, and wonder.
                         </p>
 
-                        <Link href={`/blog`} className="_button __dark" id='_buttonAboutMe'>
+                        <Link href={`/blog`} className="_button __dark" id="_buttonAboutMe">
                             {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
                             <AnimatedWrapper
                                 as="span"

@@ -42,6 +42,9 @@ export class Article {
     @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
     status: string;
 
+    @Prop({ default: false })
+    isBio: boolean; // Add isBio field to Article
+
     createdAt?: Date;
     updatedAt?: Date;
 }

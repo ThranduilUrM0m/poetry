@@ -1,3 +1,11 @@
+import { ViewDocument } from '../models/view.model';
+export declare const dummyViews: Partial<ViewDocument>[];
+import { UpvoteDocument } from '../models/upvote.model';
+export declare const dummyUpvotes: Partial<UpvoteDocument>[];
+import { DownvoteDocument } from '../models/downvote.model';
+export declare const dummyDownvotes: Partial<DownvoteDocument>[];
+import { CommentDocument } from '../models/comment.model';
+export declare const dummyComments: Partial<CommentDocument>[];
 import { UserDocument } from '../models/user.model';
 export declare const dummyUsers: Partial<UserDocument>[];
 import { ArticleDocument } from '../models/article.model';

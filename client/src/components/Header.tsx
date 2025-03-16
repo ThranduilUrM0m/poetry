@@ -67,6 +67,25 @@ export default function Header() {
         itemStaggerDelay: 100,   // Delay between each item in ms
     };
 
+    const menuItemElements = menuItems.map((item) => {
+        return (
+            <AnimatedWrapper
+                as="li"
+                key={item.href}
+                hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
+                click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
+            >
+                <Link
+                    href={item.href}
+                    className={`${pathname === item.href ? 'active' : ''}`}
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                    {item.label}
+                </Link>
+            </AnimatedWrapper>
+        );
+    });
+
     return (
         <header className={getHeaderClass()}>
             <nav className="header__nav">
@@ -101,33 +120,17 @@ export default function Header() {
                                 to={{ opacity: isMenuOpen ? 1 : 0 }}
                                 config={smoothConfig}
                                 delay={staggerConfig.backgroundDuration * 0.5} // Start halfway through background animation
+                                trail={{
+                                    items: menuItemElements,
+                                    from: { transform: 'translateX(-50px)', opacity: 0 },
+                                    to: { transform: isMenuOpen ? 'translateX(0)' : 'translateX(-50px)', opacity: isMenuOpen ? 1 : 0 },
+                                    config: smoothConfig,
+                                    delay: staggerConfig.backgroundDuration,
+                                }}
                             >
-                                {menuItems.map((item, index) => (
-                                    <AnimatedWrapper
-                                        as="li"
-                                        key={item.href}
-                                        from={{ 
-                                            transform: 'translateX(-50px)',
-                                            opacity: 0 
-                                        }}
-                                        to={{ 
-                                            transform: isMenuOpen ? 'translateX(0)' : 'translateX(-50px)',
-                                            opacity: isMenuOpen ? 1 : 0
-                                        }}
-                                        config={smoothConfig}
-                                        delay={staggerConfig.backgroundDuration + (index * staggerConfig.itemStaggerDelay)}
-                                        hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
-                                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
-                                    >
-                                        <Link
-                                            href={item.href}
-                                            className={`${pathname === item.href ? 'active' : ''}`}
-                                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    </AnimatedWrapper>
-                                ))}
+                                {menuItemElements.map((element) => {
+                                    return element;
+                                })}
                             </AnimatedWrapper>
                         </AnimatedWrapper>
                         {/* Hamburger button */}

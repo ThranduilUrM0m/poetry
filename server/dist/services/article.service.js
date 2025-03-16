@@ -44,6 +44,21 @@ let ArticleService = class ArticleService {
             throw new common_1.NotFoundException('Article not found');
         return { message: 'Article deleted successfully' };
     }
+    async updateArticle(slug, data) {
+        const article = await this.articleModel.findOneAndUpdate({ slug }, data, { new: true });
+        if (!article)
+            throw new common_1.NotFoundException('Article not found');
+        return article;
+    }
+    async updateArticles(data) {
+        const updatedArticles = [];
+        for (const articleData of data) {
+            const article = await this.articleModel.findOneAndUpdate({ slug: articleData.slug }, articleData, { new: true });
+            if (article)
+                updatedArticles.push(article);
+        }
+        return updatedArticles;
+    }
 };
 exports.ArticleService = ArticleService;
 exports.ArticleService = ArticleService = __decorate([
