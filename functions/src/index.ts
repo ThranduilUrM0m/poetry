@@ -4,6 +4,10 @@ import * as nodemailer from "nodemailer";
 import { google } from "googleapis";
 import * as dotenv from "dotenv";
 import next from 'next';
+import express from 'express';
+
+// Initialize express app
+const expressApp = express();
 
 // Load environment variables
 dotenv.config();
@@ -40,11 +44,17 @@ async function createTransporter() {
 }
 
 // Firebase function to send emails
-export const sendEmail = functions.https.onRequest(async (req, res) => {
+expressApp.post('/sendEmail', async (req, res) => {
     try {
-        const transporter = await createTransporter();
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: functions.config().gmail.email,
+                pass: functions.config().gmail.password,
+            },
+        });
         const mailOptions = {
-            from: process.env.GMAIL_USER, // Use email from env
+            from: process.env.GMAIL_USER,
             to: req.body.to,
             subject: req.body.subject,
             text: req.body.text,
@@ -58,33 +68,15 @@ export const sendEmail = functions.https.onRequest(async (req, res) => {
     }
 });
 
-// Next.js SSR function
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({
-  dev,
-  conf: { distDir: '.next' },
-});
-const handle = app.getRequestHandler();
-
-export const nextSSR = functions.https.onRequest((req, res) => {
-  return app.prepare().then(() => handle(req, res));
-});
-
-// Configure the email transport using the default SMTP transport and a GMail account.
-// For Gmail, enable these:
-// 1. https://www.google.com/settings/security/lesssecureapps
-// 2. https://accounts.google.com/DisplayUnlockCaptcha
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: functions.config().gmail.email,
-        pass: functions.config().gmail.password,
-    },
-});
-
-export const sendContactEmail = functions.https.onRequest((req, res) => {
+expressApp.post('/contact', (req, res) => {
     const { email, phone, firstname, lastname, message } = req.body;
-
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: functions.config().gmail.email,
+            pass: functions.config().gmail.password,
+        },
+    });
     const mailOptions = {
         from: email,
         to: functions.config().gmail.email,
@@ -104,3 +96,26 @@ export const sendContactEmail = functions.https.onRequest((req, res) => {
         return res.status(200).send('Email sent successfully');
     });
 });
+
+// Next.js SSR function
+const dev = process.env.NODE_ENV !== 'production';
+const app = next({
+  dev,
+  conf: { distDir: '.next' },
+});
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+    expressApp.all('*', (req, res) => {
+        return handle(req, res);
+    });
+});
+
+// Start the server
+const port = process.env.PORT || 8080;
+expressApp.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+// Export the express app as a single function
+export const api = functions.https.onRequest(expressApp);
