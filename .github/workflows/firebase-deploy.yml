@@ -2,18 +2,17 @@
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
+  pull_request: {}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "20"
 
@@ -25,38 +24,29 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Clean Up Old Build Artifacts
+      - name: Clean Build Artifacts
         run: |
           rm -rf client/.next
-          rm -rf client/public
+          rm -rf functions/.next
 
-      - name: Install Dependencies and Build Frontend (Client)
+      - name: Build Client
         run: |
           cd client
           npm install --legacy-peer-deps
           npm run build
 
-      - name: Ensure Public Directory Exists
-        run: mkdir -p client/public
-
-      - name: List Client Build Directory
-        run: ls -la client/.next
-
-      - name: Copy Next.js Build to Functions Directory
-        run: |
-          cp -R client/.next functions/.next
-      
-      - name: Install Dependencies and Build Backend (Server)
+      - name: Build Server
         run: |
           cd server
           npm install --legacy-peer-deps
           npm run build
-      
-      - name: Install Dependencies and Build Firebase Functions
+
+      - name: Build Functions
         run: |
           cd functions
           npm install --legacy-peer-deps
           npm run build
-      
+
       - name: Deploy to Firebase
-        run: firebase deploy --only hosting,functions --project poetry-a6f93
+        run: |
+          firebase deploy --only hosting,functions --project poetry-a6f93 --force
