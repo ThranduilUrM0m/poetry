@@ -28,7 +28,7 @@ jobs:
       - name: Install Dependencies and Build Frontend (Client)
         run: |
           cd client
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run build
 
       - name: List Client Build Directory
@@ -41,7 +41,7 @@ jobs:
       - name: Install Dependencies and Build Backend (Server)
         run: |
           cd server
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run build
 
       - name: List Server Build Directory
@@ -50,7 +50,7 @@ jobs:
       - name: Install Dependencies and Build Firebase Functions
         run: |
           cd functions
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run build
 
       - name: List Functions Build Directory
