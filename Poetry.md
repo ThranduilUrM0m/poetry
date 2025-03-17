@@ -1,7 +1,7 @@
 # Website Development Proposal - Qasida
 
 ## Client: [Client's Name]
-## Prepared by: [Your Name]
+## Prepared by: boutaleb
 
 ---
 
