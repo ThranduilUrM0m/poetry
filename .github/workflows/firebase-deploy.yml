@@ -36,6 +36,12 @@ jobs:
           npm install --legacy-peer-deps
           npm run build
 
+      - name: Ensure Public Directory Exists
+        run: mkdir -p client/public
+
+      - name: List Client Build Directory
+        run: ls -la client/.next
+
       - name: Copy Next.js Build to Functions Directory
         run: |
           cp -R client/.next functions/.next
