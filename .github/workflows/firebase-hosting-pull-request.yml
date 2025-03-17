@@ -37,7 +37,7 @@ jobs:
           cd server
           npm ci --legacy-peer-deps
           npm run build
-      
+
       - name: Install Dependencies and Build Firebase Functions
         run: |
           cd functions
