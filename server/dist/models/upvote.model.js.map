@@ -1,1 +1,0 @@
-{"version":3,"file":"upvote.model.js","sourceRoot":"","sources":["../../src/models/upvote.model.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,+CAA+D;AAMxD,IAAM,MAAM,GAAZ,MAAM,MAAM;CAMlB,CAAA;AANY,wBAAM;AAEf;IADC,IAAA,eAAI,GAAE;;wCACU;iBAFR,MAAM;IADlB,IAAA,iBAAM,EAAC,EAAE,UAAU,EAAE,IAAI,EAAE,CAAC;GAChB,MAAM,CAMlB;AAEY,QAAA,YAAY,GAAG,wBAAa,CAAC,cAAc,CAAC,MAAM,CAAC,CAAC"}
