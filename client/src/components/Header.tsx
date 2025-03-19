@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import Overlay from '@/components/ui/Overlay';
 import SearchModal from '@/components/ui/SearchModal';
+import { useHeaderTheme } from '@/context/HeaderThemeContext';
 import logo from '@/assets/images/b_white_orange..svg';
 
 const menuItems = [
@@ -18,6 +19,7 @@ const menuItems = [
 ];
 
 export default function Header() {
+    const { theme } = useHeaderTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const pathname = usePathname();
@@ -202,7 +204,7 @@ export default function Header() {
                     <AnimatedWrapper
                         as="button"
                         onClick={() => setIsSearchOpen(true)}
-                        className="header__nav-right-search"
+                        className={`header__nav-right-search ${theme === 'dark' ? '__dark' : '__white'}`}
                         config={smoothConfig}
                         hover={{ from: { scale: 1 }, to: { scale: 1.16 } }}
                         click={{ from: { scale: 1 }, to: { scale: 0.5 } }}

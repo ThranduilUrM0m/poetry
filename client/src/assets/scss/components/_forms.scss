@@ -2,12 +2,12 @@ form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
     
     ._formGroup {
-        @apply relative h-[7vh] w-full bg-[rgb(var(--white)/1)];
+        @apply relative h-[var(--input-height)] w-full bg-[rgb(var(--white)/1)];
 
         &.hasIcon {
             ._formControl {
                 ._input {
-                    @apply pl-[7vh];
+                    @apply pl-[var(--input-height)];
                 }
             }
         }
@@ -41,7 +41,7 @@ form {
             }
 
             ._input {
-                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--text)/.1)] pl-[2vh] text-[2.5vh];
+                @apply relative h-full w-full bg-[rgb(var(--hoverGray)/.25)] border-[.25vh] border-[rgb(var(--text)/.1)] pl-[2vh] text-[2.5vh] leading-[var(--input-height)];
 
                 &._focused {
                     @apply outline-none border border-[rgb(var(--hoverGray)/1)] border-solid;
@@ -53,6 +53,10 @@ form {
 
                 &:not(._hasAutoComplete) {
                     @apply text-[rgb(var(--text)/1)];
+                }
+
+                &.__textarea {
+                    @apply resize-none pt-[var(--input-offset)] pb-[var(--input-offset)];
                 }
             }
         }
@@ -256,7 +260,7 @@ form {
     }
 
     ._button {
-        @apply relative m-0 border-none bg-transparent h-[7vh] text-[2vh] font-[600] z-[1];
+        @apply relative m-0 border-none bg-transparent h-[var(--input-height)] text-[2vh] font-[600] z-[1];
 
         .buttonBorders {
             @apply absolute top-0 left-0 w-full h-full border-[.1vh] border-[rgb(var(--text)/.25)];

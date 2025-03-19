@@ -11,4 +11,7 @@
     --primary: 123 154 204;
     --primary-light: 163 191 224;
     --primary-dark: 90 123 153;
+    --input-height: 7vh;
+    --input-line-height: 1.5rem;
+    --input-offset: calc((var(--input-height) - var(--input-line-height)) / 2);
 }
