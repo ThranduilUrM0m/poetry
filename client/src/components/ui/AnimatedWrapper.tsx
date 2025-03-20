@@ -181,6 +181,12 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
         }
     }, [to, config, api]);
 
+    useEffect(() => {
+        if (animationStyle) {
+            api.start({ ...animationStyle });
+        }
+    }, [animationStyle, api]);
+
     // Handle hover animations with delay support.
     const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const bindHover = useGesture({
