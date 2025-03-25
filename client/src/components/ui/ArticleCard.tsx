@@ -27,27 +27,63 @@ export default function ArticleCard({ article }: ArticleCardProps) {
         return firstSentence.trim();
     };
 
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
     return (
-        <AnimatedWrapper
-            as="div"
-            className="article-card"
-            config={smoothConfig}
-            hover={{ to: { scale: 1.02 } }} // Replaces whileHover
-            click={{ to: { scale: 0.98 } }} // Replaces whileTap
-        >
+        <AnimatedWrapper as="div" className="article-card" config={smoothConfig}>
             <a href={`/${article.category}/${article.slug}`}>
-                <h3 className="title">{article.title}</h3>
                 <div className="meta">
-                    <span className="author">
-                        by {article.author.firstName} {article.author.lastName}
+                    {/* Author name span - only shows if firstName or lastName exists */}
+                    {(article.author.firstName || article.author.lastName) && (
+                        <span
+                            lang={
+                                containsArabic(
+                                    // Safely combine first + last name with proper undefined handling
+                                    [article.author?.firstName, article.author?.lastName]
+                                        .filter((name) => !_.isEmpty(name)) // Remove empty/undefined names
+                                        .join(' ')
+                                )
+                                    ? 'ar'
+                                    : 'en'
+                            }
+                            className="author"
+                        >
+                            by{' '}
+                            {[article.author.firstName, article.author.lastName]
+                                .filter(Boolean)
+                                .join(' ')}
+                        </span>
+                    )}
+
+                    {/* Username span - only shows if username exists */}
+                    {!_.isEmpty(article.author.username) && (
+                        <span
+                            lang={containsArabic(article.author.username) ? 'ar' : 'en'}
+                            className="username"
+                        >
+                            @{article.author.username}
+                        </span>
+                    )}
+                    <span
+                        lang={containsArabic(article.category) ? 'ar' : 'en'}
+                        className="category"
+                    >
+                        {article.category}
                     </span>
-                    <span className="username">@{article.author.username}</span>
-                    <span className="category">{article.category}</span>
                 </div>
-                <p className="preview">{extractFirstPhrase(article.body)}</p>
+                <h3 lang={containsArabic(article.title) ? 'ar' : 'en'} className="title">
+                    {article.title}
+                </h3>
+                <p lang={containsArabic(article.body) ? 'ar' : 'en'} className="preview">
+                    {extractFirstPhrase(article.body)}
+                </p>
                 <div className="tags">
                     {article.tags.map((tag, index) => (
-                        <span key={index} className="tag">
+                        <span lang={containsArabic(tag) ? 'ar' : 'en'} key={index} className="tag">
                             <Hash />
                             {_.upperFirst(tag)}
                         </span>

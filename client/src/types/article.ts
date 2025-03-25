@@ -47,6 +47,7 @@ export interface Comment {
     _comment_fingerprint: string;
     _comment_upvotes: Upvote[];
     _comment_downvotes: Downvote[];
+    isFeatured?: boolean;
     article: Article; // Add _article field to Comment
     createdAt: string;
     updatedAt: string;
@@ -60,6 +61,7 @@ export interface Article {
     category: string;
     slug: string;
     isPrivate: boolean;
+    isFeatured?: boolean;
     tags: string[];
     comments: Comment[]; // Updated to use Comment type
     views: View[];

@@ -61,6 +61,12 @@ export default function SubmitModal({
 
     if (!isSubmitOpen) return null;
 
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
     return createPortal(
         <>
             <Overlay isVisible={isSubmitOpen} onClick={onSubmitClose} zIndex={20} />
@@ -108,7 +114,7 @@ export default function SubmitModal({
 
                 {/* Body */}
                 <div className="_body">
-                    <h2>{message}</h2>
+                    <h2 lang={containsArabic(message) ? 'ar' : 'en'}>{message}</h2>
                 </div>
 
                 {/* Footer */}
@@ -213,7 +219,7 @@ export default function SubmitModal({
                                 }}
                                 parentHoverSelector="#_buttonClose"
                             >
-                                Close<b className="pink_dot">.</b>
+                                Close<b className="__dot">.</b>
                             </AnimatedWrapper>
                         </Link>
                     </form>

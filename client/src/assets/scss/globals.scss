@@ -5,7 +5,7 @@
 
 // Base styles
 @use 'base/reset';
-@use 'base/typography'as vars;
+@use 'base/typography';
 
 // Components
 @use 'components/header';
@@ -27,16 +27,24 @@
 @tailwind utilities;
 
 body {
-    @apply relative m-0 text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth overflow-x-hidden;
-    font-family: vars.$mainFont;
+    @apply relative m-0 font-latin text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth overflow-x-hidden;
 
-    .__mainWrapper, main {
+    :lang(ar) {
+        @apply font-arabic text-right;
+    }
+
+    .__mainWrapper,
+    main {
         @apply p-0;
         min-height: 100vh;
 
         section {
             @apply relative h-[100vh] py-[10vh];
         }
+    }
+
+    .__dot {
+        @apply text-[rgb(var(--primary)/1)];
     }
 }
 
@@ -48,7 +56,7 @@ body {
         @apply fixed bg-[rgb(var(--primary)/1)] h-[.25vh] w-full top-0 left-0 z-[1031];
         box-shadow: 0 0 2vh 2vh rgb(rgb(var(--primary)/1) / 0.05);
     }
-    
+
     .peg {
         @apply hidden;
     }

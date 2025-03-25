@@ -24,6 +24,9 @@ export class Article {
     @Prop({ default: false })
     isPrivate: boolean;
 
+    @Prop({ default: false })
+    isFeatured: boolean;
+
     @Prop([String])
     tags: string[];
 

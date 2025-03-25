@@ -41,6 +41,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Article.prototype, "isPrivate", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Article.prototype, "isFeatured", void 0);
+__decorate([
     (0, mongoose_1.Prop)([String]),
     __metadata("design:type", Array)
 ], Article.prototype, "tags", void 0);

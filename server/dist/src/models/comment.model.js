@@ -24,6 +24,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Comment.prototype, "_comment_isOK", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ default: false }),
+    __metadata("design:type", Boolean)
+], Comment.prototype, "isFeatured", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true, trim: true }),
     __metadata("design:type", String)
 ], Comment.prototype, "_comment_author", void 0);

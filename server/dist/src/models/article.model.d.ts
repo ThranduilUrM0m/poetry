@@ -9,6 +9,7 @@ export declare class Article {
     category: string;
     slug: string;
     isPrivate: boolean;
+    isFeatured: boolean;
     tags: string[];
     comments: Types.ObjectId[];
     views: Types.ObjectId[];

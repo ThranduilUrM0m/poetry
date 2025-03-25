@@ -4,18 +4,19 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchArticles, selectArticles, selectIsLoading, selectError } from '@/slices/articleSlice';
 import { fetchComments, selectComments } from '@/slices/commentSlice';
-import Link from 'next/link';
 import Slider from 'react-slick';
 import { formatDistanceToNow } from 'date-fns';
 import { Squircle } from 'lucide-react';
 import _ from 'lodash';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
-import LongArrow from '@/components/ui/LongArrow';
 import { AboutSection1 } from '@/components/ui/HeroImage';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
-import { config } from '@react-spring/web';
 import { BiSolidQuoteAltLeft } from 'react-icons/bi';
+import Link from 'next/link';
+import LongArrow from '@/components/ui/LongArrow';
+import { config } from '@react-spring/web';
+import { Comment } from '@/types/article';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -44,6 +45,16 @@ interface SliderSettings {
     onDrag?: () => void;
 }
 
+// Helper function: duplicate an array until target length is reached.
+function repeatComments<T>(comments: T[], target: number): T[] {
+    if (comments.length === 0) return [];
+    const repeated: T[] = [];
+    while (repeated.length < target) {
+        repeated.push(...comments);
+    }
+    return repeated.slice(0, target);
+}
+
 export default function AboutPage() {
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
@@ -62,6 +73,7 @@ export default function AboutPage() {
     useEffect(() => {
         dispatch(fetchArticles());
     }, [dispatch]);
+
     useEffect(() => {
         dispatch(fetchComments());
     }, [dispatch]);
@@ -80,11 +92,40 @@ export default function AboutPage() {
         }
     }, [isLoaded, isLoading, comments]);
 
-    const filteredComments = comments.filter((comment) => comment._comment_isOK);
-    const displayComments =
-        filteredComments.length >= 3
-            ? filteredComments
-            : [...filteredComments, ...filteredComments, ...filteredComments].slice(0, 9);
+    // STEP 1: Filter out only approved comments.
+    const validComments = comments.filter((comment: Comment) => comment._comment_isOK);
+
+    // STEP 2: Use a similar time range & scoring logic as the best-of-week article.
+    const now: Date = new Date();
+    const initialRangeDaysComments = 7; // Editable initial time range in days
+    const timeRangesComments: number[] = [initialRangeDaysComments, 30, 60, 90, 120, 150, 180];
+
+    const filteredCommentsByTime = _.chain(validComments)
+        .thru((comms: Comment[]) => {
+            for (const range of timeRangesComments) {
+                const filtered = comms.filter((comment) => {
+                    const createdAt = new Date(comment.createdAt);
+                    const diffDays: number =
+                        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                    return diffDays <= range;
+                });
+                if (filtered.length > 0) return filtered;
+            }
+            return comms;
+        })
+        .map((comment: Comment) => ({
+            ...comment,
+            score:
+                3 * _.get(comment, '_comment_upvotes.length', 0) -
+                2 * _.get(comment, '_comment_downvotes.length', 0),
+        }))
+        .orderBy(['score'], ['desc'])
+        .value();
+
+    // STEP 3: Limit the number of comments to 9 for each slider.
+    // If fewer than 9 unique comments, duplicate until you have exactly 9.
+    const maxDisplayComments = 9;
+    const displayCommentsUpdated = repeatComments(filteredCommentsByTime, maxDisplayComments);
 
     // Slider configuration for a smooth, continuous slide.
     const _slider1CommentsSettings: SliderSettings = {
@@ -151,13 +192,19 @@ export default function AboutPage() {
         }
     };
 
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
     return (
         <main className="about">
             <SectionObserver theme="dark">
                 <section className="about__section-1">
                     <AnimatedWrapper
-                        as="div"
-                        className="about__section-1-left"
+                        as={AboutSection1}
+                        className="about__section-1-image"
                         from={{ transform: 'translateY(-10vh) translateX(-100%)', opacity: 0 }}
                         to={
                             isLoaded
@@ -165,13 +212,29 @@ export default function AboutPage() {
                                 : {}
                         }
                         config={{ mass: 1, tension: 170, friction: 26 }}
+                    ></AnimatedWrapper>
+                    <AnimatedWrapper
+                        as="div"
+                        className="about__section-1-left"
+                        from={{ transform: 'translateX(100%)', opacity: 0 }}
+                        to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
+                        config={{ mass: 1, tension: 170, friction: 26 }}
+                    ></AnimatedWrapper>
+                    <AnimatedWrapper
+                        as="div"
+                        className="about__section-1-right"
+                        from={{ transform: 'translateX(-100%)', opacity: 0 }}
+                        to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
+                        config={{ mass: 1, tension: 170, friction: 26 }}
                     >
-                        <div className="about__section-1-left-fadedText">
+                        <div className="about__section-1-right-fadedText">
                             <p>
-                                About me<b className="pink_dot">.</b>
+                                About
+                                <br />
+                                <b className="__dot">me.</b>
                             </p>
                         </div>
-                        <div className="about__section-1-left-text">
+                        <div className="about__section-1-right-text">
                             <h2>
                                 Born into a lineage of poets, I am deeply rooted in the rich
                                 tapestry of Moroccan Amazigh traditions. My poetry is a harmonious
@@ -185,17 +248,6 @@ export default function AboutPage() {
                                 of our shared histories and the timeless traditions that bind us
                                 across generations.
                             </h2>
-                        </div>
-                    </AnimatedWrapper>
-                    <AnimatedWrapper
-                        as="div"
-                        className="about__section-1-right"
-                        from={{ transform: 'translateX(100%)', opacity: 0 }}
-                        to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                    >
-                        <div className="about__section-1-right-image">
-                            <AboutSection1 />
                         </div>
                         <Link href="/__bio" className="about__section-1-right-read">
                             <AnimatedWrapper
@@ -220,7 +272,6 @@ export default function AboutPage() {
                     </AnimatedWrapper>
                 </section>
             </SectionObserver>
-
             <SectionObserver theme="dark">
                 <section className="about__section-2">
                     <div className="about__section-2-left">
@@ -234,16 +285,18 @@ export default function AboutPage() {
                         >
                             {isLoading && <p>Loading comments...</p>}
                             {error && <p className="text-red-500">Error: {error}</p>}
-                            {!_.isEmpty(displayComments) && (
+                            {!_.isEmpty(displayCommentsUpdated) && (
                                 <Slider {..._slider1CommentsSettings}>
-                                    {_.map(displayComments, (comment, index) => {
+                                    {_.map(displayCommentsUpdated, (comment, index) => {
                                         const opacity = computeOpacity(
                                             index,
                                             currentSlide1,
-                                            displayComments.length,
+                                            displayCommentsUpdated.length,
                                             _slider1CommentsSettings.rtl || false
                                         );
-                                        const extraClass = index % 3 === 0 ? '__differentSlide' : '';
+                                        // Apply the extra class only to every 3rd item
+                                        const extraClass =
+                                            index % 3 === 0 ? '__differentSlide' : '';
                                         return (
                                             <AnimatedWrapper
                                                 key={index}
@@ -251,47 +304,63 @@ export default function AboutPage() {
                                                 config={{
                                                     mass: 1,
                                                     tension: 120,
-                                                    friction: 14, // Reduce friction for smoother transitions
+                                                    friction: 14,
                                                     precision: 0.01,
-                                                    duration: 400, // Add a duration to ensure smooth transitions
+                                                    duration: 400,
                                                 }}
                                             >
                                                 <div
-                                                    className={`_card _card-${index} ${
-                                                        index < 2 ? 'special-display' : ''
-                                                    } ${extraClass}`}
+                                                    className={`_card _card-${index} ${extraClass}`}
                                                 >
                                                     <div className="_cardBody">
                                                         <form className="_form">
                                                             <h2 className="_comment_author">
                                                                 by{' '}
-                                                                <span>
+                                                                <span
+                                                                    lang={
+                                                                        containsArabic(
+                                                                            comment._comment_author
+                                                                        )
+                                                                            ? 'ar'
+                                                                            : 'en'
+                                                                    }
+                                                                >
                                                                     {comment._comment_author}
                                                                 </span>
                                                             </h2>
-                                                            <span className="_comment_body">
+                                                            <span
+                                                                lang={
+                                                                    containsArabic(
+                                                                        comment._comment_body
+                                                                    )
+                                                                        ? 'ar'
+                                                                        : 'en'
+                                                                }
+                                                                className="_comment_body"
+                                                            >
                                                                 {comment._comment_body}
                                                             </span>
-                                                            <h2
-                                                                className={`_article__title ${
-                                                                    /[\u0600-\u06FF]/.test(
-                                                                        comment.article.title
-                                                                    )
-                                                                        ? '_article__title__arabic'
-                                                                        : ''
-                                                                }`}
-                                                            >
-                                                                <span>
+                                                            <h2 className="_article__title">
+                                                                <span
+                                                                    lang={
+                                                                        containsArabic(
+                                                                            comment.article?.title
+                                                                        )
+                                                                            ? 'ar'
+                                                                            : 'en'
+                                                                    }
+                                                                >
                                                                     {comment.article?.title}
                                                                 </span>
                                                             </h2>
                                                             <div className="information">
                                                                 <span>
                                                                     <b>
-                                                                        {
-                                                                            comment._comment_upvotes
-                                                                                .length
-                                                                        }
+                                                                        {_.get(
+                                                                            comment,
+                                                                            '_comment_upvotes.length',
+                                                                            0
+                                                                        )}
                                                                     </b>{' '}
                                                                     Likes
                                                                 </span>
@@ -325,16 +394,17 @@ export default function AboutPage() {
                         >
                             {isLoading && <p>Loading comments...</p>}
                             {error && <p className="text-red-500">Error: {error}</p>}
-                            {!_.isEmpty(displayComments) && (
+                            {!_.isEmpty(displayCommentsUpdated) && (
                                 <Slider {..._slider2CommentsSettings}>
-                                    {[...displayComments].reverse().map((comment, index) => {
+                                    {[...displayCommentsUpdated].reverse().map((comment, index) => {
                                         const opacity = computeOpacity(
                                             index,
                                             currentSlide2,
-                                            displayComments.length,
+                                            displayCommentsUpdated.length,
                                             _slider2CommentsSettings.rtl || false
                                         );
-                                        const extraClass = index % 3 === 0 ? '__differentSlide' : '';
+                                        const extraClass =
+                                            index % 3 === 0 ? '__differentSlide' : '';
                                         return (
                                             <AnimatedWrapper
                                                 key={index}
@@ -342,15 +412,13 @@ export default function AboutPage() {
                                                 config={{
                                                     mass: 1,
                                                     tension: 120,
-                                                    friction: 14, // Reduce friction for smoother transitions
+                                                    friction: 14,
                                                     precision: 0.01,
-                                                    duration: 400, // Add a duration to ensure smooth transitions
+                                                    duration: 400,
                                                 }}
                                             >
                                                 <div
-                                                    className={`_card _card-${index} ${
-                                                        index < 2 ? 'special-display' : ''
-                                                    } ${extraClass}`}
+                                                    className={`_card _card-${index} ${extraClass}`}
                                                 >
                                                     <div className="_cardBody">
                                                         <form className="_form">
@@ -379,10 +447,11 @@ export default function AboutPage() {
                                                             <div className="information">
                                                                 <span>
                                                                     <b>
-                                                                        {
-                                                                            comment._comment_upvotes
-                                                                                .length
-                                                                        }
+                                                                        {_.get(
+                                                                            comment,
+                                                                            '_comment_upvotes.length',
+                                                                            0
+                                                                        )}
                                                                     </b>{' '}
                                                                     Likes
                                                                 </span>
@@ -407,7 +476,7 @@ export default function AboutPage() {
                     </div>
                 </section>
             </SectionObserver>
-            <SectionObserver theme="dark">
+            <SectionObserver theme="light">
                 <section className="about__section-4"></section>
             </SectionObserver>
         </main>

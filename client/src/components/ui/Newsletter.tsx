@@ -192,7 +192,7 @@ export default function Newsletter() {
                         parentHoverSelector="#_buttonNewsletter"
                     >
                         {isLoading ? 'Subscribing...' : 'Subscribe'}
-                        <b className="pink_dot">.</b>
+                        <b className="__dot">.</b>
                     </AnimatedWrapper>
                 </button>
             </form>

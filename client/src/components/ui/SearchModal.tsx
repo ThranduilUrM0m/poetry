@@ -1,14 +1,14 @@
 'use client';
 import React, { useState, useEffect, useRef, JSX } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { X, Search, Hash, UserSearch, ArrowLeftRight, Timer } from 'lucide-react';
 import { AppDispatch } from '@/store';
-import { fetchArticles } from '@/slices/articleSlice';
-import { selectArticles, selectIsLoading, selectError } from '@/slices/articleSlice';
-import { Search, Hash, UserSearch } from 'lucide-react';
+import { fetchArticles, selectArticles, selectIsLoading, selectError } from '@/slices/articleSlice';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import * as stringSimilarity from 'string-similarity';
+import SimpleBar from 'simplebar-react';
 import FormField from '@/components/ui/FormField';
 import Overlay from '@/components/ui/Overlay';
 import SearchResults from '@/components/ui/SearchResults';
@@ -17,51 +17,187 @@ import { SearchSuggestion } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';
 
-// Define the validation schema
-const searchSchema = Yup.object().shape({
+// Define sort and timeframe options explicitly:
+type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
+type TimeFrameOption = '24h' | '7d' | '30d' | '6m' | 'all';
+
+// Validation schema and form data interface
+const searchSchema: Yup.ObjectSchema<FormValues> = Yup.object().shape({
     searchQuery: Yup.string().required('Search query is required'),
+    sortOption: Yup.mixed<SortOption>()
+        .required()
+        .oneOf(['trending', 'mostViewed', 'topRated', 'mostRecent', 'mostRelevant']),
+    timeFrameOption: Yup.mixed<TimeFrameOption>()
+        .required()
+        .oneOf(['24h', '7d', '30d', '6m', 'all']),
 });
 
-// Define the structure of your form data
 interface FormValues {
     searchQuery: string;
+    sortOption: SortOption;
+    timeFrameOption: TimeFrameOption;
 }
 
-// Define the smooth beautiful configuration like in the Footer component
+// Smooth configuration for animations
 const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
-// Helper function to get compatible suggestions
+// -----------------------------------------------------------------------------
+// Scoring Functions
+// -----------------------------------------------------------------------------
+const calculateViewScore = (article: Article): number => {
+    const viewsCount = _.get(article, 'views.length', 0);
+    const createdAt = new Date(article.createdAt);
+    const now = new Date();
+    const daysSincePublication = Math.floor(
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const recencyFactor = Math.max(0, 30 - daysSincePublication);
+    return viewsCount * (1 + recencyFactor / 30);
+};
+
+const calculateUpvoteScore = (article: Article): number => {
+    const upvotesCount = _.get(article, 'upvotes.length', 0);
+    const createdAt = new Date(article.createdAt);
+    const now = new Date();
+    const daysSincePublication = Math.floor(
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const recencyFactor = Math.max(0, 30 - daysSincePublication);
+    return upvotesCount * (1 + recencyFactor / 30);
+};
+
+const calculateCommentsScore = (article: Article): number => {
+    const commentsCount = _.get(article, 'comments.length', 0);
+    const updatedAt = new Date(article.updatedAt);
+    const now = new Date();
+    const daysSinceUpdate = Math.floor(
+        (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const recencyFactor = Math.max(0, 30 - daysSinceUpdate);
+    return commentsCount * (1 + recencyFactor / 30);
+};
+
+const calculateTrendingScore = (article: Article): number => {
+    const viewScore = calculateViewScore(article);
+    const upvoteScore = calculateUpvoteScore(article);
+    const commentsScore = calculateCommentsScore(article);
+    return 0.4 * viewScore + 0.4 * upvoteScore + 0.2 * commentsScore;
+};
+
+const getAttractionScore = (article: Article): number => {
+    const viewsCount = _.get(article, 'views.length', 0);
+    const commentsCount = _.get(article, 'comments.length', 0);
+    const upvotesCount = _.get(article, 'upvotes.length', 0);
+    const downvotesCount = _.get(article, 'downvotes.length', 0);
+    let score: number = viewsCount + 2 * commentsCount + 3 * upvotesCount - 2 * downvotesCount;
+    if (article.isFeatured) {
+        score *= 1.5;
+    }
+    return score;
+};
+
+const calculateRelevantScore = (article: Article): number => {
+    return getAttractionScore(article);
+};
+
+// -----------------------------------------------------------------------------
+// Filtering Function: Apply Timeframe & Sorting
+// -----------------------------------------------------------------------------
+const applyFilters = (
+    articles: Article[],
+    sortOption: SortOption,
+    timeFrameOption: TimeFrameOption,
+    selectedSuggestions: SearchSuggestion[]
+): Article[] => {
+    let filtered: Article[] = articles;
+    if (timeFrameOption !== 'all') {
+        let days: number;
+        switch (timeFrameOption) {
+            case '24h':
+                days = 1;
+                break;
+            case '7d':
+                days = 7;
+                break;
+            case '30d':
+                days = 30;
+                break;
+            case '6m':
+                days = 180;
+                break;
+            default:
+                days = Infinity;
+        }
+        filtered = filtered.filter((article) => {
+            const createdAt = new Date(article.createdAt);
+            const diffDays = (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+            return diffDays <= days;
+        });
+    }
+    switch (sortOption) {
+        case 'mostViewed':
+            filtered = _.orderBy(
+                filtered.map((article) => ({ ...article, score: calculateViewScore(article) })),
+                ['score'],
+                ['desc']
+            );
+            break;
+        case 'topRated':
+            filtered = _.orderBy(
+                filtered.map((article) => ({ ...article, score: calculateUpvoteScore(article) })),
+                ['score'],
+                ['desc']
+            );
+            break;
+        case 'mostRecent':
+            filtered = _.orderBy(filtered, [(a) => new Date(a.updatedAt)], ['desc']);
+            break;
+        case 'trending':
+            filtered = _.orderBy(
+                filtered.map((article) => ({ ...article, score: calculateTrendingScore(article) })),
+                ['score'],
+                ['desc']
+            );
+            break;
+        case 'mostRelevant':
+            filtered = _.orderBy(
+                filtered.map((article) => ({ ...article, score: calculateRelevantScore(article) })),
+                ['score'],
+                ['desc']
+            );
+            break;
+        default:
+            break;
+    }
+    filtered = filterArticlesBySuggestions(filtered, selectedSuggestions);
+    return filtered;
+};
+
+// -----------------------------------------------------------------------------
+// Existing Helper Functions for Suggestions (ensure these are typed properly)
+// -----------------------------------------------------------------------------
 const filterArticlesBySuggestions = (
     articles: Article[],
     suggestions: SearchSuggestion[]
 ): Article[] => {
     if (suggestions.length === 0) return articles;
-
     const groupedSuggestions = _.groupBy(suggestions, 'type');
-
     return articles.filter((article) => {
-        // Tags: OR within themselves
         const tagMatches =
             !groupedSuggestions.tag ||
             groupedSuggestions.tag.some((tag) =>
                 article.tags.some((t) => _.toLower(t) === _.toLower(tag.title))
             );
-
-        // Categories: OR within themselves
         const categoryMatches =
             !groupedSuggestions.category ||
             groupedSuggestions.category.some(
                 (cat) => _.toLower(article.category) === _.toLower(cat.title)
             );
-
-        // Authors: OR within themselves
         const authorMatches =
             !groupedSuggestions.author ||
             groupedSuggestions.author.some(
                 (auth) => _.toLower(article.author.username) === _.toLower(auth.title)
             );
-
-        // AND between different types
         return tagMatches && categoryMatches && authorMatches;
     });
 };
@@ -71,17 +207,17 @@ const getCompatibleSuggestions = (
     selected: SearchSuggestion[],
     current: SearchSuggestion[]
 ): SearchSuggestion[] => {
-    // If no selections, all suggestions are compatible
     if (selected.length === 0) return current;
-
-    // Filter suggestions that would result in matches when combined with existing selections
     return current.filter((suggestion) => {
         const hypotheticalSelections = [...selected, suggestion];
         const filteredArticles = filterArticlesBySuggestions(articles, hypotheticalSelections);
-        return filteredArticles.length > 0; // If we have any matches, the suggestion is compatible
+        return filteredArticles.length > 0;
     });
 };
 
+// -----------------------------------------------------------------------------
+// SearchModal Component
+// -----------------------------------------------------------------------------
 export default function SearchModal({
     isSearchOpen,
     onSearchClose,
@@ -90,6 +226,7 @@ export default function SearchModal({
     const articles = useSelector(selectArticles);
     const isLoading = useSelector(selectIsLoading);
     const error = useSelector(selectError);
+
     const modalRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
     const [articleSuggestions, setArticleSuggestions] = useState<Article[]>([]);
@@ -97,37 +234,42 @@ export default function SearchModal({
     const [transformedSuggestions, setTransformedSuggestions] = useState<SearchSuggestion[]>([]);
     const [selectedSuggestions, setSelectedSuggestions] = useState<SearchSuggestion[]>([]);
 
-    // Add pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const cardsPerPage = 4; // Shows 4 cards per page
-
-    const handleClickPage = (pageNumber: number) => {
-        setCurrentPage(pageNumber);
-    };
-
-    // Calculate pagination values
-    const getPaginatedArticles = (articles: Article[]) => {
+    // -----------------------------------------------------------------------------
+    // Pagination: (Declared only once)
+    // -----------------------------------------------------------------------------
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const cardsPerPage = 6;
+    const handleClickPage = (pageNumber: number): void => setCurrentPage(pageNumber);
+    const getPaginatedArticles = (articles: Article[]): Article[] => {
         const indexOfLastCard = currentPage * cardsPerPage;
         const indexOfFirstCard = indexOfLastCard - cardsPerPage;
         return articles.slice(indexOfFirstCard, indexOfLastCard);
     };
 
-    // Use the schema in the useForm hook
     const {
+        watch,
         control,
         setValue,
         formState: { errors },
         clearErrors,
     } = useForm<FormValues>({
         resolver: yupResolver(searchSchema),
+        defaultValues: {
+            searchQuery: '',
+            sortOption: 'trending',
+            timeFrameOption: 'all',
+        },
     });
+
+    // Add these instead:
+    const sortOption = watch('sortOption');
+    const timeFrameOption = watch('timeFrameOption');
 
     const handleClear = () => {
         setValue('searchQuery', '');
         setSearchQuery('');
-        // Only clear the search, keep selected suggestions
         const filteredArticles = filterArticlesBySuggestions(articles, selectedSuggestions);
-        const availableSuggestions = generateSearchSuggestions(filteredArticles);
+        const availableSuggestions = generateSearchSuggestions(articles);
         const compatibleSuggestions = getCompatibleSuggestions(
             articles,
             selectedSuggestions,
@@ -139,7 +281,6 @@ export default function SearchModal({
     };
 
     const generateSearchSuggestions = (articles: Article[]): SearchSuggestion[] => {
-        // Helper function to create suggestion objects
         const createSuggestion = (
             id: string,
             type: 'title' | 'category' | 'author' | 'tag',
@@ -149,31 +290,23 @@ export default function SearchModal({
             icon?: JSX.Element
         ): SearchSuggestion => ({
             _id: id,
-            title: _.startCase(title), // Capitalize first letter of each word
+            title: _.startCase(title),
             type,
             source: article,
             priority,
             icon,
         });
-
-        // Get unique values using Sets with case-insensitive comparison
         const uniqueTitles = new Set(articles.map((a) => _.startCase(a.title)));
         const uniqueCategories = new Set(articles.map((a) => _.startCase(a.category)));
         const uniqueTags = new Set(articles.flatMap((a) => a.tags.map((tag) => _.startCase(tag))));
         const uniqueAuthors = new Set(articles.map((a) => _.startCase(a.author.username)));
-
-        // Create suggestions arrays
         const suggestions: SearchSuggestion[] = [];
-
-        // Add title suggestions
         uniqueTitles.forEach((title) => {
             const article = articles.find((a) => _.toLower(a.title) === _.toLower(title))!;
             suggestions.push(
                 createSuggestion(`title-${_.toLower(title)}`, 'title', title, article, 1)
             );
         });
-
-        // Add category suggestions
         uniqueCategories.forEach((category) => {
             const article = articles.find((a) => _.toLower(a.category) === _.toLower(category))!;
             suggestions.push(
@@ -186,8 +319,6 @@ export default function SearchModal({
                 )
             );
         });
-
-        // Add tag suggestions
         uniqueTags.forEach((tag) => {
             const article = articles.find((a) =>
                 a.tags.some((t) => _.toLower(t) === _.toLower(tag))
@@ -203,8 +334,6 @@ export default function SearchModal({
                 )
             );
         });
-
-        // Add author suggestions
         uniqueAuthors.forEach((username) => {
             const article = articles.find(
                 (a) => _.toLower(a.author.username) === _.toLower(username)
@@ -220,7 +349,6 @@ export default function SearchModal({
                 )
             );
         });
-
         return suggestions;
     };
 
@@ -229,8 +357,6 @@ export default function SearchModal({
         articles: Article[]
     ): { exactMatches: Article[]; similarMatches: Article[] } => {
         const searchLower = _.toLower(searchTerm);
-
-        // First try exact matches in all fields
         const exactMatches = articles.filter(
             (article) =>
                 _.includes(_.toLower(article.title), searchLower) ||
@@ -238,8 +364,6 @@ export default function SearchModal({
                 _.includes(_.toLower(article.author.username), searchLower) ||
                 article.tags.some((tag) => _.includes(_.toLower(tag), searchLower))
         );
-
-        // If no exact matches, try fuzzy matching with improved relevance scoring
         if (exactMatches.length === 0) {
             const articlesWithSimilarity = articles.map((article) => ({
                 article,
@@ -260,27 +384,21 @@ export default function SearchModal({
                     )
                 ),
             }));
-
             const similarMatches = articlesWithSimilarity
                 .filter((item) => item.similarity > 0.4)
                 .sort((a, b) => b.similarity - a.similarity)
                 .map((item) => item.article);
-
             return { exactMatches: [], similarMatches };
         }
-
         return { exactMatches, similarMatches: [] };
     };
 
-    // Fix: Update handleSearch to properly handle compatible suggestions
     const handleSearch = (value: string) => {
         setSearchQuery(value);
         setValue('searchQuery', value);
-
-        // If empty input, show filtered results based on selections
         if (!value) {
             const filteredArticles = filterArticlesBySuggestions(articles, selectedSuggestions);
-            const availableSuggestions = generateSearchSuggestions(articles); // Generate from ALL articles
+            const availableSuggestions = generateSearchSuggestions(articles);
             const compatibleSuggestions = getCompatibleSuggestions(
                 articles,
                 selectedSuggestions,
@@ -291,26 +409,17 @@ export default function SearchModal({
             clearErrors('searchQuery');
             return;
         }
-
-        // Search in ALL articles first
         const { exactMatches, similarMatches } = getFuzzyMatches(value, articles);
         const matchedArticles = exactMatches.length > 0 ? exactMatches : similarMatches;
-
-        // Then filter by selected suggestions
         const filteredMatches = filterArticlesBySuggestions(matchedArticles, selectedSuggestions);
-
-        // Generate suggestions from ALL articles matching the search
         const suggestions = generateSearchSuggestions(matchedArticles);
         const compatibleSuggestions = getCompatibleSuggestions(
             articles,
             selectedSuggestions,
             suggestions
         );
-
         setArticleSuggestions(filteredMatches);
         setTransformedSuggestions(compatibleSuggestions);
-
-        // Handle errors
         if (filteredMatches.length === 0 && value.length > 1) {
             control.setError('searchQuery', {
                 type: 'manual',
@@ -322,29 +431,18 @@ export default function SearchModal({
     };
 
     const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
-        // Don't add duplicate selections
-        if (selectedSuggestions.some((s) => s._id === suggestion._id)) {
-            return;
-        }
-
+        if (selectedSuggestions.some((s) => s._id === suggestion._id)) return;
         const newSelections = [...selectedSuggestions, suggestion];
         setSelectedSuggestions(newSelections);
-
-        // Clear input after selection
         setValue('searchQuery', '');
         setSearchQuery('');
-
-        // Filter articles based on all selections
         const filteredArticles = filterArticlesBySuggestions(articles, newSelections);
-
-        // Generate new suggestions based on filtered articles
         const availableSuggestions = generateSearchSuggestions(filteredArticles);
         const compatibleSuggestions = getCompatibleSuggestions(
             articles,
             newSelections,
             availableSuggestions
         );
-
         setArticleSuggestions(filteredArticles);
         setTransformedSuggestions(compatibleSuggestions);
         clearErrors('searchQuery');
@@ -353,8 +451,6 @@ export default function SearchModal({
     const handleRemoveSuggestion = (suggestionToRemove: SearchSuggestion) => {
         const newSelections = selectedSuggestions.filter((s) => s._id !== suggestionToRemove._id);
         setSelectedSuggestions(newSelections);
-
-        // Refilter articles with remaining selections
         const filteredArticles = filterArticlesBySuggestions(articles, newSelections);
         setArticleSuggestions(filteredArticles);
     };
@@ -364,56 +460,73 @@ export default function SearchModal({
         setArticleSuggestions(articles);
     };
 
+    const containsArabic = (text: string): boolean => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
+    // Update suggestions and articles when filters change.
+    useEffect(() => {
+        const filteredArticles = applyFilters(
+            articles,
+            sortOption, // Already typed as SortOption
+            timeFrameOption, // Already typed as TimeFrameOption
+            selectedSuggestions
+        );
+        setArticleSuggestions(filteredArticles);
+
+        const availableSuggestions = generateSearchSuggestions(filteredArticles);
+        const compatibleSuggestions = getCompatibleSuggestions(
+            articles,
+            selectedSuggestions,
+            availableSuggestions
+        );
+        setTransformedSuggestions(compatibleSuggestions);
+        setCurrentPage(1);
+    }, [articles, sortOption, timeFrameOption, selectedSuggestions]);
+
+    // Event listeners for Escape key and click outside.
     useEffect(() => {
         if (isSearchOpen) {
             dispatch(fetchArticles());
-            // Show all articles initially
             setArticleSuggestions(articles);
-            // Generate initial suggestions from ALL articles
             const initialSuggestions = generateSearchSuggestions(articles);
             setTransformedSuggestions(initialSuggestions);
-            // Reset pagination
             setCurrentPage(1);
         }
-
-        // Event listeners for Escape key and click outside
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isSearchOpen) {
                 onSearchClose();
             }
         };
-
         const handleClickOutside = (event: MouseEvent) => {
             if (
                 modalRef.current &&
-                !modalRef.current.contains(event.target as Node) && // Click is outside the modal
+                !modalRef.current.contains(event.target as Node) &&
                 overlayRef.current &&
-                overlayRef.current.contains(event.target as Node) // Click is on the overlay
+                overlayRef.current.contains(event.target as Node)
             ) {
                 onSearchClose();
             }
         };
-
         if (isSearchOpen) {
             document.addEventListener('keydown', handleEscape);
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isSearchOpen, onSearchClose, dispatch]);
 
+    // Pagination: (declared once above)
+    // [currentPage, cardsPerPage, handleClickPage, getPaginatedArticles] already declared.
+
     return (
         <>
             {isSearchOpen && (
                 <>
-                    <Overlay
-                        isVisible={isSearchOpen}
-                        onClick={onSearchClose}
-                        zIndex={20} // Explicitly set z-20 for search modal
-                    />
+                    <Overlay isVisible={isSearchOpen} onClick={onSearchClose} zIndex={20} />
                     <AnimatedWrapper
                         className="_modal__search"
                         from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
@@ -436,7 +549,7 @@ export default function SearchModal({
                                                 : errors.searchQuery?.message
                                         }
                                         suggestions={transformedSuggestions}
-                                        allArticles={articles} // Pass the original articles array
+                                        allArticles={articles}
                                         control={control}
                                         rules={{ required: 'This field is required' }}
                                         onClear={handleClear}
@@ -451,7 +564,10 @@ export default function SearchModal({
                                 onClick={onSearchClose}
                                 aria-label="Close Search"
                                 className="__searchClose"
-                                hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
+                                hover={{
+                                    from: { transform: 'translateX(-1%)', opacity: 0.5 },
+                                    to: { transform: 'translateX(0)', opacity: 1 },
+                                }}
                                 click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                                 config={smoothConfig}
                             >
@@ -463,16 +579,17 @@ export default function SearchModal({
                                             y1="49.5"
                                             x2="70.5"
                                             y2="49.5"
-                                        ></line>
+                                        />
                                         <line
                                             className="two"
                                             x1="29.5"
                                             y1="50.5"
                                             x2="70.5"
                                             y2="50.5"
-                                        ></line>
+                                        />
                                     </g>
                                 </svg>
+                                Esc
                             </AnimatedWrapper>
                         </div>
 
@@ -480,11 +597,101 @@ export default function SearchModal({
                         <div className="_body">
                             {isLoading && <p>Loading articles...</p>}
                             {error && <p className="text-red-500">Error: {error}</p>}
+                            <div className="__suggestions">
+                                <SimpleBar
+                                    className="_SimpleBar"
+                                    forceVisible="y"
+                                    autoHide={false}
+                                    style={{ maxHeight: '20vh' }}
+                                >
+                                    {selectedSuggestions.length > 0 && (
+                                        <AnimatedWrapper
+                                            className="__suggestions-content"
+                                            from={{ opacity: 0 }}
+                                            to={{ opacity: 1 }}
+                                            config={smoothConfig}
+                                        >
+                                            <div className="selected-header">
+                                                <h3>Selected Filters</h3>
+                                                <button
+                                                    onClick={handleClearAllSuggestions}
+                                                    className="clear-all"
+                                                >
+                                                    Clear All
+                                                </button>
+                                            </div>
+                                            <div className="selected-tags">
+                                                {selectedSuggestions.map((suggestion) => (
+                                                    <AnimatedWrapper
+                                                        key={suggestion._id}
+                                                        className={`selected-tag ${suggestion.type}`}
+                                                        from={{ scale: 0.8, opacity: 0 }}
+                                                        to={{ scale: 1, opacity: 1 }}
+                                                        config={smoothConfig}
+                                                        hover={{
+                                                            from: { scale: 1 },
+                                                            to: { scale: 1.05 },
+                                                        }}
+                                                    >
+                                                        {suggestion.icon}
+                                                        <span
+                                                            lang={
+                                                                containsArabic(suggestion.title)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                        >
+                                                            {suggestion.title}
+                                                        </span>
+                                                        <button
+                                                            onClick={() =>
+                                                                handleRemoveSuggestion(suggestion)
+                                                            }
+                                                            className="remove-tag"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </AnimatedWrapper>
+                                                ))}
+                                            </div>
+                                        </AnimatedWrapper>
+                                    )}
+                                </SimpleBar>
+
+                                {/* FILTERS DROPDOWNS */}
+                                <form className="__filters">
+                                    <FormField
+                                        control={control}
+                                        icon={<ArrowLeftRight />}
+                                        name="sortOption"
+                                        type="select"
+                                        options={[
+                                            { value: 'trending', label: 'Trending' },
+                                            { value: 'mostViewed', label: 'Most Viewed' },
+                                            { value: 'topRated', label: 'Top Rated' },
+                                            { value: 'mostRecent', label: 'Most Recent' },
+                                            { value: 'mostRelevant', label: 'Most Relevant' },
+                                        ]}
+                                        rules={{ required: true }}
+                                    />
+                                    <FormField
+                                        control={control}
+                                        icon={<Timer />}
+                                        name="timeFrameOption"
+                                        type="select"
+                                        options={[
+                                            { value: '24h', label: 'Last 24 hours' },
+                                            { value: '7d', label: 'Last 7 days' },
+                                            { value: '30d', label: 'Last 30 days' },
+                                            { value: '6m', label: 'Last 6 months' },
+                                            { value: 'all', label: 'All time' },
+                                        ]}
+                                        rules={{ required: true }}
+                                    />
+                                </form>
+                            </div>
                             <SearchResults
-                                selectedSuggestions={selectedSuggestions}
                                 articleSuggestions={getPaginatedArticles(articleSuggestions)}
-                                onRemoveSuggestion={handleRemoveSuggestion}
-                                onClearAllSuggestions={handleClearAllSuggestions}
                                 onSearchClose={onSearchClose}
                             />
                         </div>
@@ -503,8 +710,7 @@ export default function SearchModal({
                                         )}
                                     </strong>
                                     &nbsp;of&nbsp;
-                                    <strong>{articleSuggestions.length}</strong>
-                                    &nbsp;articles.
+                                    <strong>{articleSuggestions.length}</strong>&nbsp;articles.
                                 </div>
                             </div>
                             <ul className="_pageNumbers">
@@ -518,7 +724,7 @@ export default function SearchModal({
                                             key={number}
                                             onClick={() => handleClickPage(number)}
                                             className={currentPage === number ? 'current' : ''}
-                                        ></li>
+                                        />
                                     )
                                 )}
                             </ul>

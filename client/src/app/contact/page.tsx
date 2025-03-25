@@ -340,7 +340,7 @@ export default function ContactPage() {
                                                 parentHoverSelector="#_buttonContact"
                                             >
                                                 {isLoading ? 'Submitting...' : 'Submit'}
-                                                <b className="pink_dot">.</b>
+                                                <b className="__dot">.</b>
                                             </AnimatedWrapper>
                                         </button>
                                     </div>

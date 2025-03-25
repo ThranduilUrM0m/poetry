@@ -9,9 +9,10 @@ import { Article } from '@/types/article';
 import _ from 'lodash';
 
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
-    label: string;
+    label?: string;
     name: Path<T>;
-    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea'; // Add textarea type
+    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select';
+    options?: Array<{ value: string; label: string }>;
     icon?: React.ReactNode;
     error?: string;
     suggestions?: S[];
@@ -23,6 +24,13 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     allArticles?: Array<Article>;
     selectedSuggestions?: S[];
     fuzzyMatchThreshold?: number; // Add threshold for fuzzy matching
+}
+
+interface SelectProps {
+    onChange: (value: string) => void;
+    onBlur: () => void;
+    value: string;
+    ref: React.Ref<HTMLButtonElement>;
 }
 
 const FormField = <T extends FieldValues, S extends SearchSuggestion>({
@@ -39,7 +47,8 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     onInputChange,
     allArticles = [],
     selectedSuggestions = [],
-    fuzzyMatchThreshold = 0.4, // Default threshold for fuzzy matching
+    fuzzyMatchThreshold = 0.4,
+    options = [],
 }: FormFieldProps<T, S>) => {
     // Define the smooth beautiful configuration
     const smoothConfig = {
@@ -302,6 +311,38 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         config: smoothConfig,
     });
 
+    /* Gotta check that shit */
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
+    // Add these to the existing component state at the top of FormField
+    const [isSelectOpen, setIsSelectOpen] = useState(false);
+    const selectRef = useRef<HTMLDivElement>(null);
+
+    // Add this click outside handler effect with the existing effects
+    useEffect(() => {
+        if (!usingSuggestions && type === 'select') {
+            const handleClickOutside = (e: MouseEvent) => {
+                if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
+                    setIsSelectOpen(false);
+                }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [type, usingSuggestions]);
+
+    // Add this transition animation with the existing animations
+    const selectTransition = useTransition(isSelectOpen, {
+        from: { opacity: 0, transform: 'translateY(-10%)' },
+        enter: { opacity: 1, transform: 'translateY(0)' },
+        leave: { opacity: 0, transform: 'translateY(-10%)' },
+        config: smoothConfig,
+    });
+
     return (
         <Controller
             name={name}
@@ -309,9 +350,14 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             rules={rules}
             render={({ field: { onChange, onBlur, value, ref } }) => {
                 onChangeRef.current = onChange;
+
                 const baseInputProps = {
-                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                        const newValue = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
+                    onChange: (
+                        e: React.ChangeEvent<
+                            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                        >
+                    ) => {
+                        const newValue = e.target.value;
                         onChange(newValue);
                         setInputValue(newValue);
                         if (!newValue) {
@@ -331,9 +377,66 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                         }
                     },
                 };
+
+                // Modify the renderSelect function inside the Controller render prop
+                const renderSelect = ({ onChange, onBlur, value, ref }: SelectProps) => (
+                    <div className="_customSelectWrapper" ref={selectRef}>
+                        <button
+                            type="button"
+                            className={`_input __select ${value ? '_focused' : ''} ${
+                                error ? '__error' : ''
+                            }`}
+                            onClick={() => setIsSelectOpen(!isSelectOpen)}
+                            aria-haspopup="listbox"
+                            aria-expanded={isSelectOpen}
+                            ref={ref}
+                            onBlur={onBlur}
+                        >
+                            {options.find((opt) => opt.value === value)?.label ||
+                                'Select an option'}
+                        </button>
+
+                        {selectTransition((style, isOpen) => (
+                            <AnimatedWrapper as="div" animationStyle={style}>
+                                {isOpen && (
+                                    <SimpleBar
+                                        className="_SimpleBar"
+                                        style={{ maxHeight: '40vh' }}
+                                        forceVisible="y"
+                                        autoHide={false}
+                                    >
+                                        <ul className="_SimpleBar-Group" role="listbox">
+                                            {options.map((option) => (
+                                                <AnimatedWrapper
+                                                    as="li"
+                                                    key={option.value}
+                                                    className={`suggestion-item ${
+                                                        value === option.value ? 'selected' : ''
+                                                    }`}
+                                                    onClick={() => {
+                                                        onChange(option.value);
+                                                        setIsSelectOpen(false);
+                                                    }}
+                                                    role="option"
+                                                    aria-selected={value === option.value}
+                                                >
+                                                    {option.label}
+                                                </AnimatedWrapper>
+                                            ))}
+                                        </ul>
+                                    </SimpleBar>
+                                )}
+                            </AnimatedWrapper>
+                        ))}
+                    </div>
+                );
+
                 const downshiftInputProps = usingSuggestions
-                    ? getInputProps(baseInputProps as UseComboboxGetInputPropsOptions, { suppressRefError: true })
+                    ? getInputProps(baseInputProps as UseComboboxGetInputPropsOptions, {
+                          suppressRefError: true,
+                      })
                     : baseInputProps;
+
                 return (
                     <div
                         ref={formGroupRef}
@@ -342,20 +445,26 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                         }`}
                     >
                         {/* Floating label */}
-                        <AnimatedWrapper
-                            as="label"
-                            htmlFor={name}
-                            className="_floatingLabel"
-                            animationStyle={floatingLabelSpring}
-                        >
-                            {label}
-                        </AnimatedWrapper>
+                        {label && (
+                            <AnimatedWrapper
+                                as="label"
+                                htmlFor={name}
+                                className="_floatingLabel"
+                                animationStyle={floatingLabelSpring}
+                            >
+                                {label}
+                            </AnimatedWrapper>
+                        )}
+
                         {/* _formControl */}
-                        <div className="_formControl">
+                        <div
+                            className={`_formControl ${type === 'select' && '_selectFormControl'}`}
+                        >
                             {icon && <div className="_icon">{icon}</div>}
+
                             {type === 'textarea' ? (
                                 <textarea
-                                    className={`_input ${value ? '_focused' : ''} ${
+                                    className={`_input __textarea ${value ? '_focused' : ''} ${
                                         icon ? '__icon' : ''
                                     } ${error ? '__error' : ''}`}
                                     {...downshiftInputProps}
@@ -364,6 +473,13 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                         color: !autocompleteSuggestion ? 'inherit' : 'transparent',
                                     }}
                                 />
+                            ) : type === 'select' ? (
+                                renderSelect({
+                                    onChange: (val: string) => onChange(val),
+                                    onBlur,
+                                    value: value as string,
+                                    ref: ref as React.Ref<HTMLButtonElement>,
+                                })
                             ) : (
                                 <input
                                     type={type}
@@ -378,6 +494,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 />
                             )}
                         </div>
+
                         {/* Autocorrect */}
                         {usingSuggestions && autocompleteSuggestion && (
                             <AnimatedWrapper
@@ -388,6 +505,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 {renderAutocomplete()}
                             </AnimatedWrapper>
                         )}
+
                         {/* Clear button */}
                         {onClear && value && (
                             <AnimatedWrapper
@@ -418,6 +536,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 </svg>
                             </AnimatedWrapper>
                         )}
+
                         {/* Error text */}
                         {error && (
                             <AnimatedWrapper
@@ -429,6 +548,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 <span>{error}</span>
                             </AnimatedWrapper>
                         )}
+
                         {/* Suggestions */}
                         {usingSuggestions &&
                             suggestionsTransition(
@@ -499,7 +619,37 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                     }
                                                                                                 </span>
                                                                                             )}
-                                                                                            <span className="fullname">
+                                                                                            <span
+                                                                                                lang={
+                                                                                                    containsArabic(
+                                                                                                        // Safely combine first + last name with proper undefined handling
+                                                                                                        [
+                                                                                                            typedItem
+                                                                                                                .source
+                                                                                                                .author
+                                                                                                                ?.firstName,
+                                                                                                            typedItem
+                                                                                                                .source
+                                                                                                                .author
+                                                                                                                ?.lastName,
+                                                                                                        ]
+                                                                                                            .filter(
+                                                                                                                (
+                                                                                                                    name
+                                                                                                                ) =>
+                                                                                                                    !_.isEmpty(
+                                                                                                                        name
+                                                                                                                    )
+                                                                                                            ) // Remove empty/undefined names
+                                                                                                            .join(
+                                                                                                                ' '
+                                                                                                            )
+                                                                                                    )
+                                                                                                        ? 'ar'
+                                                                                                        : 'en'
+                                                                                                }
+                                                                                                className="fullname"
+                                                                                            >
                                                                                                 {
                                                                                                     typedItem
                                                                                                         .source
@@ -513,7 +663,16 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                                         .lastName
                                                                                                 }
                                                                                             </span>
-                                                                                            <span className="username">
+                                                                                            <span
+                                                                                                lang={
+                                                                                                    containsArabic(
+                                                                                                        typedItem.title
+                                                                                                    )
+                                                                                                        ? 'ar'
+                                                                                                        : 'en'
+                                                                                                }
+                                                                                                className="username"
+                                                                                            >
                                                                                                 <span className="at-sign">
                                                                                                     {' '}
                                                                                                     @{' '}
@@ -546,7 +705,16 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                                                                 ) : typedItem.type ===
                                                                                   'category' ? (
                                                                                     <div className="category-suggestion">
-                                                                                        <span className="category-name">
+                                                                                        <span
+                                                                                            lang={
+                                                                                                containsArabic(
+                                                                                                    typedItem.title
+                                                                                                )
+                                                                                                    ? 'ar'
+                                                                                                    : 'en'
+                                                                                            }
+                                                                                            className="category-name"
+                                                                                        >
                                                                                             {
                                                                                                 typedItem.title
                                                                                             }

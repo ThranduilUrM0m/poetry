@@ -30,12 +30,34 @@ export default function ArticlePage() {
     if (error) return <p>Error: {error}</p>;
     if (!article) return <p>Article not found</p>;
 
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
+    };
+
     return (
         <div>
-            <h1>{article.title}</h1>
-            <p>{article.body}</p>
-            <p>Category: {article.category}</p>
-            <p>Author: {article.author.username}</p>
+            <h1
+                lang={containsArabic(article.title) ? 'ar' : 'en'}
+            >
+                {article.title}
+            </h1>
+            <p
+                lang={containsArabic(article.body) ? 'ar' : 'en'}
+            >
+                {article.body}
+            </p>
+            <p
+                lang={containsArabic(article.category) ? 'ar' : 'en'}
+            >
+                Category: {article.category}
+            </p>
+            <p
+                lang={containsArabic(article.author.username) ? 'ar' : 'en'}
+            >
+                Author: {article.author.username}
+            </p>
         </div>
     );
 }

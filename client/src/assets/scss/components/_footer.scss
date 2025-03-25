@@ -40,13 +40,11 @@
                 @apply basis-2/5;
 
                 h2 {
-                    @apply text-8xl font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
-                    font-family: 'Abril Fatface', cursive;
-
+                    @apply text-8xl font-abril font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
+                    
                     &::before {
                         content: 'Qasida.';
-                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
-                        font-family: 'Abril Fatface', cursive;
+                        @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
                     }
                 }
 

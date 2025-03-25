@@ -5,18 +5,29 @@
         &-1 {
             @apply flex justify-stretch;
 
+            &::before {
+                content: '';
+                @apply absolute z-10 w-full h-full bg-[rgb(var(--white)/.5)] top-0 left-0;
+            }
+
             &-left,
             &-right {
                 @apply relative basis-1/2;
             }
 
             // Left Column
-            &-left {
-                @apply h-[100vh] p-[10vh] flex flex-col items-start justify-between;
-                @apply bg-[rgb(var(--primary-light)/.1)];
+            &-left {}
+
+            // Right Column
+            &-right {
+                @apply z-20 relative h-full flex flex-col items-center justify-between px-[5vh] py-[10vh];
 
                 &-fadedText {
-                    @apply w-full h-fit text-[rgb(var(--text)/.5)] text-right text-[5vh] font-[600];
+                    @apply w-full h-fit text-[rgb(var(--text)/.5)] text-right text-[8.5vh] font-[600] leading-[1];
+
+                    b {
+                        @apply text-[15vh] leading-[.25];
+                    }
 
                     &::before {
                         content: '';
@@ -25,26 +36,16 @@
                 }
 
                 &-text {
-                    @apply relative w-3/4 h-fit text-right text-[2.5vh] font-[500] leading-[1.2];
+                    @apply relative w-3/4 h-fit text-right text-[2.5vh] font-[600] leading-[1.2];
 
                     &::before {
                         content: 'About Me.';
-                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[15vh] -translate-y-full;
-                        font-family: 'Abril Fatface', cursive;
+                        @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[15vh] -translate-y-full;
                     }
-                }
-            }
-
-            // Right Column
-            &-right {
-                @apply relative h-full flex flex-col items-center justify-center;
-
-                &-image {
-                    @apply relative w-1/2 h-3/4;
                 }
 
                 &-read {
-                    @apply w-1/2 h-[5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium translate-y-full;
+                    @apply w-3/4 h-[5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium translate-y-full;
 
                     span {
                         @apply flex items-center;
@@ -105,10 +106,9 @@
 
                                                     ._article__title {
                                                         @apply relative font-medium text-[4vh] text-[rgb(var(--text)/1)] leading-[1.2];
-                                                        font-family: 'Abril Fatface', cursive;
-
-                                                        &__arabic {
-                                                            @apply text-end;
+                                
+                                                        &:not(:lang(ar)) {
+                                                            @apply font-abril;
                                                         }
                                                     }
 
@@ -136,7 +136,7 @@
                                                 }
 
                                                 &>svg {
-                                                    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20vh] h-[20vh] fill-[rgb(var(--primary-light)/.25)];
+                                                    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[20vh] h-[20vh] fill-[rgb(var(--primary-light)/.5)];
                                                 }
                                             }
                                         }
@@ -147,6 +147,10 @@
                     }
                 }
             }
+        }
+
+        &-4 {
+            @apply bg-[rgb(var(--primary-light)/1)];
         }
     }
 }

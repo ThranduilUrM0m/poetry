@@ -1,6 +1,6 @@
 form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
-    
+
     ._formGroup {
         @apply relative h-[var(--input-height)] w-full bg-[rgb(var(--white)/1)];
 
@@ -21,7 +21,7 @@ form {
         // Floating Label
         ._floatingLabel {
             @apply absolute z-50 text-[rgb(var(--text)/1)] px-[1vh] text-[2vh];
-            
+
             &::before {
                 content: '';
                 @apply absolute bg-[rgb(var(--white)/1)] top-full left-0 w-full h-1/4;
@@ -33,7 +33,7 @@ form {
             @apply relative z-40 h-full w-full;
 
             ._icon {
-                @apply absolute top-[3.5vh] left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
+                @apply z-0 pointer-events-none absolute top-[3.5vh] left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
                 
                 svg {
                     @apply stroke-[rgb(var(--text)/.5)];
@@ -56,7 +56,79 @@ form {
                 }
 
                 &.__textarea {
-                    @apply resize-none pt-[var(--input-offset)] pb-[var(--input-offset)];
+                    @apply resize-none;
+                }
+
+                &.__select {
+                    @apply relative appearance-none text-end pr-[7vh];
+                }
+            }
+
+            &._selectFormControl {
+                @apply relative;
+
+                ._customSelectWrapper {
+                    button {
+                        @apply bg-transparent border-t-0 border-x-0 border-b-[rgb(var(--text)/.1)];
+
+                        &::after {
+                            content: '';
+                            @apply absolute bg-cover bg-[url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNoZXZyb24tZG93biI+PHBhdGggZD0ibTYgOSA2IDYgNi02Ii8+PC9zdmc+)] right-[2.75vh] top-1/2 -translate-y-1/2 translate-x-1/2 w-[2.7vh] h-[2.75vh];
+                        }
+                    }
+
+                    &>div {
+                        ._SimpleBar {
+                            @apply shadow-lg absolute z-10 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+
+                            &::before {
+                                content: '';
+                                @apply absolute top-0 left-0 w-full h-full bg-[rgb(var(--hoverGray)/.25)];
+                            }
+
+                            // Scrollbar styling
+                            .simplebar-scrollbar {
+                                width: 1.5vh !important;
+                                @apply bg-transparent;
+
+                                &::before {
+                                    @apply bg-[rgb(var(--text)/.25)] opacity-100;
+                                    width: 100% !important;
+                                }
+
+                                &.simplebar-visible::before {
+                                    @apply opacity-100;
+                                }
+                            }
+
+                            .simplebar-track {
+                                &.simplebar-vertical {
+                                    width: 1.5vh !important;
+                                    @apply bg-[rgb(var(--hoverGray)/.25)];
+                                    right: 1vh;
+                                }
+
+                                &.simplebar-horizontal {
+                                    @apply hidden;
+                                }
+                            }
+
+                            // Suggestions Groups
+                            &-Group {
+                                @apply w-full py-[1vh];
+
+                                // Common suggestion item styles
+                                .suggestion-item {
+                                    @apply cursor-pointer h-[5.75vh] w-full relative m-[0] px-[1vh] py-[2vh] text-[2vh] font-[400] leading-[1.25] cursor-pointer transition-all duration-200;
+
+                                    &:hover,
+                                    &.highlighted {
+                                        @apply bg-[rgb(var(--primary-light)/.5)];
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -303,7 +375,7 @@ form {
 
         span {
             @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
-            
+
             &.buttonBackground {
                 @apply w-[calc(100%-2vh)] h-[calc(100%-2vh)];
                 @apply bg-[rgb(var(--text)/.95)];
@@ -313,7 +385,7 @@ form {
         &.__dark {
             .buttonBorders {
                 @apply border-[rgb(var(--white)/.25)];
-    
+
                 .borderTop,
                 .borderRight,
                 .borderBottom,
@@ -321,10 +393,10 @@ form {
                     @apply bg-[rgb(var(--white)/1)];
                 }
             }
-    
+
             span {
                 @apply text-[rgb(var(--white)/.5)];
-                
+
                 &.buttonBackground {
                     @apply bg-[rgb(var(--white)/.95)];
                 }

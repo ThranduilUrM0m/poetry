@@ -4,8 +4,7 @@
 
 ._modal {
     &__search {
-        @apply fixed z-30 top-[5vh] left-1/2 w-[calc(100%-10vh)] h-[calc(100vh-10vh)] bg-[rgb(var(--white)/1)] p-[2.5vh];
-        line-height: normal;
+        @apply fixed z-30 top-[5vh] left-1/2 w-[calc(100%-10vh)] h-[calc(100vh-10vh)] bg-[rgb(var(--white)/1)] p-[2.5vh] leading-normal;
         box-shadow: 0 0 2vh 2vh rgb(rgb(var(--text)/1) / 0.05);
 
         ._header {
@@ -16,12 +15,14 @@
             }
 
             .__searchClose {
+                @apply flex flex-col text-[rgb(var(--text)/.5)];
+
                 svg {
                     @apply relative w-full h-full;
 
                     g {
                         line {
-                            @apply stroke-[3] fill-[rgb(var(--text)/1)] stroke-[rgb(var(--text)/1)] origin-center;
+                            @apply stroke-[3] fill-[rgb(var(--text)/.5)] stroke-[rgb(var(--text)/.5)] origin-center;
 
                             &.one {
                                 @apply rotate-45;
@@ -37,152 +38,205 @@
         }
 
         ._body {
-            @apply h-[calc(100%-20vh)] flex-grow overflow-hidden;
+            @apply px-[2.5vh] pt-[2.5vh] h-[65vh] w-full;
 
-            .search-results-container {
-                @apply flex h-full gap-[2vh];
+            .__suggestions {
+                @apply flex flex-row w-full h-[20vh];
 
-                .selected-suggestions {
-                    @apply w-[20%] bg-[rgb(var(--hoverGray)/.1)];
-                    height: 100%;
+                ._SimpleBar {
+                    @apply w-3/5;
 
-                    .selected-suggestions-content {
-                        @apply p-[2vh];
-                    }
+                    // Scrollbar styling
+                    .simplebar-scrollbar {
+                        width: 1.5vh !important;
+                        @apply bg-transparent;
 
-                    .selected-header {
-                        @apply flex items-center justify-between mb-[2vh];
-
-                        h3 {
-                            @apply text-[2vh] font-semibold text-[rgb(var(--text)/.75)];
+                        &::before {
+                            @apply w-full top-0 left-0 bg-[rgb(var(--text)/.25)] opacity-100 rounded-full;
                         }
 
-                        .clear-all {
-                            @apply text-[1.5vh] text-[rgb(var(--red)/1)] transition-opacity;
-
-                            &:hover {
-                                @apply opacity-75;
-                            }
+                        &.simplebar-visible::before {
+                            @apply opacity-100;
                         }
                     }
 
-                    .selected-tags {
-                        @apply flex flex-wrap gap-[1vh];
+                    .simplebar-track {
+                        &.simplebar-vertical {
+                            width: 1.5vh !important;
+                            @apply bg-[rgb(var(--hoverGray)/.25)] left-[1vh];
+                        }
 
-                        .selected-tag {
-                            @apply flex items-center gap-[.5vh] px-[1vh] py-[.5vh] rounded-[.5vh] text-[1.5vh];
-                            @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+                        &.simplebar-horizontal {
+                            @apply hidden;
+                        }
+                    }
 
-                            &.tag {
-                                @apply text-[rgb(var(--pink)/1)];
+                    .__suggestions-content {
+                        @apply flex flex-col h-full w-[90%] place-self-center;
+
+                        .selected-header {
+                            @apply flex items-center mb-[2vh];
+    
+                            h3 {
+                                @apply text-[2vh] font-semibold text-[rgb(var(--text)/.75)];
                             }
-
-                            &.category {
-                                @apply text-[rgb(var(--green)/1)];
-                            }
-
-                            &.author {
-                                @apply text-[rgb(var(--purple)/1)];
-                            }
-
-                            &.title {
-                                @apply text-[rgb(var(--blue)/1)];
-                            }
-
-                            .remove-tag {
-                                @apply ml-[.5vh] opacity-50 transition-opacity;
-
+    
+                            .clear-all {
+                                @apply text-[1.5vh] text-[rgb(var(--red)/1)] ml-[5vh] transition-opacity;
+    
                                 &:hover {
-                                    @apply opacity-100;
+                                    @apply opacity-75;
+                                }
+                            }
+                        }
+    
+                        .selected-tags {
+                            @apply flex flex-wrap gap-[1vh];
+    
+                            .selected-tag {
+                                @apply flex items-center gap-[.5vh] px-[1vh] py-[.5vh] rounded-[.5vh] text-[1.5vh];
+                                @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+    
+                                &.tag {
+                                    @apply text-[rgb(var(--pink)/1)];
+                                }
+    
+                                &.category {
+                                    @apply text-[rgb(var(--green)/1)];
+                                }
+    
+                                &.author {
+                                    @apply text-[rgb(var(--purple)/1)];
+                                }
+    
+                                &.title {
+                                    @apply text-[rgb(var(--blue)/1)];
+                                }
+    
+                                .remove-tag {
+                                    @apply ml-[.5vh] opacity-50 transition-opacity;
+    
+                                    &:hover {
+                                        @apply opacity-100;
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                .articles-grid {
-                    @apply w-[80%] h-full;
-
-                    .articles-grid-content {
-                        @apply px-[2vh] flex flex-wrap gap-[2vh];
-
-                        .article-card-wrapper {
-                            @apply flex-none h-[40vh];
-
-                            // Default: 3 items per row
-                            @apply w-[calc(33.333%-1.33vh)];
-
-                            // Medium screens and above: 3 items per row
-                            @screen md {
-                                @apply w-[calc(33.333%-1.33vh)];
-                            }
-
-                            // Small screens: 2 items per row
-                            @screen sm {
-                                @apply w-[calc(50%-1vh)];
-                            }
-                        }
+                .__filters {
+                    @apply w-2/5 flex flex-row items-end justify-end py-[5vh] gap-[2.5vh];
+                    
+                    ._formGroup {
+                        @apply w-fit;
                     }
                 }
-
             }
 
-            .article-card {
-                @apply relative flex flex-col h-full border-[2vh] border-solid border-[rgb(var(--primary-light)/.75)] bg-[rgb(var(--white)/.75)] backdrop-blur-[.25vh] p-[2vh] m-0 overflow-hidden;
+            .__container {
+                @apply relative h-[42.5vh] w-full;
 
-                a {
-                    @apply flex flex-col h-full;
-                    .title {
-                        @apply text-[3vh] font-bold mb-[1vh] text-[rgb(var(--text)/1)];
-                    }
-    
-                    .meta {
-                        @apply flex gap-[1.25vh] text-[2vh] mb-[1vh] text-[rgb(var(--text)/.75)];
-    
-                        .author {
-                            @apply font-bold;
+                .__articlesGrid {
+                    @apply w-full h-full;
+
+                    ._SimpleBar {
+                        @apply w-full;
+
+                        // Scrollbar styling
+                        .simplebar-scrollbar {
+                            width: 1.5vh !important;
+                            @apply bg-transparent;
+
+                            &::before {
+                                @apply w-full top-0 left-0 bg-[rgb(var(--text)/.25)] opacity-100 rounded-full;
+                            }
+
+                            &.simplebar-visible::before {
+                                @apply opacity-100;
+                            }
                         }
-    
-                        .username {
-                            @apply text-[rgb(var(--text)/.35)];
+
+                        .simplebar-track {
+                            &.simplebar-vertical {
+                                width: 1.5vh !important;
+                                @apply bg-[rgb(var(--hoverGray)/.25)];
+                                right: 1vh;
+                            }
+
+                            &.simplebar-horizontal {
+                                @apply hidden;
+                            }
                         }
-    
-                        .category {
-                            @apply text-[rgb(var(--primary-dark)/1)] ml-auto;
-                        }
-                    }
-    
-                    .preview {
-                        @apply text-[2vh] text-[rgb(var(--text)/.5)] my-[1.5vh] truncate;
-                        max-height: 10vh;
-                    }
-    
-                    .tags {
-                        @apply flex gap-[1vh] mb-[1vh] mt-auto ml-auto w-[60%] truncate justify-end;
-                        min-height: min-content;
-                        max-height: 6vh;
-    
-                        .tag {
-                            @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
-                            @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
-                            @apply text-[1.75vh] font-semibold;
-    
-                            svg {
-                                @apply w-[2vh] h-[2vh];
+
+                        .__articlesGrid-content {
+                            @apply flex flex-wrap  h-full w-[90%] place-self-center;
+
+                            .__articleCard {
+                                @apply h-[60vh] p-[2.5vh] basis-1/3;
+
+                                .article-card {
+                                    @apply relative h-full w-full flex flex-col border-[2vh] border-solid border-[rgb(var(--primary-light)/.75)] bg-[rgb(var(--white)/.75)];
+
+                                    a {
+                                        @apply flex flex-col h-full w-full p-[2.5vh];
+
+                                        .meta {
+                                            @apply flex gap-[1.25vh] text-[2vh] mb-[1vh] text-[rgb(var(--text)/.75)];
+
+                                            .author {
+                                                @apply font-bold;
+                                            }
+
+                                            .username {
+                                                @apply text-[rgb(var(--text)/.35)];
+                                            }
+
+                                            .category {
+                                                @apply text-[rgb(var(--primary-dark)/1)] ml-auto;
+                                            }
+                                        }
+
+                                        .title {
+                                            @apply text-[3vh] font-bold mb-[1vh] text-[rgb(var(--text)/1)];
+                                        }
+
+                                        .preview {
+                                            @apply text-[2vh] text-[rgb(var(--text)/.5)] my-[1.5vh] overflow-hidden text-ellipsis line-clamp-5;
+                                        }
+
+                                        .tags {
+                                            @apply flex gap-[1vh] mb-[1vh] mt-auto ml-auto w-full justify-end overflow-hidden text-ellipsis line-clamp-1;
+                                            min-height: min-content;
+                                            max-height: 6vh;
+
+                                            .tag {
+                                                @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
+                                                @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+                                                @apply text-[1.75vh] font-semibold;
+
+                                                svg {
+                                                    @apply w-[2vh] h-[2vh];
+                                                }
+                                            }
+                                        }
+
+                                        .location {
+                                            @apply text-[1.75vh] text-[rgb(var(--text)/.35)];
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-    
-                    .location {
-                        @apply text-[1.75vh] text-[rgb(var(--text)/.35)];
-                    }
                 }
+
             }
         }
 
         ._footer {
-            @apply p-4 border-t;
-            @apply h-[10vh] border-t border-[rgb(var(--hoverGray)/.25)] px-[2.5vh] flex items-center;
+            @apply px-4 pt-4 border-t;
+            @apply h-[10vh] border-t border-[rgb(var(--hoverGray)/.5)] px-[2.5vh] flex items-center;
             @apply flex justify-between items-center;
 
             ._pageNumbers {
@@ -215,7 +269,7 @@
         @apply fixed flex flex-col z-30 top-[10vh] left-1/2 w-1/2 h-1/2 bg-[rgb(var(--white)/1)] p-[2.5vh];
         line-height: normal;
         box-shadow: 0 1vh 2.5vh 1vh rgb(var(--text)/.1);
-    
+
         ._header {
             @apply flex h-[10vh] overflow-visible px-[2.5vh];
 

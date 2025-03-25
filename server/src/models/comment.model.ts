@@ -11,6 +11,9 @@ export class Comment {
     @Prop({ required: true, trim: true, default: false })
     _comment_isOK: boolean;
 
+    @Prop({ default: false })
+    isFeatured: boolean;
+
     @Prop({ required: true, trim: true })
     _comment_author: string;
 

@@ -9,6 +9,11 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                arabic: ['Amiri', 'serif'],
+                latin: ['Arsenal', 'serif'],
+                abril: ['Abril Fatface', 'cursive']
+            },
             colors: {
                 d: 'rgb(var(--d) / <alpha-value>)',
                 redNo: 'rgb(var(--redNo) / <alpha-value>)',

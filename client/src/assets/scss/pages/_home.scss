@@ -28,8 +28,7 @@
 
                     &::before {
                         content: 'Speaking.';
-                        @apply opacity-25 z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
-                        font-family: 'Abril Fatface', cursive;
+                        @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
                     }
                 }
 
@@ -68,8 +67,7 @@
                     @apply absolute flex flex-col justify-center h-fit w-1/2 top-1/2 left-[5vh] -translate-y-1/2;
 
                     &-hello {
-                        @apply text-9xl font-medium text-[rgb(var(--white)/1)] leading-[.75];
-                        font-family: 'Abril Fatface', cursive;
+                        @apply text-9xl font-abril font-medium text-[rgb(var(--white)/1)] leading-[.75];
                     }
 
                     &::before {
@@ -131,8 +129,11 @@
 
                                                     h2 {
                                                         @apply relative font-medium text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[1.2];
-                                                        font-family: 'Abril Fatface', cursive;
-
+                                
+                                                        &:not(:lang(ar)) {
+                                                            @apply font-abril;
+                                                        }
+                                                        
                                                         span {
                                                             @apply text-[rgb(var(--primary)/1)];
                                                         }
@@ -208,9 +209,8 @@
                     }
 
                     ._shadowIndex {
-                        @apply absolute opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
-                        font-family: 'Abril Fatface', cursive;
-
+                        @apply absolute font-abril opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
+                        
                         p {
                             @apply m-0;
                         }

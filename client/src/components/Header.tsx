@@ -66,7 +66,8 @@ export default function Header() {
     // Add stagger timing configuration
     const staggerConfig = {
         backgroundDuration: 600, // Background animation duration in ms
-        itemStaggerDelay: 100,   // Delay between each item in ms
+        itemStaggerDelay: 100, // Delay between each item in ms
+        getItemDelay: (index: number) => index * 100, // New helper function
     };
 
     const menuItemElements = menuItems.map((item) => {
@@ -124,10 +125,21 @@ export default function Header() {
                                 delay={staggerConfig.backgroundDuration * 0.5} // Start halfway through background animation
                                 trail={{
                                     items: menuItemElements,
-                                    from: { transform: 'translateX(-50px)', opacity: 0 },
-                                    to: { transform: isMenuOpen ? 'translateX(0)' : 'translateX(-50px)', opacity: isMenuOpen ? 1 : 0 },
+                                    from: {
+                                        transform: 'translateX(-50px)',
+                                        opacity: 0,
+                                    },
+                                    to: {
+                                        transform: isMenuOpen
+                                            ? 'translateX(0)'
+                                            : 'translateX(-50px)',
+                                        opacity: isMenuOpen ? 1 : 0,
+                                    },
                                     config: smoothConfig,
-                                    delay: staggerConfig.backgroundDuration,
+                                    delay: isMenuOpen
+                                        ? staggerConfig.backgroundDuration
+                                        : staggerConfig.backgroundDuration +
+                                          staggerConfig.itemStaggerDelay * (menuItems.length - 1),
                                 }}
                             >
                                 {menuItemElements.map((element) => {
@@ -204,7 +216,9 @@ export default function Header() {
                     <AnimatedWrapper
                         as="button"
                         onClick={() => setIsSearchOpen(true)}
-                        className={`header__nav-right-search ${theme === 'dark' ? '__dark' : '__white'}`}
+                        className={`header__nav-right-search ${
+                            theme === 'dark' ? '__dark' : '__white'
+                        }`}
                         config={smoothConfig}
                         hover={{ from: { scale: 1 }, to: { scale: 1.16 } }}
                         click={{ from: { scale: 1 }, to: { scale: 0.5 } }}

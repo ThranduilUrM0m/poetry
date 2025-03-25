@@ -9,11 +9,9 @@ import Slider from 'react-slick';
 import { Squircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import _ from 'lodash';
-import $ from 'jquery';
 import { HomeSection1, HomeSection2 } from '@/components/ui/HeroImage';
 import LongArrow from '@/components/ui/LongArrow';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
-import { Article } from '@/types/article';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 
@@ -30,8 +28,8 @@ interface SliderSettings {
     draggable?: boolean;
     touchThreshold?: number;
     adaptiveHeight?: boolean;
-    onInit: () => void;
-    beforeChange: (current: number, next: number) => void;
+    onInit?: () => void;
+    beforeChange?: (current: number, next: number) => void;
     onSwipe?: (direction: string) => void;
     afterChange?: (current: number) => void;
     onDrag?: () => void;
@@ -63,26 +61,6 @@ export default function HomePage() {
         }
     }, [isLoaded, isLoading, articles]);
 
-    const _handleArticleJSONTOHTML = (__articles: Article[], __index: number) => {
-        const __article = _.orderBy(
-            _.filter(__articles, (_a) => !_a.isPrivate),
-            ['views'],
-            ['desc']
-        )[__index];
-
-        if (__article && __article.body) {
-            const _i = __index + 1;
-
-            /* Replace this ._home ._s2 ._figure with target where to put the first image of a poem */
-            const html = $.parseHTML(__article.body);
-            const firstImage = $(html).find('img').first()[0]; // Get the first image element as a DOM element
-            $('._home ._s2 ._figure').html(firstImage); // Pass the DOM element to .html()
-
-            $('._number p').html(_i < 10 ? '0' + _i : '' + _i);
-            $('._number p').attr('data-text', _i < 10 ? '0' + _i : '' + _i);
-        }
-    };
-
     const _sliderArticlesSettings: SliderSettings = {
         dots: true,
         infinite: false,
@@ -96,12 +74,6 @@ export default function HomePage() {
         draggable: true,
         touchThreshold: 1, // Reduce this value to make vertical swiping more sensitive
         adaptiveHeight: true,
-        onInit: () => {
-            _handleArticleJSONTOHTML(articles, 0);
-        },
-        beforeChange: (current: number, next: number) => {
-            _handleArticleJSONTOHTML(articles, next);
-        },
     };
 
     const extractFirstPhrase = (htmlContent: string) => {
@@ -116,6 +88,12 @@ export default function HomePage() {
         const firstSentence = textContent.split(/[.!?]+/)[0];
 
         return firstSentence.trim();
+    };
+
+    // Function to check if a string contains Arabic characters
+    const containsArabic = (text: string) => {
+        const arabicRegex = /[\u0600-\u06FF]/;
+        return arabicRegex.test(text);
     };
 
     return (
@@ -217,20 +195,70 @@ export default function HomePage() {
                                             <div key={index} className={`_card _card-${index}`}>
                                                 <div className="_cardBody">
                                                     <form className="_form">
-                                                        <span className="category_author">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.category)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="category_author"
+                                                        >
                                                             {_article.category}
                                                         </span>
 
-                                                        <span className="firstPhrase">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.body)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="firstPhrase"
+                                                        >
                                                             {_article.body &&
                                                                 extractFirstPhrase(_article.body)}
                                                         </span>
 
-                                                        <h2>
+                                                        <h2
+                                                            lang={
+                                                                containsArabic(_article.title)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                        >
                                                             {_article.title}
                                                             <br />
                                                             by{' '}
-                                                            <span>
+                                                            <span
+                                                                lang={
+                                                                    containsArabic(
+                                                                        _.isEmpty(
+                                                                            _article.author.lastName
+                                                                        ) &&
+                                                                            _.isEmpty(
+                                                                                _article.author
+                                                                                    .firstName
+                                                                            )
+                                                                            ? _article.author
+                                                                                  .username
+                                                                            : !_.isEmpty(
+                                                                                  _article.author
+                                                                                      .lastName
+                                                                              )
+                                                                            ? `${
+                                                                                  _article.author
+                                                                                      .lastName
+                                                                              } ${
+                                                                                  _article.author
+                                                                                      .firstName ??
+                                                                                  ''
+                                                                              }`.trim()
+                                                                            : _article.author
+                                                                                  .firstName ?? ''
+                                                                    )
+                                                                        ? 'ar'
+                                                                        : 'en'
+                                                                }
+                                                            >
                                                                 {_.isEmpty(
                                                                     _article.author.lastName
                                                                 ) &&
@@ -239,9 +267,14 @@ export default function HomePage() {
                                                                     : !_.isEmpty(
                                                                           _article.author.lastName
                                                                       )
-                                                                    ? `${_article.author.lastName} ${_article.author.firstName}`
+                                                                    ? `${
+                                                                          _article.author.lastName
+                                                                      } ${
+                                                                          _article.author
+                                                                              .firstName ?? ''
+                                                                      }`.trim()
                                                                     : _article.author.firstName ??
-                                                                      _article.author.username}
+                                                                      ''}
                                                             </span>
                                                         </h2>
 
@@ -371,7 +404,7 @@ export default function HomePage() {
                                                                 parentHoverSelector="#_buttonArticle"
                                                             >
                                                                 Read More About it
-                                                                <b className="pink_dot">.</b>
+                                                                <b className="__dot">.</b>
                                                             </AnimatedWrapper>
                                                         </Link>
 
@@ -405,7 +438,7 @@ export default function HomePage() {
                                                                         ? `${firstWord} ${secondWord}`.trim()
                                                                         : firstWord;
                                                                 })()}
-                                                                <b className="pink_dot">.</b>
+                                                                <b className="__dot">.</b>
                                                             </p>
                                                         </div>
                                                     </form>
@@ -419,17 +452,17 @@ export default function HomePage() {
 
                             <div className="_shadowIndex _number" data-text="">
                                 <p></p>
-                                <b className="pink_dot">.</b>
+                                <b className="__dot">.</b>
                             </div>
                             <div className="_shadowIndex _number _outlined" data-text="">
                                 <p></p>
-                                <b className="pink_dot">.</b>
+                                <b className="__dot">.</b>
                             </div>
                         </AnimatedWrapper>
                     </div>
                 </section>
             </SectionObserver>
-            
+
             <SectionObserver theme="dark">
                 <section className="home__section-3">
                     <AnimatedWrapper
@@ -554,7 +587,7 @@ export default function HomePage() {
                                     config={{ mass: 1, tension: 170, friction: 26 }}
                                     parentHoverSelector="#_buttonAboutMe"
                                 >
-                                    Find out more<b className="pink_dot">.</b>
+                                    Find out more<b className="__dot">.</b>
                                 </AnimatedWrapper>
                             </Link>
                         </form>

@@ -3,6 +3,7 @@ export type CommentDocument = Comment & Document;
 export declare class Comment {
     Parent?: Types.ObjectId | null;
     _comment_isOK: boolean;
+    isFeatured: boolean;
     _comment_author: string;
     _comment_email: string;
     _comment_body: string;
