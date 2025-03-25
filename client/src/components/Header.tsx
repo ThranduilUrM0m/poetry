@@ -7,7 +7,7 @@ import { Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import Overlay from '@/components/ui/Overlay';
-import SearchModal from '@/components/ui/SearchModal';
+import { useSearchModal } from '@/context/SearchModalContext';
 import { useHeaderTheme } from '@/context/HeaderThemeContext';
 import logo from '@/assets/images/b_white_orange..svg';
 
@@ -21,11 +21,11 @@ const menuItems = [
 export default function Header() {
     const { theme } = useHeaderTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const pathname = usePathname();
     const menuRef = useRef<HTMLDivElement>(null);
     const overlayRef = useRef<HTMLDivElement>(null);
     const backgroundRef = useRef<HTMLDivElement>(null);
+    const { openModal } = useSearchModal(); // Use context to open modal
 
     const getHeaderClass = () => {
         if (pathname === '/login') return 'header _login';
@@ -215,7 +215,7 @@ export default function Header() {
                     {/* Search button */}
                     <AnimatedWrapper
                         as="button"
-                        onClick={() => setIsSearchOpen(true)}
+                        onClick={() => openModal()}
                         className={`header__nav-right-search ${
                             theme === 'dark' ? '__dark' : '__white'
                         }`}
@@ -227,7 +227,6 @@ export default function Header() {
                     </AnimatedWrapper>
                 </div>
             </nav>
-            <SearchModal isSearchOpen={isSearchOpen} onSearchClose={() => setIsSearchOpen(false)} />
         </header>
     );
 }

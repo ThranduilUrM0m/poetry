@@ -6,13 +6,14 @@ import { fetchArticles, selectArticles, selectIsLoading } from '@/slices/article
 import _ from 'lodash';
 import { formatDistanceToNow } from 'date-fns';
 import { Hash } from 'lucide-react';
-import { Article } from '@/types/article';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 import { LuEye, LuThumbsUp, LuMessageSquareMore, LuSquircle } from 'react-icons/lu';
 import { config } from '@react-spring/web';
 import Link from 'next/link';
+import { Article } from '@/types/article';
+import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
 
 /**
@@ -59,7 +60,7 @@ export default function BlogPage() {
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles) || [];
     const isLoading = useSelector(selectIsLoading);
-    /* const error = useSelector(selectError); */
+    const { openModal } = useSearchModal();
 
     // Combined ready state
     const [isReady, setIsReady] = useState(false);
@@ -81,7 +82,6 @@ export default function BlogPage() {
     const initialRangeDays = 7;
     // Define a hierarchy of time ranges (in days) for gradual timeline broadening
     const timeRanges: number[] = [initialRangeDays, 30, 60, 90, 120, 150, 180];
-    const now: Date = new Date();
 
     // Function to calculate the attraction score for each article
     const getAttractionScore = (article: Article) => {
@@ -100,7 +100,7 @@ export default function BlogPage() {
         return score;
     };
 
-    // Lodash chain to filter articles based on time window hierarchy, compute scores, and select the best one
+    const now: Date = new Date();
     const bestArticle = _.chain(articles)
         .thru((articles: Article[]) => {
             // Iteratively check each time range: if articles exist within the current range, use them
@@ -417,9 +417,9 @@ export default function BlogPage() {
                         <div className="__topRated">
                             <div className="__header">
                                 <h2 className="__title">Top Rated</h2>
-                                <Link
-                                    href="/?modal=search&sort=topRated&timeframe=all"
+                                <button
                                     className="__viewMore"
+                                    onClick={() => openModal({ sortOption: 'topRated', timeFrameOption: 'all' })}
                                 >
                                     <AnimatedWrapper
                                         as="span" // Use a span to wrap the text and arrow
@@ -431,7 +431,7 @@ export default function BlogPage() {
                                     >
                                         View more
                                     </AnimatedWrapper>
-                                </Link>
+                                </button>
                             </div>
                             <ul>
                                 {topRatedArticles.map((article) => (
@@ -480,9 +480,9 @@ export default function BlogPage() {
                     >
                         <div className="__header">
                             <h1 className="__title">Most viewed</h1>
-                            <Link
-                                href="/?modal=search&sort=mostViewed&timeframe=all"
+                            <button
                                 className="__viewMore"
+                                onClick={() => openModal({ sortOption: 'mostViewed', timeFrameOption: 'all' })}
                             >
                                 <AnimatedWrapper
                                     as="span" // Use a span to wrap the text and arrow
@@ -494,7 +494,7 @@ export default function BlogPage() {
                                 >
                                     View more
                                 </AnimatedWrapper>
-                            </Link>
+                            </button>
                         </div>
                         <ul>
                             {mostViewedArticles.map((article, index) => (
