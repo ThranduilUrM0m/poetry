@@ -4,11 +4,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchArticles, selectArticles, selectIsLoading, selectError } from '@/slices/articleSlice';
 import { config } from '@react-spring/web';
+import { Article } from '@/types/article';
 import Link from 'next/link';
 import Slider from 'react-slick';
-import { Squircle } from 'lucide-react';
+import { Squircle, MessagesSquare, ThumbsUp, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import _ from 'lodash';
+import $ from 'jquery';
 import { HomeSection1, HomeSection2 } from '@/components/ui/HeroImage';
 import LongArrow from '@/components/ui/LongArrow';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
@@ -61,6 +63,20 @@ export default function HomePage() {
         }
     }, [isLoaded, isLoading, articles]);
 
+    const _handleArticleJSONTOHTML = (__articles: Article[], __index: number) => {
+        const __article = _.orderBy(
+            _.filter(__articles, (_a) => !_a.isPrivate),
+            ['views'],
+            ['desc']
+        )[__index];
+
+        if (__article && __article.body) {
+            const _i = __index + 1;
+            $('._number p').html(_i < 10 ? '0' + _i : '' + _i);
+            $('._number p').attr('data-text', _i < 10 ? '0' + _i : '' + _i);
+        }
+    };
+
     const _sliderArticlesSettings: SliderSettings = {
         dots: true,
         infinite: false,
@@ -74,6 +90,12 @@ export default function HomePage() {
         draggable: true,
         touchThreshold: 1, // Reduce this value to make vertical swiping more sensitive
         adaptiveHeight: true,
+        onInit: () => {
+            _handleArticleJSONTOHTML(articles, 0);
+        },
+        beforeChange: (current: number, next: number) => {
+            _handleArticleJSONTOHTML(articles, next);
+        },
     };
 
     const extractFirstPhrase = (htmlContent: string) => {
@@ -125,7 +147,10 @@ export default function HomePage() {
                             </h2>
                         </div>
 
-                        <Link href="/__bio" className="home__section-1-left-read">
+                        <Link
+                            href={`/blog/biography/##slugToBio`}
+                            className="home__section-1-left-read"
+                        >
                             <AnimatedWrapper
                                 as="span" // Use a span to wrap the text and arrow
                                 hover={{
@@ -201,21 +226,9 @@ export default function HomePage() {
                                                                     ? 'ar'
                                                                     : 'en'
                                                             }
-                                                            className="category_author"
+                                                            className="articleCategory"
                                                         >
                                                             {_article.category}
-                                                        </span>
-
-                                                        <span
-                                                            lang={
-                                                                containsArabic(_article.body)
-                                                                    ? 'ar'
-                                                                    : 'en'
-                                                            }
-                                                            className="firstPhrase"
-                                                        >
-                                                            {_article.body &&
-                                                                extractFirstPhrase(_article.body)}
                                                         </span>
 
                                                         <h2
@@ -224,10 +237,12 @@ export default function HomePage() {
                                                                     ? 'ar'
                                                                     : 'en'
                                                             }
+                                                            className="articleTitle"
                                                         >
                                                             {_article.title}
-                                                            <br />
-                                                            by{' '}
+                                                        </h2>
+
+                                                        <h2 className="articleAuthorCreation">
                                                             <span
                                                                 lang={
                                                                     containsArabic(
@@ -276,10 +291,31 @@ export default function HomePage() {
                                                                     : _article.author.firstName ??
                                                                       ''}
                                                             </span>
+                                                            <Squircle />
+                                                            <span>
+                                                                {formatDistanceToNow(
+                                                                    new Date(_article.updatedAt),
+                                                                    { addSuffix: true }
+                                                                )}
+                                                            </span>
                                                         </h2>
 
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.body)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="firstPhrase"
+                                                        >
+                                                            {_article.body &&
+                                                                extractFirstPhrase(_article.body)}
+                                                        </span>
+
                                                         <Link
-                                                            href={`/blog/${_article._id}`}
+                                                            href={`/blog/${_article.category.toLowerCase()}/${
+                                                                _article.slug
+                                                            }`}
                                                             className="_button"
                                                             id="_buttonArticle"
                                                         >
@@ -410,15 +446,16 @@ export default function HomePage() {
 
                                                         <div className="information">
                                                             <span>
-                                                                <b>{_.size(_article.views)}</b>{' '}
-                                                                Views
+                                                                <MessagesSquare />
+                                                                <b>{_.size(_article.comments)}</b>{' '}
                                                             </span>
-                                                            <Squircle />
                                                             <span>
-                                                                {formatDistanceToNow(
-                                                                    new Date(_article.updatedAt),
-                                                                    { addSuffix: true }
-                                                                )}
+                                                                <ThumbsUp />
+                                                                <b>{_.size(_article.upvotes)}</b>{' '}
+                                                            </span>
+                                                            <span>
+                                                                <Eye />
+                                                                <b>{_.size(_article.views)}</b>{' '}
                                                             </span>
                                                         </div>
 

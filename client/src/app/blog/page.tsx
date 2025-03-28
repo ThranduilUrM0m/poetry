@@ -264,7 +264,7 @@ export default function BlogPage() {
                                                 </div>
 
                                                 <Link
-                                                    href={`/blog/${bestArticle._id}`}
+                                                    href={`/blog/${bestArticle.category.toLowerCase()}/${bestArticle.slug}`}
                                                     className="_button"
                                                     id="_buttonArticle"
                                                 >
@@ -436,7 +436,9 @@ export default function BlogPage() {
                             <ul>
                                 {topRatedArticles.map((article) => (
                                     <li key={article._id}>
-                                        <Link href={`/blog/${article._id}`}>
+                                        <Link
+                                            href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+                                        >
                                             <div className="__top">
                                                 <span
                                                     lang={
@@ -504,7 +506,9 @@ export default function BlogPage() {
                                             {extractFirstImage(article.body)}
                                         </div>
                                     )}
-                                    <Link href={`/blog/${article._id}`}>
+                                    <Link
+                                        href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+                                    >
                                         <div className="__top">
                                             <span
                                                 lang={containsArabic(article.title) ? 'ar' : 'en'}

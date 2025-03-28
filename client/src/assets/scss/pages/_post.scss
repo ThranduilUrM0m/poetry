@@ -1,0 +1,95 @@
+.post {
+    @apply w-full h-full;
+
+    &__section {
+        &-1 {
+            @apply min-h-[100vh];
+
+            &-wrapper {
+                .__breadcrumb {
+                    @apply w-[calc(100%-30vh)] h-[10vh] mx-auto;
+
+                    ul {
+                        @apply flex h-full items-center;
+
+                        li {
+                            @apply flex items-center;
+
+                            a {
+                                @apply text-[rgb(var(--text)/.5)]
+                            }
+
+                            svg {
+                                @apply ml-[.5vh] w-[5vh] h-[2.75vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                            }
+                        }
+                    }
+                }
+
+                .__postBox {
+                    @apply w-[calc(100%-30vh)] mx-auto mt-[35vh] h-[fit];
+                    ._card {
+                        @apply relative w-full h-[fit];
+
+                        &Body {
+                            @apply relative overflow-hidden h-full;
+
+                            ._form {
+                                .articleCategory {
+                                    @apply relative text-[1.75vh] w-fit h-fit mb-[4vh] ml-[15%] text-[rgb(var(--text)/.5)];
+                                }
+
+                                h2 {
+                                    @apply w-fit items-end ml-[15%];
+
+                                    &.articleTitle {
+                                        @apply relative font-medium mb-[1vh] text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[6vh];
+
+                                        &::before {
+                                            @apply absolute bg-[rgb(var(--text)/.75)] w-[20vh] h-[1.25vh] bottom-0 left-[calc(100%+5vh)] -translate-y-full;
+                                            content: '';
+                                        }
+
+                                        &:not(:lang(ar)) {
+                                            @apply font-abril;
+                                        }
+                                    }
+
+                                    &.articleAuthorCreation {
+                                        @apply flex mb-[25vh];
+
+                                        span {
+                                            &:first-of-type {
+                                                @apply text-[rgb(var(--primary)/1)] font-normal text-[3.5vh] leading-[3.5vh];
+
+                                                &:not(:lang(ar)) {
+                                                    @apply font-abril;
+                                                }
+                                            }
+
+                                            &:last-of-type {
+                                                @apply text-[rgb(var(--text)/.25)] font-normal text-[2.5vh] leading-[3.5vh];
+                                            }
+                                        }
+
+                                        svg {
+                                            @apply self-center mx-[2.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                        }
+                                    }
+                                }
+
+                                .articleBody {
+                                    /* This ought to be relying on the styles made by the user while creating the article */
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &-4 {
+            @apply bg-[rgb(var(--primary-light)/1)];
+        }
+    }
+}

@@ -8,7 +8,7 @@ export class Comment {
     @Prop({ type: Types.ObjectId, ref: 'Comment', default: null })
     Parent?: Types.ObjectId | null;
 
-    @Prop({ required: true, trim: true, default: false })
+    @Prop({ required: true, default: false })
     _comment_isOK: boolean;
 
     @Prop({ default: false })

@@ -20,7 +20,7 @@ __decorate([
     __metadata("design:type", Object)
 ], Comment.prototype, "Parent", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, trim: true, default: false }),
+    (0, mongoose_1.Prop)({ required: true, default: false }),
     __metadata("design:type", Boolean)
 ], Comment.prototype, "_comment_isOK", void 0);
 __decorate([

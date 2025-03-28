@@ -14,10 +14,10 @@ export const store = configureStore({
         contact: contactReducer,
         article: articleReducer,
         subscriber: subscriberReducer,
-        comments: commentReducer,
-        upvotes: upvoteReducer,
-        downvotes: downvoteReducer,
-        views: viewReducer,
+        comment: commentReducer,
+        upvote: upvoteReducer,
+        downvote: downvoteReducer,
+        view: viewReducer,
     },
 });
 

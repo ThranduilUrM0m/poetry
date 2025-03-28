@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import slugify from 'slugify-ts';
+import slugify from 'slugify';
 
 export type ArticleDocument = Article & Document & { _id: Types.ObjectId };
 
@@ -55,14 +55,11 @@ export class Article {
 export const ArticleSchema = SchemaFactory.createForClass(Article);
 
 ArticleSchema.pre('save', function (next) {
-    const article = this as ArticleDocument; // Explicitly type `this` as `ArticleDocument`
+    const article = this as ArticleDocument;
     if (article.isModified('title')) {
         if (typeof article.title === 'string') {
-            const slug: string =
-                slugify(article.title, {
-                    enableSmartTruncate: true, // Enable smart truncation
-                }) ?? '';
-            article.slug = slug;
+            const generatedSlug: string = slugify(article.title, { lower: true, strict: true });
+            article.slug = generatedSlug;
         }
     }
     next();

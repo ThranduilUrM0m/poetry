@@ -249,7 +249,10 @@ export default function AboutPage() {
                                 across generations.
                             </h2>
                         </div>
-                        <Link href="/__bio" className="about__section-1-right-read">
+                        <Link
+                            href={`/blog/biography/##slugToBio`}
+                            className="about__section-1-right-read"
+                        >
                             <AnimatedWrapper
                                 as="span"
                                 hover={{

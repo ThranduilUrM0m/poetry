@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticleSchema = exports.Article = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const slugify_ts_1 = require("slugify-ts");
+const slugify_1 = require("slugify");
 let Article = class Article {
 };
 exports.Article = Article;
@@ -80,10 +80,8 @@ exports.ArticleSchema.pre('save', function (next) {
     const article = this;
     if (article.isModified('title')) {
         if (typeof article.title === 'string') {
-            const slug = (0, slugify_ts_1.default)(article.title, {
-                enableSmartTruncate: true,
-            }) ?? '';
-            article.slug = slug;
+            const generatedSlug = (0, slugify_1.default)(article.title, { lower: true, strict: true });
+            article.slug = generatedSlug;
         }
     }
     next();

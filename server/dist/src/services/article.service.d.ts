@@ -6,6 +6,7 @@ export declare class ArticleService {
     createArticle(data: Partial<Article>): Promise<Article>;
     getAllArticles(): Promise<Article[]>;
     getArticleBySlug(slug: string): Promise<Article>;
+    getArticleByCategory(category: string): Promise<Article[]>;
     findBySlug(category: string, slug: string): Promise<Article | null>;
     deleteArticle(slug: string): Promise<{
         message: string;

@@ -23,8 +23,17 @@ export class ArticleService {
         return article;
     }
 
+    async getArticleByCategory(category: string): Promise<Article[]> {
+        const article = await this.articleModel.find({ category: category }).populate('author');
+        if (!article) throw new NotFoundException('Article not found');
+        return article;
+    }
+
     async findBySlug(category: string, slug: string): Promise<Article | null> {
-        return this.articleModel.findOne({ category, slug }).exec();
+        return this.articleModel
+            .findOne({ category: new RegExp(`^${category}$`, 'i'), slug })
+            .populate('author')
+            .exec();
     }
 
     async deleteArticle(slug: string): Promise<{ message: string }> {

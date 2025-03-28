@@ -34,10 +34,10 @@
 
                 &-read {
                     @apply w-1/2 h-[5vh] mt-[7.5vh] mb-[10vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
-                    
+
                     span {
                         @apply flex items-center;
-                        
+
                         svg {
                             @apply w-[20vh] h-[2vh];
                         }
@@ -114,29 +114,51 @@
                                                 @apply relative overflow-hidden h-full;
 
                                                 ._form {
-                                                    .category_author {
-                                                        @apply relative text-[1.75vh] w-fit h-fit mb-auto text-[rgb(var(--text)/.5)];
+                                                    .articleCategory {
+                                                        @apply relative text-[1.75vh] w-fit h-fit mb-[4vh] text-[rgb(var(--text)/.5)];
+                                                    }
 
-                                                        &::before {
-                                                            @apply absolute bg-[rgb(var(--primary)/.25)] w-[200%] h-[.25vh] top-1/2 left-[calc(100%+5vh)] -translate-y-1/2;
-                                                            content: '';
+                                                    h2 {
+                                                        @apply w-fit items-end;
+
+                                                        &.articleTitle {
+                                                            @apply relative font-medium mb-[1vh] text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[6vh];
+
+                                                            &::before {
+                                                                @apply absolute bg-[rgb(var(--text)/.75)] w-[20vh] h-[1.25vh] bottom-0 left-[calc(100%+5vh)] -translate-y-full;
+                                                                content: '';
+                                                            }
+
+                                                            &:not(:lang(ar)) {
+                                                                @apply font-abril;
+                                                            }
+                                                        }
+
+                                                        &.articleAuthorCreation {
+                                                            @apply flex mb-auto;
+
+                                                            span {
+                                                                &:first-of-type {
+                                                                    @apply text-[rgb(var(--primary)/1)] font-normal text-[3.5vh] leading-[3.5vh];
+
+                                                                    &:not(:lang(ar)) {
+                                                                        @apply font-abril;
+                                                                    }
+                                                                }
+
+                                                                &:last-of-type {
+                                                                    @apply text-[rgb(var(--text)/.25)] font-normal text-[2.5vh] leading-[3.5vh];
+                                                                }
+                                                            }
+
+                                                            svg {
+                                                                @apply self-center mx-[2.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                            }
                                                         }
                                                     }
 
                                                     .firstPhrase {
-                                                        @apply text-[4vh] leading-[1.2];
-                                                    }
-
-                                                    h2 {
-                                                        @apply relative font-medium text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[1.2];
-                                
-                                                        &:not(:lang(ar)) {
-                                                            @apply font-abril;
-                                                        }
-                                                        
-                                                        span {
-                                                            @apply text-[rgb(var(--primary)/1)];
-                                                        }
+                                                        @apply text-[3.5vh] leading-[1.2];
                                                     }
 
                                                     ._button {
@@ -144,10 +166,14 @@
                                                     }
 
                                                     .information {
-                                                        @apply flex items-center justify-center w-1/4 gap-[.025em] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
+                                                        @apply flex items-center justify-end gap-[2.5vh] w-1/4 text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
+                                                        
+                                                        span {
+                                                            @apply flex gap-[1vh];
 
-                                                        svg {
-                                                            @apply mx-[.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                            svg {
+                                                                @apply w-[2.5vh] h-[2.5vh] stroke-[2] stroke-[rgb(var(--text)/.25)];
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -160,7 +186,7 @@
 
                         .slick-slide {
                             transition: opacity 0.3s ease;
-                            
+
                             &.sliding-out {
                                 opacity: 0;
                             }
@@ -210,7 +236,7 @@
 
                     ._shadowIndex {
                         @apply absolute font-abril opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
-                        
+
                         p {
                             @apply m-0;
                         }

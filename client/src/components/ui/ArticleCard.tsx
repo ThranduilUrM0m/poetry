@@ -5,6 +5,7 @@ import { Hash } from 'lucide-react';
 import { Article } from '@/types/article';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import _ from 'lodash';
+import Link from 'next/link';
 
 interface ArticleCardProps {
     readonly article: Article;
@@ -35,7 +36,9 @@ export default function ArticleCard({ article }: ArticleCardProps) {
 
     return (
         <AnimatedWrapper as="div" className="article-card" config={smoothConfig}>
-            <a href={`/${article.category}/${article.slug}`}>
+            <Link
+                href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+            >
                 <div className="meta">
                     {/* Author name span - only shows if firstName or lastName exists */}
                     {(article.author.firstName || article.author.lastName) && (
@@ -92,7 +95,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                 <div className="location">
                     {article.author.city}, {article.author.country?._country}
                 </div>
-            </a>
+            </Link>
         </AnimatedWrapper>
     );
 }

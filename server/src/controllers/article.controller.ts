@@ -34,6 +34,23 @@ export class ArticleController {
         return articles;
     }
 
+    @Get(':category')
+    async getArticlesByCategory(@Param('category') category: string): Promise<Article[]> {
+        const articles = await this.articleService.getArticleByCategory(category);
+        if (articles.length === 0) {
+            // Filter dummy articles by category (case-insensitive)
+            const filteredDummy = dummyArticles.filter(
+                (article) => article.category?.toLowerCase() === category.toLowerCase()
+            );
+            if (filteredDummy.length === 0) {
+                throw new NotFoundException('No articles found for this category');
+            }
+            return filteredDummy.map((article) => this.populateDummyAuthor(article)) as Article[];
+        }
+        // Otherwise, return articles matching the category
+        return articles;
+    }
+
     @Get(':category/:slug')
     async getArticleBySlug(
         @Param('category') category: string,

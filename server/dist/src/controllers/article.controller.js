@@ -38,6 +38,17 @@ let ArticleController = class ArticleController {
         console.log(articles);
         return articles;
     }
+    async getArticlesByCategory(category) {
+        const articles = await this.articleService.getArticleByCategory(category);
+        if (articles.length === 0) {
+            const filteredDummy = dummyArticles_1.dummyArticles.filter((article) => article.category?.toLowerCase() === category.toLowerCase());
+            if (filteredDummy.length === 0) {
+                throw new common_1.NotFoundException('No articles found for this category');
+            }
+            return filteredDummy.map((article) => this.populateDummyAuthor(article));
+        }
+        return articles;
+    }
     async getArticleBySlug(category, slug) {
         const article = await this.articleService.findBySlug(category, slug);
         if (!article) {
@@ -73,6 +84,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "getAllArticles", null);
+__decorate([
+    (0, common_1.Get)(':category'),
+    __param(0, (0, common_1.Param)('category')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ArticleController.prototype, "getArticlesByCategory", null);
 __decorate([
     (0, common_1.Get)(':category/:slug'),
     __param(0, (0, common_1.Param)('category')),

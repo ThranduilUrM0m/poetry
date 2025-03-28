@@ -35,8 +35,17 @@ let ArticleService = class ArticleService {
             throw new common_1.NotFoundException('Article not found');
         return article;
     }
+    async getArticleByCategory(category) {
+        const article = await this.articleModel.find({ category: category }).populate('author');
+        if (!article)
+            throw new common_1.NotFoundException('Article not found');
+        return article;
+    }
     async findBySlug(category, slug) {
-        return this.articleModel.findOne({ category, slug }).exec();
+        return this.articleModel
+            .findOne({ category: new RegExp(`^${category}$`, 'i'), slug })
+            .populate('author')
+            .exec();
     }
     async deleteArticle(slug) {
         const article = await this.articleModel.findOneAndDelete({ slug });
