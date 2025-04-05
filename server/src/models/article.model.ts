@@ -30,17 +30,14 @@ export class Article {
     @Prop([String])
     tags: string[];
 
-    @Prop([{ type: Types.ObjectId, ref: 'Comment' }])
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
     comments: Types.ObjectId[];
 
-    @Prop([{ type: Types.ObjectId, ref: 'View' }])
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
     views: Types.ObjectId[];
 
-    @Prop([{ type: Types.ObjectId, ref: 'Upvote' }])
-    upvotes: Types.ObjectId[];
-
-    @Prop([{ type: Types.ObjectId, ref: 'Downvote' }])
-    downvotes: Types.ObjectId[];
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
+    votes: Types.ObjectId[];
 
     @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
     status: string;

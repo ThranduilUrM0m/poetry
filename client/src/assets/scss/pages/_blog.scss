@@ -71,7 +71,7 @@
 
                                 &::after {
                                     content: '';
-                                    @apply absolute top-0 left-0 w-full h-full bg-[rgb(var(--white)/.75)] backdrop-blur-[.1vh];
+                                    @apply absolute top-0 left-0 w-full h-full bg-[rgb(var(--background)/.75)] backdrop-blur-[.1vh];
                                 }
                             }
 
@@ -127,7 +127,7 @@
                                 }
 
                                 ._button {
-                                    @apply self-start w-1/4;
+                                    @apply ml-auto w-1/4;
                                 }
 
                                 .information {
@@ -223,7 +223,11 @@
                             }
 
                             a {
-                                @apply h-1/2 p-[1.75vh];
+                                @apply h-1/2 px-[1.75vh] py-[2vh];
+
+                                .firstPhrase {
+                                    @apply line-clamp-2;
+                                }
 
                                 * {
                                     @apply z-[1];

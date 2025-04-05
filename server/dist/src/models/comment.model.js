@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", String)
 ], Comment.prototype, "_comment_author", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ lowercase: true, trim: true, unique: true }),
+    (0, mongoose_1.Prop)({ lowercase: true, trim: true }),
     __metadata("design:type", String)
 ], Comment.prototype, "_comment_email", void 0);
 __decorate([
@@ -48,17 +48,13 @@ __decorate([
     __metadata("design:type", String)
 ], Comment.prototype, "_comment_fingerprint", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Upvote' }] }),
-    __metadata("design:type", Array)
-], Comment.prototype, "_comment_upvotes", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Downvote' }] }),
-    __metadata("design:type", Array)
-], Comment.prototype, "_comment_downvotes", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, ref: 'Article', required: true }),
     __metadata("design:type", mongoose_2.Types.ObjectId)
 ], Comment.prototype, "article", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
+    __metadata("design:type", Array)
+], Comment.prototype, "_comment_votes", void 0);
 exports.Comment = Comment = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Comment);

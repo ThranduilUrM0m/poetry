@@ -158,11 +158,11 @@
                                                     }
 
                                                     .firstPhrase {
-                                                        @apply text-[3.5vh] leading-[1.2];
+                                                        @apply text-[3vh] leading-[1.2];
                                                     }
 
                                                     ._button {
-                                                        @apply self-end w-1/4;
+                                                        @apply ml-auto w-1/4;
                                                     }
 
                                                     .information {
@@ -296,7 +296,7 @@
                     }
 
                     ._button {
-                        @apply self-end w-1/4 my-[2vh];
+                        @apply ml-auto w-1/4 my-[2vh];
                     }
                 }
             }

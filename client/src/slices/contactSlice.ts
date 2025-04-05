@@ -39,7 +39,7 @@ const contactSlice = createSlice({
             state.isLoading = false;
             state.error = null;
             state.successMessage = null;
-        },
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -51,12 +51,14 @@ const contactSlice = createSlice({
             .addCase(sendContactEmail.fulfilled, (state, action: PayloadAction<string>) => {
                 state.isLoading = false;
                 state.successMessage = action.payload;
+                state.error = null;
             })
             .addCase(sendContactEmail.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
+                state.successMessage = null;
             });
-    },
+    }
 });
 
 export const { clearContactState } = contactSlice.actions;

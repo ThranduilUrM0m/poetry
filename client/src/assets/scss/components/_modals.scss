@@ -311,7 +311,7 @@
             @apply flex justify-between items-center;
 
             ._button {
-                @apply self-end w-2/5;
+                @apply ml-auto w-2/5;
             }
         }
     }

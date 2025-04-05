@@ -120,108 +120,110 @@ export default function SubmitModal({
                 {/* Footer */}
                 <div className="_footer">
                     <form className="_form">
-                        <Link
-                            href=""
-                            className="_button closeButton"
-                            id="_buttonClose"
-                            onClick={onSubmitClose}
-                        >
-                            {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
-                            <AnimatedWrapper
-                                as="span"
-                                className="buttonBackground"
-                                hover={{
-                                    from: { clipPath: 'inset(0 100% 0 0)' },
-                                    to: { clipPath: 'inset(0 0 0 0)' },
-                                }}
-                                config={{ mass: 1, tension: 170, friction: 26 }}
-                                parentHoverSelector="#_buttonClose"
-                            ></AnimatedWrapper>
-                            <div className="buttonBorders">
-                                {/* Top border: animate width */}
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="borderTop"
-                                    hover={{
-                                        from: { width: '0%' },
-                                        to: { width: '100%' },
-                                        delay: 0,
-                                    }}
-                                    parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
-                                    onRest={() => {
-                                        // Trigger the next animation after this one completes
-                                        document
-                                            .querySelector('.borderRight')
-                                            ?.dispatchEvent(new Event('startAnimation'));
-                                    }}
-                                />
-                                {/* Right border: animate height */}
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="borderRight"
-                                    hover={{
-                                        from: { height: '0%' },
-                                        to: { height: '100%' },
-                                        delay: 0, // Start immediately after the previous animation
-                                    }}
-                                    parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
-                                    onRest={() => {
-                                        // Trigger the next animation after this one completes
-                                        document
-                                            .querySelector('.borderBottom')
-                                            ?.dispatchEvent(new Event('startAnimation'));
-                                    }}
-                                />
-                                {/* Bottom border: animate width */}
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="borderBottom"
-                                    hover={{
-                                        from: { width: '0%' },
-                                        to: { width: '100%' },
-                                        delay: 0, // Start immediately after the previous animation
-                                    }}
-                                    parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
-                                    onRest={() => {
-                                        // Trigger the next animation after this one completes
-                                        document
-                                            .querySelector('.borderLeft')
-                                            ?.dispatchEvent(new Event('startAnimation'));
-                                    }}
-                                />
-                                {/* Left border: animate height */}
-                                <AnimatedWrapper
-                                    as="div"
-                                    className="borderLeft"
-                                    hover={{
-                                        from: { height: '0%' },
-                                        to: { height: '100%' },
-                                        delay: 0, // Start immediately after the previous animation
-                                    }}
-                                    parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
-                                />
-                            </div>
-                            <AnimatedWrapper
-                                as="span"
-                                className="buttonContent"
-                                hover={{
-                                    from: {
-                                        color: 'rgb(var(--text)/1)',
-                                    },
-                                    to: {
-                                        color: 'rgb(var(--white)/1)',
-                                    },
-                                }}
-                                config={{
-                                    mass: 1,
-                                    tension: 170,
-                                    friction: 26,
-                                }}
-                                parentHoverSelector="#_buttonClose"
+                        <div className="_row">
+                            <Link
+                                href=""
+                                className="_button closeButton"
+                                id="_buttonClose"
+                                onClick={onSubmitClose}
                             >
-                                Close<b className="__dot">.</b>
-                            </AnimatedWrapper>
-                        </Link>
+                                {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                                <AnimatedWrapper
+                                    as="span"
+                                    className="buttonBackground"
+                                    hover={{
+                                        from: { clipPath: 'inset(0 100% 0 0)' },
+                                        to: { clipPath: 'inset(0 0 0 0)' },
+                                    }}
+                                    config={{ mass: 1, tension: 170, friction: 26 }}
+                                    parentHoverSelector="#_buttonClose"
+                                ></AnimatedWrapper>
+                                <div className="buttonBorders">
+                                    {/* Top border: animate width */}
+                                    <AnimatedWrapper
+                                        as="div"
+                                        className="borderTop"
+                                        hover={{
+                                            from: { width: '0%' },
+                                            to: { width: '100%' },
+                                            delay: 0,
+                                        }}
+                                        parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
+                                        onRest={() => {
+                                            // Trigger the next animation after this one completes
+                                            document
+                                                .querySelector('.borderRight')
+                                                ?.dispatchEvent(new Event('startAnimation'));
+                                        }}
+                                    />
+                                    {/* Right border: animate height */}
+                                    <AnimatedWrapper
+                                        as="div"
+                                        className="borderRight"
+                                        hover={{
+                                            from: { height: '0%' },
+                                            to: { height: '100%' },
+                                            delay: 0, // Start immediately after the previous animation
+                                        }}
+                                        parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
+                                        onRest={() => {
+                                            // Trigger the next animation after this one completes
+                                            document
+                                                .querySelector('.borderBottom')
+                                                ?.dispatchEvent(new Event('startAnimation'));
+                                        }}
+                                    />
+                                    {/* Bottom border: animate width */}
+                                    <AnimatedWrapper
+                                        as="div"
+                                        className="borderBottom"
+                                        hover={{
+                                            from: { width: '0%' },
+                                            to: { width: '100%' },
+                                            delay: 0, // Start immediately after the previous animation
+                                        }}
+                                        parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
+                                        onRest={() => {
+                                            // Trigger the next animation after this one completes
+                                            document
+                                                .querySelector('.borderLeft')
+                                                ?.dispatchEvent(new Event('startAnimation'));
+                                        }}
+                                    />
+                                    {/* Left border: animate height */}
+                                    <AnimatedWrapper
+                                        as="div"
+                                        className="borderLeft"
+                                        hover={{
+                                            from: { height: '0%' },
+                                            to: { height: '100%' },
+                                            delay: 0, // Start immediately after the previous animation
+                                        }}
+                                        parentHoverSelector="#_buttonClose" // <-- Updated parent hover selector
+                                    />
+                                </div>
+                                <AnimatedWrapper
+                                    as="span"
+                                    className="buttonContent"
+                                    hover={{
+                                        from: {
+                                            color: 'rgb(var(--text)/1)',
+                                        },
+                                        to: {
+                                            color: 'rgb(var(--white)/1)',
+                                        },
+                                    }}
+                                    config={{
+                                        mass: 1,
+                                        tension: 170,
+                                        friction: 26,
+                                    }}
+                                    parentHoverSelector="#_buttonClose"
+                                >
+                                    Close<b className="__dot">.</b>
+                                </AnimatedWrapper>
+                            </Link>
+                        </div>
                     </form>
                 </div>
             </AnimatedWrapper>

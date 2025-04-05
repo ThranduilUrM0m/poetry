@@ -49,21 +49,17 @@ __decorate([
     __metadata("design:type", Array)
 ], Article.prototype, "tags", void 0);
 __decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Comment' }]),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
     __metadata("design:type", Array)
 ], Article.prototype, "comments", void 0);
 __decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'View' }]),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
     __metadata("design:type", Array)
 ], Article.prototype, "views", void 0);
 __decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Upvote' }]),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
     __metadata("design:type", Array)
-], Article.prototype, "upvotes", void 0);
-__decorate([
-    (0, mongoose_1.Prop)([{ type: mongoose_2.Types.ObjectId, ref: 'Downvote' }]),
-    __metadata("design:type", Array)
-], Article.prototype, "downvotes", void 0);
+], Article.prototype, "votes", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ enum: ['pending', 'approved', 'rejected'], default: 'pending' }),
     __metadata("design:type", String)

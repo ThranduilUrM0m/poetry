@@ -17,18 +17,18 @@ export const dummyViews: Partial<ViewDocument>[] = [
     },
 ];
 
-import { UpvoteDocument } from '../models/upvote.model';
-export const dummyUpvotes: Partial<UpvoteDocument>[] = [
+import { VoteDocument } from '../models/vote.model';
+export const dummyVotes: Partial<VoteDocument>[] = [
     {
         _id: new Types.ObjectId('64ebb261f0c23054c88e4800'),
-        _upvoter: 'de70188181ebae2f3d8b4ef269f6c227',
+        voter: 'de70188181ebae2f3d8b4ef269f6c227',
+        targetType: 'Article',
+        target: new Types.ObjectId('5e93853e0289c153a8737041'),
+        direction: 'up',
         createdAt: new Date('2023-08-27T20:30:25.368+00:00'),
         updatedAt: new Date('2023-08-27T20:30:25.368+00:00'),
     },
 ];
-
-import { DownvoteDocument } from '../models/downvote.model';
-export const dummyDownvotes: Partial<DownvoteDocument>[] = [];
 
 import { CommentDocument } from '../models/comment.model';
 export const dummyComments: Partial<CommentDocument>[] = [
@@ -42,9 +42,8 @@ export const dummyComments: Partial<CommentDocument>[] = [
         _comment_isPrivate: false,
         isFeatured: true,
         _comment_fingerprint: 'de70188181ebae2f3d8b4ef269f6c227',
-        _comment_upvotes: [],
-        _comment_downvotes: [],
-        article: new Types.ObjectId('5e93853e0289c153a8737041'),
+        _comment_votes: [],
+        article: new Types.ObjectId('5f2fde4558803f59e4e07cdd'),
         createdAt: new Date('2023-08-28T13:32:27.354+00:00'),
         updatedAt: new Date('2023-08-28T13:41:46.929+00:00'),
     },
@@ -76,10 +75,9 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
         updatedAt: new Date('2021-07-17T20:23:26.933Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg"></strong></p><p class="ql-direction-rtl ql-align-center"><br></p><p class="ql-direction-rtl ql-align-right"><strong>نظرة العالم تؤذيني، عفوا ! لا داعي لكل هذا الاستعداد قصد تدميري بجوابك : أنها وعلى العكس لا تعنيك، فأنا أتكلم وذاك الصوت الذي بداخلك، ذلك الصوت نشأ بنظرة العالم.</strong></p>',
-        downvotes: [],
         title: '.نظرة العالم تهم',
         slug: slugify('.نظرة العالم تهم', { lower: true, strict: true }),
-        upvotes: [],
+        votes: [],
         category: 'Education',
         comments: [],
         isPrivate: false,
@@ -90,15 +88,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5e93936d0289c153a8737044'),
-
         createdAt: new Date('2020-04-13T03:23:57.214Z'),
         updatedAt: new Date('2023-06-25T03:23:57.990Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><span style="color: rgb(38, 38, 38);"><img src="https://i.ibb.co/VpxBJrH/01e803880a6c31f7493c18ec891a15e7a45dc3ed5b.jpg">Le sadisme c’est l’art de penser que pour éduquer un enfant il est nécessaire ou même pire, vertueux, de lui faire endurer le malheur d’être puni physiquement.</span></p>',
-        downvotes: [],
         title: 'Le Sadisme.',
         slug: slugify('Le Sadisme.', { lower: true, strict: true }),
-        upvotes: [],
+        votes: [],
         category: 'Education',
         comments: [],
         isPrivate: false,
@@ -109,14 +105,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5e7552999374103e40c5570e'),
-
         createdAt: new Date('2020-03-20T20:26:01.988Z'),
         updatedAt: new Date('2021-08-14T20:26:01.295Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><img src="https://i.ibb.co/d2yx68q/ISRAE.jpg" style="display: block; margin: auto;"></p><p>A wise man once said :</p><blockquote><strong>When given the choice between being right </strong>and <strong>being kind, choose kind !</strong></blockquote>',
-        downvotes: [],
         title: "Don't teach violence.",
-        upvotes: [],
+        slug: slugify(`Don't teach violence.`, { lower: true, strict: true }),
+        votes: [],
         category: 'Education',
         comments: [],
         isPrivate: false,
@@ -127,15 +122,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5e938cce0289c153a8737042'),
-
         createdAt: new Date('2020-04-12T20:29:02.322Z'),
         updatedAt: new Date('2021-06-17T20:29:02.005Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><span style="color: rgb(102, 102, 102);"><img src="https://i.ibb.co/wwC2GGP/B0-F334-D0-248-F-40-D1-AD91-63-FD3641-DE89.jpg" width="202"></span><strong style="color: rgb(102, 102, 102);"><u>à force de forger on devient forgeron</u></strong></p>',
-        downvotes: [],
         title: 'Tolérer.',
         slug: slugify('Tolérer.', { lower: true, strict: true }),
-        upvotes: [],
+        votes: [],
         category: 'Community',
         comments: [],
         isPrivate: false,
@@ -146,14 +139,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5e9396300289c153a8737045'),
-
         createdAt: new Date('2020-04-13T03:29:04.122Z'),
         updatedAt: new Date('2023-07-01T03:29:04.936Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><span style="color: rgb(38, 38, 38);"><img src="https://i.ibb.co/R0cC8Zh/IMG-2700.jpg" style="display: inline; float: left; margin: 0px 1em 1em 0px;" width="106"></span><u style="color: rgb(38, 38, 38);">N’oublies jamais</u></p>',
-        downvotes: [],
         title: "N'oublies.",
-        upvotes: [],
+        slug: slugify(`N'oublies.`, { lower: true, strict: true }),
+        votes: [],
         category: 'Community',
         comments: [],
         isPrivate: false,
@@ -164,7 +156,6 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('671d13b291cf6e74fb8bb9ef'),
-
         title: 'Hello World',
         slug: slugify('Hello World', { lower: true, strict: true }),
         body: '<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg"></strong></p><p>My name is <em><u>Zakariae</u></em></p>',
@@ -175,23 +166,20 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
         tags: ['helloWorld'],
         comments: [],
         views: [],
-        upvotes: [],
-        downvotes: [],
+        votes: [],
         createdAt: new Date('2024-10-26T15:27:14.380Z'),
         updatedAt: new Date('2024-10-26T15:27:14.380Z'),
         isBio: false,
     },
     {
         _id: new Types.ObjectId('5e938dac0289c153a8737043'),
-
         createdAt: new Date('2020-04-12T20:32:44.599Z'),
         updatedAt: new Date('2023-06-25T20:32:44.412Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><span style="color: rgb(102, 102, 102);"><img src="https://i.ibb.co/WkLgYtT/504170-D3-294-E-4-AFD-9-C5-A-89-C2-D8-B71-A6-B.jpg"></span></p>',
-        downvotes: [],
         title: 'La naïveté.',
         slug: slugify('La naïveté.', { lower: true, strict: true }),
-        upvotes: [],
+        votes: [],
         category: 'Community',
         comments: [],
         isPrivate: false,
@@ -202,15 +190,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5f2fde4558803f59e4e07cdd'),
-
         createdAt: new Date('2020-08-09T20:30:14.438Z'),
         updatedAt: new Date('2023-06-25T20:30:14.732Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><img src="https://i.ibb.co/wzKvqGW/0160a791fa43629d5fa9928026f9c4a74296ec8043.jpg" style="display: inline; float: left; margin: 0px 1em 1em 0px; cursor: nesw-resize;" width="456">An elemantary teacher born in the 90\'s, yeah I was around when messenger was the thing.</p>',
-        downvotes: [],
+        body: '<p style="margin:0;padding:0;"><img src="https://i.ibb.co/wzKvqGW/0160a791fa43629d5fa9928026f9c4a74296ec8043.jpg" style="float: right; width: 38%; margin: 15px 0 25px 4%; border: 8px solid #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.1); transform: rotate(3deg) translateX(4%); border-radius: 3px 30px; shape-outside: polygon(0 0, 100% 0, 100% 100%, 30% 100%); margin-right: -4%;"><div style="margin-left: 2%; padding-right: 42%; position: relative;"><h1 style="font-family: \'Merriweather\', serif; font-size: 2.6rem; color: #2d3436; margin: 0.8em 0 0.4em; line-height: 1.2; position: relative; display: inline-block; padding: 0 15px; background: linear-gradient(to right, #ffeaa7 0%, #ffeaa7 100%) no-repeat 0 85%; background-size: 100% 35%;">From Tamagotchis to Tablets:<br>Educating the AI Generation</h1><div style="columns: 1; margin-bottom: 1.5em;"><p style="margin: 0 0 1em; line-height: 1.7; color: #4a4a4a; break-inside: avoid;">As a 90s kid standing at the classroom chalkboard, I never imagined I\'d one day explain blockchain to students while troubleshooting a smartboard. Our generation bridges the analog-digital divide - we remember library card catalogs but mastered TikTok EduHacks.</p><p style="margin: 0; line-height: 1.7; color: #4a4a4a;">The real magic happens when floppy disk nostalgia meets AI-powered lesson plans. Students gasp at our "ancient" iPods but sit mesmerized by Windows 95 demos. We\'ve become tech-time travelers, making retro tech relevant through augmented reality field trips.</p></div></div><div style="clear: both; margin-top: -5%;"></div><div style="clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 2em 0;"><div style="background: #f8f9fa; padding: 25px; border-radius: 15px; position: relative; overflow: hidden;"><div style="position: absolute; width: 6px; background: #74b9ff; left: 0; top: 0; bottom: 0;"></div><h3 style="font-family: \'Roboto\', sans-serif; color: #2d3436; margin: 0 0 1em 15px;">Tech Milestones I\'ve Witnessed</h3><ul style="list-style: none; padding: 0; margin: 0 0 0 15px;"><li style="padding: 12px 0; border-bottom: 1px dashed #dfe6e9; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">🕹</div><span style="font-weight: 500;">1998: Oregon Trail in Computer Lab</span></li><li style="padding: 12px 0; border-bottom: 1px dashed #dfe6e9; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">📱</div><span style="font-weight: 500;">2007: First iPhone in Classroom</span></li><li style="padding: 12px 0; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">🤖</div><span style="font-weight: 500;">2023: AI Writing Assistants</span></li></ul></div><div style="background: #fff5f7; padding: 25px; border-radius: 15px; position: relative;"><h3 style="font-family: \'Roboto\', sans-serif; color: #2d3436; margin: 0 0 1em;">Teaching Toolkit Evolution</h3><div style="display: flex; gap: 15px; margin-bottom: 20px;"><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">📼</div><div style="font-size: 0.9em; color: #636e72;">VHS Era</div></div><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">💻</div><div style="font-size: 0.9em; color: #636e72;">Smartboard Days</div></div><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">🌐</div><div style="font-size: 0.9em; color: #636e72;">Virtual Reality</div></div></div></div></div><blockquote style="margin: 2.5em 0; padding: 2em; background: #4a69bd; color: white; border-radius: 12px; font-size: 1.3em; line-height: 1.5; text-align: center; box-shadow: 0 10px 30px rgba(74,105,189,0.3);">"We didn\'t just adapt to technology - we became its translators, helping analog parents and digital natives understand each other."</blockquote><div style="columns: 2; column-gap: 40px; margin: 2em 0;"><p style="color: #2d3436; line-height: 1.7; margin-top: 0; break-inside: avoid;">The real classroom magic happens when 90s nostalgia meets Gen Alpha pragmatism. My students laugh at our "ancient" CD-ROMs but sit mesmerized when I show my first GeoCities site. We\'ve created a time-capsule curriculum where TikTok dances coexist with cursive writing workshops.</p><p style="color: #2d3436; line-height: 1.7; margin-top: 0; break-inside: avoid;">Tomorrow\'s challenge? Preparing kids for Mars colonies and quantum computing while keeping paper books "just because they smell nice." Some things never change - the joy of a perfectly organized Trapper Keeper still rivals any productivity app.</p></div>',
         title: 'boutaleb.',
         slug: slugify('boutaleb.', { lower: true, strict: true }),
-        upvotes: [new Types.ObjectId('64ebb261f0c23054c88e4800')],
+        votes: [new Types.ObjectId('64ebb261f0c23054c88e4800')],
         category: 'Community',
         comments: [new Types.ObjectId('64eca1eb693faca7ec603d60')],
         isPrivate: false,
@@ -224,15 +210,13 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
     },
     {
         _id: new Types.ObjectId('5e9368cf0289c153a8737040'),
-
         createdAt: new Date('2020-04-12T20:15:27.725Z'),
         updatedAt: new Date('2021-05-30T20:15:27.417Z'),
         author: new Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         body: '<p><span style="background-color: transparent;"><img src="https://i.ibb.co/ypCzwTW/017b0d5928490b41f9df0c4d362a680a0f41e64cb6.jpg">HIM</span></p>',
-        downvotes: [],
         title: 'Sweaters Chapter Two.',
         slug: slugify('Sweaters Chapter Two.', { lower: true, strict: true }),
-        upvotes: [],
+        votes: [],
         category: 'Community',
         comments: [],
         isPrivate: false,

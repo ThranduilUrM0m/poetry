@@ -47,7 +47,7 @@ export default function SearchResults({
                     <div className="__articlesGrid-content">
                         {articleSuggestions.map((article, index) => (
                             <AnimatedWrapper
-                                key={article._id.toString()} // Ensure key is a string
+                                key={article._id!.toString()} // Ensure key is a string
                                 onClick={() => handleArticleClick(article)}
                                 className="__articleCard"
                                 from={{ transform: 'translateY(20%)', opacity: 0 }}

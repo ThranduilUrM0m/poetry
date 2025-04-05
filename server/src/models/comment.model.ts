@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type CommentDocument = Comment & Document;
+export type CommentDocument = Comment & Document & { _id: Types.ObjectId };
 
 @Schema({ timestamps: true })
 export class Comment {
@@ -17,7 +17,7 @@ export class Comment {
     @Prop({ required: true, trim: true })
     _comment_author: string;
 
-    @Prop({ lowercase: true, trim: true, unique: true })
+    @Prop({ lowercase: true, trim: true })
     _comment_email: string;
 
     @Prop({ required: true })
@@ -29,14 +29,11 @@ export class Comment {
     @Prop({ required: true })
     _comment_fingerprint: string;
 
-    @Prop({ type: [{ type: Types.ObjectId, ref: 'Upvote' }] })
-    _comment_upvotes: Types.ObjectId[];
-
-    @Prop({ type: [{ type: Types.ObjectId, ref: 'Downvote' }] })
-    _comment_downvotes: Types.ObjectId[];
-
     @Prop({ type: Types.ObjectId, ref: 'Article', required: true })
     article: Types.ObjectId;
+
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
+    _comment_votes: Types.ObjectId[];
 
     createdAt?: Date;
     updatedAt?: Date;

@@ -1,5 +1,7 @@
 import { Document, Types } from 'mongoose';
-export type CommentDocument = Comment & Document;
+export type CommentDocument = Comment & Document & {
+    _id: Types.ObjectId;
+};
 export declare class Comment {
     Parent?: Types.ObjectId | null;
     _comment_isOK: boolean;
@@ -9,9 +11,8 @@ export declare class Comment {
     _comment_body: string;
     _comment_isPrivate: boolean;
     _comment_fingerprint: string;
-    _comment_upvotes: Types.ObjectId[];
-    _comment_downvotes: Types.ObjectId[];
     article: Types.ObjectId;
+    _comment_votes: Types.ObjectId[];
     createdAt?: Date;
     updatedAt?: Date;
 }

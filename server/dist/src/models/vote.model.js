@@ -9,17 +9,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DownvoteSchema = exports.Downvote = void 0;
+exports.VoteSchema = exports.Vote = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-let Downvote = class Downvote {
+const mongoose_2 = require("mongoose");
+let Vote = class Vote {
 };
-exports.Downvote = Downvote;
+exports.Vote = Vote;
 __decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Downvote.prototype, "_downvoter", void 0);
-exports.Downvote = Downvote = __decorate([
+], Vote.prototype, "voter", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, enum: ['Article', 'Comment'] }),
+    __metadata("design:type", String)
+], Vote.prototype, "targetType", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: mongoose_2.Types.ObjectId, required: true }),
+    __metadata("design:type", mongoose_2.Types.ObjectId)
+], Vote.prototype, "target", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, enum: ['up', 'down'] }),
+    __metadata("design:type", String)
+], Vote.prototype, "direction", void 0);
+exports.Vote = Vote = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
-], Downvote);
-exports.DownvoteSchema = mongoose_1.SchemaFactory.createForClass(Downvote);
-//# sourceMappingURL=downvote.model.js.map
+], Vote);
+exports.VoteSchema = mongoose_1.SchemaFactory.createForClass(Vote);
+//# sourceMappingURL=vote.model.js.map

@@ -21,31 +21,84 @@ let CommentService = class CommentService {
     constructor(commentModel) {
         this.commentModel = commentModel;
     }
+    async getCommentsByArticle(articleId) {
+        try {
+            const articleObjectId = new mongoose_2.Types.ObjectId(articleId);
+            const comments = await this.commentModel
+                .find({ article: articleObjectId })
+                .sort({ createdAt: -1 })
+                .lean()
+                .exec();
+            return comments;
+        }
+        catch (error) {
+            console.error('Error fetching comments:', error);
+            throw error;
+        }
+    }
+    async commentExists(id) {
+        const idToCheck = typeof id === 'string' ? id : id.toString();
+        if (!mongoose_2.Types.ObjectId.isValid(idToCheck))
+            return false;
+        const exists = await this.commentModel.exists({
+            _id: new mongoose_2.Types.ObjectId(idToCheck),
+        });
+        return !!exists;
+    }
     async createComment(data) {
-        const newComment = new this.commentModel(data);
+        if (data.Parent) {
+            const parentId = data.Parent.toString();
+            const parentExists = await this.commentExists(parentId);
+            if (!parentExists) {
+                throw new common_1.NotFoundException('Parent comment not found');
+            }
+        }
+        const newComment = new this.commentModel({
+            ...data,
+            isFeatured: data.isFeatured || false,
+        });
         return newComment.save();
     }
     async getAllComments() {
-        const comments = await this.commentModel.find().populate('article');
-        return comments;
+        try {
+            const comments = await this.commentModel.find().sort({ createdAt: -1 }).lean().exec();
+            if (!comments || comments.length === 0) {
+                console.warn('No comments found in database');
+                return [];
+            }
+            return comments;
+        }
+        catch (error) {
+            console.error('Error in getAllComments service:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Failed to fetch comments: ${errorMessage}`);
+        }
     }
     async getCommentById(id) {
-        const comment = await this.commentModel.findById(id).populate('article');
+        const comment = await this.commentModel.findById(id).populate('article').exec();
+        if (!comment)
+            throw new common_1.NotFoundException('Comment not found');
+        return comment;
+    }
+    async updateComment(id, data) {
+        if (data.Parent) {
+            throw new common_1.BadRequestException('Cannot change comment parent');
+        }
+        const comment = await this.commentModel
+            .findByIdAndUpdate(id, data, {
+            new: true,
+            runValidators: true,
+        })
+            .exec();
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
         return comment;
     }
     async deleteComment(id) {
-        const comment = await this.commentModel.findByIdAndDelete(id);
+        const comment = await this.commentModel.findByIdAndDelete(id).exec();
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
         return { message: 'Comment deleted successfully' };
-    }
-    async updateComment(id, data) {
-        const comment = await this.commentModel.findByIdAndUpdate(id, data, { new: true });
-        if (!comment)
-            throw new common_1.NotFoundException('Comment not found');
-        return comment;
     }
 };
 exports.CommentService = CommentService;

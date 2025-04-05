@@ -4,8 +4,7 @@ import contactReducer from '@/slices/contactSlice';
 import articleReducer from '@/slices/articleSlice';
 import subscriberReducer from '@/slices/subscriberSlice';
 import commentReducer from '@/slices/commentSlice';
-import upvoteReducer from '@/slices/upvoteSlice';
-import downvoteReducer from '@/slices/downvoteSlice';
+import voteReducer from '@/slices/voteSlice';
 import viewReducer from '@/slices/viewSlice';
 
 export const store = configureStore({
@@ -15,8 +14,7 @@ export const store = configureStore({
         article: articleReducer,
         subscriber: subscriberReducer,
         comment: commentReducer,
-        upvote: upvoteReducer,
-        downvote: downvoteReducer,
+        vote: voteReducer,
         view: viewReducer,
     },
 });

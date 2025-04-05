@@ -85,7 +85,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                     {extractFirstPhrase(article.body)}
                 </p>
                 <div className="tags">
-                    {article.tags.map((tag, index) => (
+                    {article.tags!.map((tag, index) => (
                         <span lang={containsArabic(tag) ? 'ar' : 'en'} key={index} className="tag">
                             <Hash />
                             {_.upperFirst(tag)}

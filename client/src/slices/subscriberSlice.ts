@@ -12,6 +12,7 @@ interface SubscriberState {
     cachedSubscribers: Record<string, Subscriber>;
     isLoading: boolean;
     error: string | null;
+    successMessage?: string | null;
 }
 
 const initialState: SubscriberState = {
@@ -20,6 +21,7 @@ const initialState: SubscriberState = {
     cachedSubscribers: {},
     isLoading: false,
     error: null,
+    successMessage: null,
 };
 
 // Utility function to extract error message
@@ -135,6 +137,12 @@ const subscriberSlice = createSlice({
         setError(state, action: PayloadAction<string | null>) {
             state.error = action.payload;
         },
+        clearSubscriberState: (state) => {
+            state.isLoading = false;
+            state.error = null;
+            state.currentSubscriber = null;
+            state.successMessage = null;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -161,6 +169,14 @@ const subscriberSlice = createSlice({
             .addCase(fetchSubscribers.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(subscribeSubscriber.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.successMessage = 'Successfully subscribed!';
+                state.error = null;
+                if (action.payload._id) {
+                    state.subscribers.push(action.payload);
+                }
             });
     },
 });
@@ -176,6 +192,7 @@ export const {
     setCachedSubscriber,
     setLoading,
     setError,
+    clearSubscriberState,
 } = subscriberSlice.actions;
 
 export default subscriberSlice.reducer;

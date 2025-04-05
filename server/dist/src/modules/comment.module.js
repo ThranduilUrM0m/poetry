@@ -12,12 +12,20 @@ const mongoose_1 = require("@nestjs/mongoose");
 const comment_controller_1 = require("../controllers/comment.controller");
 const comment_service_1 = require("../services/comment.service");
 const comment_model_1 = require("../models/comment.model");
+const vote_model_1 = require("../models/vote.model");
+const article_model_1 = require("../models/article.model");
 let CommentModule = class CommentModule {
 };
 exports.CommentModule = CommentModule;
 exports.CommentModule = CommentModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: comment_model_1.Comment.name, schema: comment_model_1.CommentSchema }])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: comment_model_1.Comment.name, schema: comment_model_1.CommentSchema },
+                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
+                { name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema },
+            ]),
+        ],
         controllers: [comment_controller_1.CommentController],
         providers: [comment_service_1.CommentService],
     })

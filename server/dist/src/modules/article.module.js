@@ -12,12 +12,24 @@ const mongoose_1 = require("@nestjs/mongoose");
 const article_controller_1 = require("../controllers/article.controller");
 const article_service_1 = require("../services/article.service");
 const article_model_1 = require("../models/article.model");
+const user_model_1 = require("../models/user.model");
+const comment_model_1 = require("../models/comment.model");
+const view_model_1 = require("../models/view.model");
+const vote_model_1 = require("../models/vote.model");
 let ArticleModule = class ArticleModule {
 };
 exports.ArticleModule = ArticleModule;
 exports.ArticleModule = ArticleModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: article_model_1.Article.name, schema: article_model_1.ArticleSchema }])],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
+                { name: user_model_1.User.name, schema: user_model_1.UserSchema },
+                { name: comment_model_1.Comment.name, schema: comment_model_1.CommentSchema },
+                { name: view_model_1.View.name, schema: view_model_1.ViewSchema },
+                { name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema },
+            ]),
+        ],
         controllers: [article_controller_1.ArticleController],
         providers: [article_service_1.ArticleService],
     })

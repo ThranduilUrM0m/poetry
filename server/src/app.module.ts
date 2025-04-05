@@ -7,6 +7,8 @@ import { ArticleModule } from './modules/article.module';
 import { SubscriberModule } from './modules/subscriber.module';
 import { ContactModule } from './modules/contact.module';
 import { CommentModule } from './modules/comment.module';
+import { ViewModule } from './modules/view.module';
+import { VoteModule } from './modules/vote.module';
 
 @Module({
     imports: [
@@ -21,9 +23,11 @@ import { CommentModule } from './modules/comment.module';
             inject: [ConfigService],
         }),
         ArticleModule,
+        CommentModule,
+        ViewModule,
+        VoteModule,
         SubscriberModule,
         ContactModule,
-        CommentModule,
     ],
     controllers: [AppController],
     providers: [AppService],

@@ -13,8 +13,7 @@ export declare class Article {
     tags: string[];
     comments: Types.ObjectId[];
     views: Types.ObjectId[];
-    upvotes: Types.ObjectId[];
-    downvotes: Types.ObjectId[];
+    votes: Types.ObjectId[];
     status: string;
     isBio: boolean;
     createdAt?: Date;

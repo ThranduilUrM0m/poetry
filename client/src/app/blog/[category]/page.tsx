@@ -1,0 +1,1 @@
+/* To display articles from a certain category */

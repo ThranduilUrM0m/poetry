@@ -8,7 +8,7 @@ import { SearchSuggestion } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';
 
-interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
+interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion, V = string | boolean> {
     label?: string;
     name: Path<T>;
     type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select';
@@ -20,10 +20,13 @@ interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion> {
     rules?: object;
     onClear?: () => void;
     onSuggestionSelect?: (suggestion: S) => void;
-    onInputChange?: (value: string) => void;
+    onInputChange?: (value: V) => void;
     allArticles?: Array<Article>;
     selectedSuggestions?: S[];
-    fuzzyMatchThreshold?: number; // Add threshold for fuzzy matching
+    fuzzyMatchThreshold?: number;
+    value?: V;
+    immediateSync?: boolean; // Add new prop to control immediate value sync
+    forceReset?: boolean; // Add new prop to force input reset
 }
 
 interface SelectProps {
@@ -33,7 +36,7 @@ interface SelectProps {
     ref: React.Ref<HTMLButtonElement>;
 }
 
-const FormField = <T extends FieldValues, S extends SearchSuggestion>({
+const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string | boolean>({
     label,
     name,
     type = 'text',
@@ -49,7 +52,10 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     selectedSuggestions = [],
     fuzzyMatchThreshold = 0.4,
     options = [],
-}: FormFieldProps<T, S>) => {
+    value,
+    immediateSync = false, // Default to false for backward compatibility
+    forceReset = false, // Add default value
+}: FormFieldProps<T, S, V>) => {
     // Define the smooth beautiful configuration
     const smoothConfig = {
         mass: 1,
@@ -59,7 +65,9 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
 
     const [inputItems, setInputItems] = useState<S[]>(suggestions);
     const [isFocused, setIsFocused] = useState(false);
-    const [inputValue, setInputValue] = useState('');
+    const [inputValue, setInputValue] = useState<V>(
+        value || ((type === 'checkbox' ? false : '') as V)
+    );
     const [autocompleteSuggestion, setAutocompleteSuggestion] = useState('');
     const [isSimpleBarOpen, setIsSimpleBarOpen] = useState(false);
     const formGroupRef = useRef<HTMLDivElement>(null);
@@ -141,12 +149,12 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         isOpen: usingSuggestions && isSimpleBarOpen && inputItems.length > 0,
         onInputValueChange: ({ inputValue: newValue = '' }) => {
             if (!usingSuggestions) return;
-            setInputValue(newValue);
+            setInputValue(newValue as V);
             // Always filter on the master suggestion list
             const filtered = filterSuggestions(newValue, masterSuggestionList);
             setInputItems(filtered);
             if (onInputChange) {
-                onInputChange(newValue);
+                onInputChange(newValue as V);
             }
             setIsSimpleBarOpen(true);
         },
@@ -154,7 +162,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             if (!usingSuggestions) return;
             if (selectedItem && onSuggestionSelect) {
                 onSuggestionSelect(selectedItem);
-                setInputValue('');
+                setInputValue('' as V);
                 setAutocompleteSuggestion('');
                 setIsSimpleBarOpen(false);
                 onChangeRef.current?.('');
@@ -192,12 +200,18 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
             setAutocompleteSuggestion('');
             return;
         }
-        const filtered = filterSuggestions(inputValue, masterSuggestionList);
+        const filtered = filterSuggestions(
+            typeof inputValue === 'string' ? _.toLower(inputValue) : '',
+            masterSuggestionList
+        );
         if (filtered.length > 0) {
             const exactMatch = filtered.find(
                 (item) =>
                     item.type === 'title' &&
-                    _.startsWith(_.toLower(item.title), _.toLower(inputValue))
+                    _.startsWith(
+                        _.toLower(item.title),
+                        _.toLower(typeof inputValue === 'string' ? _.toLower(inputValue) : '')
+                    )
             );
             if (exactMatch) {
                 setAutocompleteSuggestion(exactMatch.title);
@@ -225,14 +239,22 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         };
     }, [usingSuggestions]);
 
+    useEffect(() => {
+        if (value !== undefined) {
+            setInputValue(value);
+        }
+    }, [value]);
+
     const renderAutocomplete = () => {
         if (!autocompleteSuggestion || !inputValue) return null;
         const suggestionLower = _.toLower(autocompleteSuggestion);
-        const inputLower = _.toLower(inputValue);
+        const inputLower = typeof inputValue === 'string' ? _.toLower(inputValue) : '';
         if (!_.includes(suggestionLower, inputLower)) {
             return (
                 <span className="_autocomplete">
-                    <span className="_typed">{inputValue}</span>
+                    <span className="_typed">
+                        {typeof inputValue === 'string' ? _.toLower(inputValue) : ''}
+                    </span>
                 </span>
             );
         }
@@ -247,10 +269,14 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         }
         parts.push(
             <span key="match" className="_typed">
-                {autocompleteSuggestion.slice(matchIndex, matchIndex + inputValue.length)}
+                {autocompleteSuggestion.slice(
+                    matchIndex,
+                    matchIndex + (typeof inputValue === 'string' ? inputValue.length : 0)
+                )}
             </span>
         );
-        const postMatchIndex = matchIndex + inputValue.length;
+        const postMatchIndex =
+            matchIndex + (typeof inputValue === 'string' ? inputValue.length : 0);
         if (postMatchIndex < autocompleteSuggestion.length) {
             parts.push(
                 <span key="suffix" className="_suggestion">
@@ -261,29 +287,17 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         return <span className="_autocomplete">{parts}</span>;
     };
 
-    // Modify handleClear to reset input state and suggestions using the master list
-    const handleClear = (onChange: (value: string) => void) => {
-        return (e: React.MouseEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onChange('');
-            setInputValue('');
-            setAutocompleteSuggestion('');
-            resetSuggestions();
-            setIsSimpleBarOpen(true);
-            onClear?.();
-        };
-    };
+    /* They take right even when the clear button isn't showing, and why isn't it showing when the input is filled */
 
     // Floating label animation
+    const isFloating = isFocused || !!inputValue;
     const floatingLabelSpring = useSpring({
-        transform:
-            isFocused || inputValue
-                ? 'translateY(-100%) translateX(1vh)'
-                : 'translateY(-50%) translateX(6vh)',
-        scale: isFocused || inputValue ? 0.85 : 1,
-        top: isFocused || inputValue ? '0' : '3.5vh',
-        opacity: isFocused || inputValue ? 1 : 0.75,
+        transform: isFloating
+            ? 'translateY(-100%) translateX(1vh)'
+            : 'translateY(-50%) translateX(6vh)',
+        scale: isFloating ? 0.85 : 1,
+        top: isFloating ? '0' : '3.5vh',
+        opacity: isFloating ? 1 : 0.75,
         config: smoothConfig,
     });
 
@@ -297,7 +311,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
     // Error text animation
     const errorTextSpring = useSpring({
         opacity: error ? 1 : 0,
-        top: error ? '50%' : '100%',
+        top: error ? '3.5vh' : '100%',
         transform: error ? 'translateY(-100%)' : 'translateY(0)',
         right: inputValue ? '6vh' : '1.5vh',
         config: smoothConfig,
@@ -343,6 +357,61 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
         config: smoothConfig,
     });
 
+    const [internalValue, setInternalValue] = useState<V>(
+        value || ((type === 'checkbox' ? false : '') as V)
+    );
+    const previousValueRef = useRef(value);
+
+    // Synchronize external value changes with internal state
+    useEffect(() => {
+        if (value !== undefined && value !== previousValueRef.current) {
+            setInternalValue(value);
+            setInputValue(value);
+            previousValueRef.current = value;
+        }
+    }, [value]);
+
+    // Update internal state when form is reset
+    useEffect(() => {
+        if (forceReset) {
+            setInputValue('' as V);
+            setInternalValue('' as V);
+            setIsFocused(false);
+        }
+    }, [forceReset]);
+
+    // Enhanced input change handler
+    const handleInputChange = (newValue: V) => {
+        setInternalValue(newValue);
+        setInputValue(newValue);
+
+        if (immediateSync) {
+            // Immediately propagate changes for real-time sync
+            onChangeRef.current?.(newValue as string);
+        }
+
+        if (onInputChange) {
+            onInputChange(newValue);
+        }
+    };
+
+    // Enhanced clear handler
+    const handleClear = (onChange: (value: string) => void) => (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const emptyValue = (type === 'checkbox' ? false : '') as V;
+        setInternalValue(emptyValue);
+        setInputValue(emptyValue);
+        setAutocompleteSuggestion('');
+        setIsFocused(false);
+        resetSuggestions();
+        setIsSimpleBarOpen(true);
+
+        onChange(''); // Update React Hook Form
+        onClear?.();
+    };
+
     return (
         <Controller
             name={name}
@@ -352,24 +421,23 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                 onChangeRef.current = onChange;
 
                 const baseInputProps = {
-                    onChange: (
-                        e: React.ChangeEvent<
-                            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-                        >
-                    ) => {
-                        const newValue = e.target.value;
+                    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                        const target = e.target as HTMLInputElement | HTMLTextAreaElement;
+                        const newValue =
+                            type === 'checkbox' && 'checked' in target
+                                ? target.checked
+                                : target.value;
+                        handleInputChange(newValue as V);
+                        // Ensure React Hook Form is updated
                         onChange(newValue);
-                        setInputValue(newValue);
-                        if (!newValue) {
-                            resetSuggestions();
-                        }
                     },
+                    value: type === 'checkbox' ? undefined : (internalValue as string),
+                    checked: type === 'checkbox' ? (internalValue as boolean) : undefined,
                     onBlur: () => {
                         setIsFocused(false);
                         onBlur();
                     },
                     ref,
-                    value: value || '',
                     onFocus: () => {
                         setIsFocused(true);
                         if (usingSuggestions) {
@@ -437,25 +505,15 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                       })
                     : baseInputProps;
 
+                const hasValue = !!value;
+
                 return (
                     <div
                         ref={formGroupRef}
-                        className={`_formGroup ${onClear && value ? '__notEmpty' : ''} ${
-                            icon ? 'hasIcon' : ''
-                        }`}
+                        className={`_formGroup ${hasValue || isFocused ? '_focused' : ''} ${
+                            onClear && value ? '__notEmpty' : ''
+                        } ${icon ? 'hasIcon' : ''} ${type}`}
                     >
-                        {/* Floating label */}
-                        {label && (
-                            <AnimatedWrapper
-                                as="label"
-                                htmlFor={name}
-                                className="_floatingLabel"
-                                animationStyle={floatingLabelSpring}
-                            >
-                                {label}
-                            </AnimatedWrapper>
-                        )}
-
                         {/* _formControl */}
                         <div
                             className={`_formControl ${type === 'select' && '_selectFormControl'}`}
@@ -464,9 +522,9 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
 
                             {type === 'textarea' ? (
                                 <textarea
-                                    className={`_input __textarea ${value ? '_focused' : ''} ${
-                                        icon ? '__icon' : ''
-                                    } ${error ? '__error' : ''}`}
+                                    className={`_input __textarea ${
+                                        hasValue || isFocused ? '_focused' : ''
+                                    } ${icon ? '__icon' : ''} ${error ? '__error' : ''}`}
                                     {...downshiftInputProps}
                                     autoComplete="off"
                                     style={{
@@ -480,10 +538,20 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                     value: value as string,
                                     ref: ref as React.Ref<HTMLButtonElement>,
                                 })
+                            ) : type === 'checkbox' ? (
+                                <input
+                                    type="checkbox"
+                                    id={name}
+                                    checked={!!value}
+                                    onChange={(e) => onChange(e.target.checked)}
+                                    className={`_input __checkbox ${value ? '_focused' : ''} ${
+                                        icon ? '__icon' : ''
+                                    } ${error ? '__error' : ''}`}
+                                />
                             ) : (
                                 <input
                                     type={type}
-                                    className={`_input ${value ? '_focused' : ''} ${
+                                    className={`_input ${hasValue || isFocused ? '_focused' : ''} ${
                                         icon ? '__icon' : ''
                                     } ${error ? '__error' : ''}`}
                                     {...downshiftInputProps}
@@ -494,6 +562,20 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion>({
                                 />
                             )}
                         </div>
+
+                        {/* Floating label */}
+                        {label && (
+                            <AnimatedWrapper
+                                as="label"
+                                htmlFor={name}
+                                className="_floatingLabel"
+                                {...(type !== 'checkbox' && {
+                                    animationStyle: floatingLabelSpring,
+                                })}
+                            >
+                                {label}
+                            </AnimatedWrapper>
+                        )}
 
                         {/* Autocorrect */}
                         {usingSuggestions && autocompleteSuggestion && (

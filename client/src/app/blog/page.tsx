@@ -12,7 +12,7 @@ import SectionObserver from '@/components/SectionObserver';
 import { LuEye, LuThumbsUp, LuMessageSquareMore, LuSquircle } from 'react-icons/lu';
 import { config } from '@react-spring/web';
 import Link from 'next/link';
-import { Article } from '@/types/article';
+import { Article, Vote } from '@/types/article';
 import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
 
@@ -87,8 +87,10 @@ export default function BlogPage() {
     const getAttractionScore = (article: Article) => {
         const viewsCount = _.get(article, 'views.length', 0);
         const commentsCount = _.get(article, 'comments.length', 0);
-        const upvotesCount = _.get(article, 'upvotes.length', 0);
-        const downvotesCount = _.get(article, 'downvotes.length', 0);
+
+        const votes = _.get(article, 'votes', []);
+        const upvotesCount = votes.filter((vote: Vote) => vote.direction === 'up').length;
+        const downvotesCount = votes.filter((vote: Vote) => vote.direction === 'down').length;
 
         // Compute weighted score: adjust weights as needed for your business logic
         let score: number = viewsCount + 2 * commentsCount + 3 * upvotesCount - 2 * downvotesCount;
@@ -106,7 +108,7 @@ export default function BlogPage() {
             // Iteratively check each time range: if articles exist within the current range, use them
             for (const range of timeRanges) {
                 const filtered = articles.filter((article) => {
-                    const createdAt = new Date(article.createdAt);
+                    const createdAt = new Date(article.createdAt!);
                     const diffDays: number =
                         (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
                     return diffDays <= range;
@@ -130,7 +132,7 @@ export default function BlogPage() {
     // Function to calculate view score based on recency
     const calculateViewScore = (article: Article): number => {
         const viewsCount = _.get(article, 'views.length', 0);
-        const createdAt = new Date(article.createdAt);
+        const createdAt = new Date(article.createdAt!);
         const now = new Date();
         const daysSincePublication = Math.floor(
             (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -139,16 +141,17 @@ export default function BlogPage() {
         return viewsCount * (1 + recencyFactor / 30); // Adjust the divisor to scale the recency impact
     };
 
-    // Function to calculate upvote score based on recency
+    // Function to calculate upvote score based on recency using the new vote model
     const calculateUpvoteScore = (article: Article): number => {
-        const upvotesCount = _.get(article, 'upvotes.length', 0);
-        const createdAt = new Date(article.createdAt);
+        const votes = _.get(article, 'votes', []);
+        const upvotesCount = votes.filter((vote: Vote) => vote.direction === 'up').length;
+        const createdAt = new Date(article.createdAt!);
         const now = new Date();
         const daysSincePublication = Math.floor(
             (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
         );
-        const recencyFactor = Math.max(0, 30 - daysSincePublication); // Articles within 30 days get higher recency factor
-        return upvotesCount * (1 + recencyFactor / 30); // Adjust the divisor to scale the recency impact
+        const recencyFactor = Math.max(0, 30 - daysSincePublication);
+        return upvotesCount * (1 + recencyFactor / 30);
     };
 
     // Calculate scores for each article
@@ -216,7 +219,7 @@ export default function BlogPage() {
                                                     </span>
                                                     <span className="__articleDate">
                                                         {formatDistanceToNow(
-                                                            new Date(bestArticle.updatedAt),
+                                                            new Date(bestArticle.updatedAt!),
                                                             {
                                                                 addSuffix: true,
                                                             }
@@ -263,122 +266,126 @@ export default function BlogPage() {
                                                     ))}
                                                 </div>
 
-                                                <Link
-                                                    href={`/blog/${bestArticle.category.toLowerCase()}/${bestArticle.slug}`}
-                                                    className="_button"
-                                                    id="_buttonArticle"
-                                                >
-                                                    {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
-                                                    <AnimatedWrapper
-                                                        as="span"
-                                                        className="buttonBackground"
-                                                        hover={{
-                                                            from: {
-                                                                clipPath: 'inset(0 100% 0 0)',
-                                                            },
-                                                            to: {
-                                                                clipPath: 'inset(0 0 0 0)',
-                                                            },
-                                                        }}
-                                                        config={{
-                                                            mass: 1,
-                                                            tension: 170,
-                                                            friction: 26,
-                                                        }}
-                                                        parentHoverSelector="#_buttonArticle"
-                                                    ></AnimatedWrapper>
-                                                    <div className="buttonBorders">
-                                                        {/* Top border: animate width */}
-                                                        <AnimatedWrapper
-                                                            as="div"
-                                                            className="borderTop"
-                                                            hover={{
-                                                                from: { width: '0%' },
-                                                                to: { width: '100%' },
-                                                                delay: 0,
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                            onRest={() => {
-                                                                // Trigger the next animation after this one completes
-                                                                document
-                                                                    .querySelector('.borderRight')
-                                                                    ?.dispatchEvent(
-                                                                        new Event('startAnimation')
-                                                                    );
-                                                            }}
-                                                        />
-                                                        {/* Right border: animate height */}
-                                                        <AnimatedWrapper
-                                                            as="div"
-                                                            className="borderRight"
-                                                            hover={{
-                                                                from: { height: '0%' },
-                                                                to: { height: '100%' },
-                                                                delay: 0, // Start immediately after the previous animation
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                            onRest={() => {
-                                                                // Trigger the next animation after this one completes
-                                                                document
-                                                                    .querySelector('.borderBottom')
-                                                                    ?.dispatchEvent(
-                                                                        new Event('startAnimation')
-                                                                    );
-                                                            }}
-                                                        />
-                                                        {/* Bottom border: animate width */}
-                                                        <AnimatedWrapper
-                                                            as="div"
-                                                            className="borderBottom"
-                                                            hover={{
-                                                                from: { width: '0%' },
-                                                                to: { width: '100%' },
-                                                                delay: 0, // Start immediately after the previous animation
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                            onRest={() => {
-                                                                // Trigger the next animation after this one completes
-                                                                document
-                                                                    .querySelector('.borderLeft')
-                                                                    ?.dispatchEvent(
-                                                                        new Event('startAnimation')
-                                                                    );
-                                                            }}
-                                                        />
-                                                        {/* Left border: animate height */}
-                                                        <AnimatedWrapper
-                                                            as="div"
-                                                            className="borderLeft"
-                                                            hover={{
-                                                                from: { height: '0%' },
-                                                                to: { height: '100%' },
-                                                                delay: 0, // Start immediately after the previous animation
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                        />
-                                                    </div>
-                                                    <AnimatedWrapper
-                                                        as="span"
-                                                        className="buttonContent"
-                                                        hover={{
-                                                            from: {
-                                                                color: 'rgb(var(--text)/1)',
-                                                            },
-                                                            to: {
-                                                                color: 'rgb(var(--white)/1)',
-                                                            },
-                                                        }}
-                                                        config={{
-                                                            mass: 1,
-                                                            tension: 170,
-                                                            friction: 26,
-                                                        }}
-                                                        parentHoverSelector="#_buttonArticle"
+                                                <div className="_row">
+                                                    <Link
+                                                        href={`/blog/${bestArticle.category.toLowerCase()}/${
+                                                            bestArticle.slug
+                                                        }`}
+                                                        className="_button"
+                                                        id="_buttonArticle"
                                                     >
-                                                        Read More About it
-                                                        <b className="__dot">.</b>
-                                                    </AnimatedWrapper>
-                                                </Link>
+                                                        {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                                                        <AnimatedWrapper
+                                                            as="span"
+                                                            className="buttonBackground"
+                                                            hover={{
+                                                                from: {
+                                                                    clipPath: 'inset(0 100% 0 0)',
+                                                                },
+                                                                to: {
+                                                                    clipPath: 'inset(0 0 0 0)',
+                                                                },
+                                                            }}
+                                                            config={{
+                                                                mass: 1,
+                                                                tension: 170,
+                                                                friction: 26,
+                                                            }}
+                                                            parentHoverSelector="#_buttonArticle"
+                                                        ></AnimatedWrapper>
+                                                        <div className="buttonBorders">
+                                                            {/* Top border: animate width */}
+                                                            <AnimatedWrapper
+                                                                as="div"
+                                                                className="borderTop"
+                                                                hover={{
+                                                                    from: { width: '0%' },
+                                                                    to: { width: '100%' },
+                                                                    delay: 0,
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                onRest={() => {
+                                                                    // Trigger the next animation after this one completes
+                                                                    document
+                                                                        .querySelector('.borderRight')
+                                                                        ?.dispatchEvent(
+                                                                            new Event('startAnimation')
+                                                                        );
+                                                                }}
+                                                            />
+                                                            {/* Right border: animate height */}
+                                                            <AnimatedWrapper
+                                                                as="div"
+                                                                className="borderRight"
+                                                                hover={{
+                                                                    from: { height: '0%' },
+                                                                    to: { height: '100%' },
+                                                                    delay: 0, // Start immediately after the previous animation
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                onRest={() => {
+                                                                    // Trigger the next animation after this one completes
+                                                                    document
+                                                                        .querySelector('.borderBottom')
+                                                                        ?.dispatchEvent(
+                                                                            new Event('startAnimation')
+                                                                        );
+                                                                }}
+                                                            />
+                                                            {/* Bottom border: animate width */}
+                                                            <AnimatedWrapper
+                                                                as="div"
+                                                                className="borderBottom"
+                                                                hover={{
+                                                                    from: { width: '0%' },
+                                                                    to: { width: '100%' },
+                                                                    delay: 0, // Start immediately after the previous animation
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                onRest={() => {
+                                                                    // Trigger the next animation after this one completes
+                                                                    document
+                                                                        .querySelector('.borderLeft')
+                                                                        ?.dispatchEvent(
+                                                                            new Event('startAnimation')
+                                                                        );
+                                                                }}
+                                                            />
+                                                            {/* Left border: animate height */}
+                                                            <AnimatedWrapper
+                                                                as="div"
+                                                                className="borderLeft"
+                                                                hover={{
+                                                                    from: { height: '0%' },
+                                                                    to: { height: '100%' },
+                                                                    delay: 0, // Start immediately after the previous animation
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                            />
+                                                        </div>
+                                                        <AnimatedWrapper
+                                                            as="span"
+                                                            className="buttonContent"
+                                                            hover={{
+                                                                from: {
+                                                                    color: 'rgb(var(--text)/1)',
+                                                                },
+                                                                to: {
+                                                                    color: 'rgb(var(--white)/1)',
+                                                                },
+                                                            }}
+                                                            config={{
+                                                                mass: 1,
+                                                                tension: 170,
+                                                                friction: 26,
+                                                            }}
+                                                            parentHoverSelector="#_buttonArticle"
+                                                        >
+                                                            Read More About it
+                                                            <b className="__dot">.</b>
+                                                        </AnimatedWrapper>
+                                                    </Link>
+                                                </div>
 
                                                 <div className="information">
                                                     <b>
@@ -386,7 +393,16 @@ export default function BlogPage() {
                                                         <LuMessageSquareMore />
                                                     </b>
                                                     <b>
-                                                        {_.size(bestArticle.upvotes)} <LuThumbsUp />
+                                                        {
+                                                            // Use the unified vote model to show the number of upvotes
+                                                            _.size(
+                                                                bestArticle.votes?.filter(
+                                                                    (vote: Vote) =>
+                                                                        vote.direction === 'up'
+                                                                ) || []
+                                                            )
+                                                        }{' '}
+                                                        <LuThumbsUp />
                                                     </b>
                                                     <b>
                                                         {_.size(bestArticle.views)} <LuEye />
@@ -419,7 +435,12 @@ export default function BlogPage() {
                                 <h2 className="__title">Top Rated</h2>
                                 <button
                                     className="__viewMore"
-                                    onClick={() => openModal({ sortOption: 'topRated', timeFrameOption: 'all' })}
+                                    onClick={() =>
+                                        openModal({
+                                            sortOption: 'topRated',
+                                            timeFrameOption: 'all',
+                                        })
+                                    }
                                 >
                                     <AnimatedWrapper
                                         as="span" // Use a span to wrap the text and arrow
@@ -437,7 +458,9 @@ export default function BlogPage() {
                                 {topRatedArticles.map((article) => (
                                     <li key={article._id}>
                                         <Link
-                                            href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+                                            href={`/blog/${article.category.toLowerCase()}/${
+                                                article.slug
+                                            }`}
                                         >
                                             <div className="__top">
                                                 <span
@@ -452,7 +475,7 @@ export default function BlogPage() {
                                                 </span>
                                                 <span className="__articleDate">
                                                     {formatDistanceToNow(
-                                                        new Date(article.updatedAt),
+                                                        new Date(article.updatedAt!),
                                                         {
                                                             addSuffix: true,
                                                         }
@@ -484,7 +507,9 @@ export default function BlogPage() {
                             <h1 className="__title">Most viewed</h1>
                             <button
                                 className="__viewMore"
-                                onClick={() => openModal({ sortOption: 'mostViewed', timeFrameOption: 'all' })}
+                                onClick={() =>
+                                    openModal({ sortOption: 'mostViewed', timeFrameOption: 'all' })
+                                }
                             >
                                 <AnimatedWrapper
                                     as="span" // Use a span to wrap the text and arrow
@@ -507,7 +532,9 @@ export default function BlogPage() {
                                         </div>
                                     )}
                                     <Link
-                                        href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+                                        href={`/blog/${article.category.toLowerCase()}/${
+                                            article.slug
+                                        }`}
                                     >
                                         <div className="__top">
                                             <span
@@ -519,7 +546,7 @@ export default function BlogPage() {
                                                 {_.upperFirst(article.title)}
                                             </span>
                                             <span className="__articleDate">
-                                                {formatDistanceToNow(new Date(article.updatedAt), {
+                                                {formatDistanceToNow(new Date(article.updatedAt!), {
                                                     addSuffix: true,
                                                 })}
                                             </span>

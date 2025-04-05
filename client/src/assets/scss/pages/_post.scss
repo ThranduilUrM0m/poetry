@@ -27,7 +27,8 @@
                 }
 
                 .__postBox {
-                    @apply w-[calc(100%-30vh)] mx-auto mt-[35vh] h-[fit];
+                    @apply w-[calc(100%-30vh)] mx-auto my-[35vh] h-[fit];
+
                     ._card {
                         @apply relative w-full h-[fit];
 
@@ -80,6 +81,170 @@
 
                                 .articleBody {
                                     /* This ought to be relying on the styles made by the user while creating the article */
+                                }
+                            }
+                        }
+                    }
+
+                    .articleControl {
+                        @apply flex justify-end gap-[2vh];
+
+                        button,
+                        div {
+                            @apply flex;
+
+                            svg {
+                                @apply ml-[.5vh] w-[5vh] h-[2.75vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                            }
+
+                            &.active {
+                                svg {
+                                    @apply stroke-[rgb(var(--primary)/.5)];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                .__comments {
+                    @apply w-[calc(100%-30vh)] h-[50vh] mx-auto flex;
+
+                    &-left,
+                    &-right {
+                        @apply relative basis-1/2;
+                    }
+
+                    &-left {
+                        ._card {
+                            @apply h-full flex flex-col;
+
+                            &Body {
+                                @apply py-[4vh] flex-1;
+
+                                form {
+                                    @apply gap-[3vh];
+                                }
+                            }
+                        }
+                    }
+
+                    &-right {
+                        @apply p-[4vh] overflow-hidden;
+
+                        .__title {
+                            @apply flex gap-[2.5vh] text-[3.75vh] leading-[3.5vh] h-[10vh];
+
+                            p {
+                                @apply text-[2.25vh] bg-[rgb(var(--primary-light)/.75)] w-fit h-fit px-[2vh] rounded-[1.25vh] shadow-md;
+                            }
+                        }
+
+                        ._card {
+                            &Body {
+                                @apply pb-[4vh];
+
+                                ._topRow {
+                                    @apply flex flex-col;
+
+                                    .author {
+                                        @apply relative text-[1.75vh] w-fit h-fit text-[rgb(var(--text)/.35)];
+
+                                        b {
+                                            @apply text-[rgb(var(--text)/.75)] text-[2.5vh] leading-[3.5vh];
+                                        }
+                                    }
+
+                                    .__replyingTo {
+                                        @apply text-[1.75vh] text-[rgb(var(--text)/.35)] flex items-center gap-1;
+                                    }
+
+                                    .__editing {
+                                        @apply absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded;
+                                    }
+                                }
+
+                                ._middleRow {
+                                    h4 {
+                                        @apply py-[2.5vh];
+                                    }
+                                }
+
+                                ._bottomRow {
+                                    @apply flex gap-[3vh];
+
+                                    .upvotes,
+                                    .downvotes {
+                                        @apply flex;
+
+                                        button,
+                                        p {
+                                            @apply flex items-center;
+
+                                            svg {
+                                                @apply w-fit h-[2.75vh] mr-[1vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                                            }
+
+                                            &.active {
+                                                svg {
+                                                    @apply stroke-[rgb(var(--primary)/.5)];
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    .reply {
+                                        @apply flex ml-[5vh];
+
+                                        button {
+                                            @apply flex items-center;
+
+                                            svg {
+                                                @apply w-fit h-[2.75vh] mr-[1vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                                            }
+                                        }
+                                    }
+
+                                    .edit {
+                                        @apply flex;
+
+                                        button {
+                                            @apply flex items-center;
+
+                                            svg {
+                                                @apply w-fit h-[2.75vh] mr-[1vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                                            }
+                                        }
+                                    }
+
+                                    .delete {
+                                        @apply flex ml-auto;
+
+                                        button {
+                                            @apply flex items-center;
+
+                                            svg {
+                                                @apply w-fit h-[2.75vh] mr-[1vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            &._cardReply {
+                                @for $i from 1 through 5 {
+                                    &-#{$i} {
+                                        padding-left: #{ $i * 10vh };
+
+                                        ._cardBody ._topRow .author {
+                                            @apply relative;
+
+                                            &::before {
+                                                @apply content-[''] absolute h-[.25vh] bg-[rgb(var(--primary-light)/1)] top-1/2 left-0 -translate-y-1/2;
+                                                width: #{ $i * 5vh };
+                                                transform: translateX(#{ $i * -6vh })
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

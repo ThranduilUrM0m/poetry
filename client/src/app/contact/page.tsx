@@ -77,18 +77,31 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function ContactPage() {
-    // Define the smooth beautiful configuration
-    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
-
-    const { isLoaded } = useLoading();
+    // Redux state selectors (restore these)
     const dispatch = useDispatch<AppDispatch>();
     const isLoading = useSelector(selectIsLoading);
     const error = useSelector(selectError);
     const successMessage = useSelector(selectSuccessMessage);
+    const { isLoaded } = useLoading();
+
+    // Add ready state for animations
+    const [isReady, setIsReady] = useState(false);
     const [isSubmitOpen, setIsSubmitOpen] = useState(false);
     const [submitHeader, setSubmitHeader] = useState('');
     const [submitMessage, setSubmitMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
+    const [formReset, setFormReset] = useState(false);
+
+    // Smooth configuration for animations
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+
+    // Ready state after loading
+    useEffect(() => {
+        if (isLoaded) {
+            const timer = setTimeout(() => setIsReady(true), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoaded]);
 
     const {
         control,
@@ -97,7 +110,7 @@ export default function ContactPage() {
         setError,
         formState: { errors },
         clearErrors,
-        reset, // Add reset here
+        reset,
     } = useForm<FormData>({
         resolver: yupResolver(validationSchema),
         defaultValues: {
@@ -117,24 +130,36 @@ export default function ContactPage() {
     const onSubmit = async (data: FormData) => {
         try {
             await dispatch(sendContactEmail(data)).unwrap();
+            // Reset all form fields and form state
+            reset({
+                email: '',
+                phone: '',
+                firstname: '',
+                lastname: '',
+                message: ''
+            });
+            setFormReset(true); // Trigger FormField reset
+            setTimeout(() => setFormReset(false), 100); // Reset trigger
+            dispatch(clearContactState());
             setSubmitHeader('Thank you for reaching out!');
             setSubmitMessage(successMessage || 'Your message has been sent successfully!');
             setIsSuccess(true);
             setIsSubmitOpen(true);
-            reset(); // Reset the form fields here
         } catch (error) {
             if (error instanceof Error) {
                 setError('email', { type: 'manual', message: error.message });
             }
             setSubmitHeader("We're sorry!");
-            setSubmitMessage(`Something went wrong`);
+            setSubmitMessage(error as string);
             setIsSuccess(false);
             setIsSubmitOpen(true);
         }
     };
 
+    // Error handling effect
     useEffect(() => {
         if (error) {
+            setSubmitHeader("We're sorry!");
             setSubmitMessage(error);
             setIsSuccess(false);
             setIsSubmitOpen(true);
@@ -150,8 +175,8 @@ export default function ContactPage() {
                         className="_formContainer"
                         from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
                         to={{
-                            transform: isLoaded ? 'translateX(0%)' : 'translateX(100%)',
-                            opacity: isLoaded ? 1 : 0,
+                            transform: isReady ? 'translateX(0%)' : 'translateX(100%)',
+                            opacity: isReady ? 1 : 0,
                         }}
                         config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
                         delay={200} // Delay in milliseconds
@@ -187,6 +212,8 @@ export default function ContactPage() {
                                             rules={{ required: 'First Name is required' }}
                                             onClear={() => handleClearField('firstname')}
                                             icon={<User />}
+                                            immediateSync={false} // Add this to prevent unnecessary Redux updates
+                                            forceReset={formReset}
                                         />
                                         <FormField
                                             label="Last Name"
@@ -197,6 +224,7 @@ export default function ContactPage() {
                                             rules={{ required: 'Last Name is required' }}
                                             onClear={() => handleClearField('lastname')}
                                             icon={<User />}
+                                            forceReset={formReset}
                                         />
                                     </div>
                                     <div className="_row">
@@ -209,6 +237,8 @@ export default function ContactPage() {
                                             rules={{ required: 'Email is required' }}
                                             onClear={() => handleClearField('email')}
                                             icon={<AtSign />}
+                                            immediateSync={true}
+                                            forceReset={formReset}
                                         />
                                         <FormField
                                             label="Phone"
@@ -219,6 +249,7 @@ export default function ContactPage() {
                                             rules={{ required: 'Phone is required' }}
                                             onClear={() => handleClearField('phone')}
                                             icon={<Phone />}
+                                            forceReset={formReset}
                                         />
                                     </div>
                                     <div className="_row __textarea">
@@ -231,6 +262,7 @@ export default function ContactPage() {
                                             rules={{ required: 'Message is required' }}
                                             onClear={() => handleClearField('message')}
                                             icon={<MessageSquare />}
+                                            forceReset={formReset}
                                         />
                                     </div>
                                     <div className="_row">
@@ -429,6 +461,7 @@ export default function ContactPage() {
                             onSubmitClose={() => {
                                 setIsSubmitOpen(false);
                                 dispatch(clearContactState());
+                                reset(); // Reset form when modal closes
                             }}
                             header={submitHeader}
                             message={submitMessage}

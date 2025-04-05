@@ -5,7 +5,6 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
 
-// Define the initial state
 interface ArticleState {
     articles: Article[];
     currentArticle: Article | null;
@@ -61,6 +60,59 @@ export const fetchArticles = createAsyncThunk(
     }
 );
 
+export const fetchUpdatedArticle = createAsyncThunk(
+    'article/fetchUpdatedArticle',
+    async (articleId: string, { rejectWithValue }) => {
+        try {
+            const response = await axios.get<Article>(`${API_BASE_URL}/api/articles/${articleId}`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(getErrorMessage(error));
+        }
+    }
+);
+
+// Vote on an article
+export const voteArticle = createAsyncThunk(
+    'articles/vote',
+    async (
+        {
+            articleId,
+            direction,
+            fingerprint,
+        }: { articleId: string; direction: 'up' | 'down'; fingerprint: string },
+        { rejectWithValue }
+    ) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/articles/${articleId}/vote`, {
+                direction,
+                fingerprint,
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(getErrorMessage(error));
+        }
+    }
+);
+
+// Track article view
+export const trackView = createAsyncThunk(
+    'articles/view',
+    async (
+        { articleId, fingerprint }: { articleId: string; fingerprint: string },
+        { rejectWithValue }
+    ) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/articles/${articleId}/views`, {
+                fingerprint,
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(getErrorMessage(error));
+        }
+    }
+);
+
 // Create the article slice
 const articleSlice = createSlice({
     name: 'article',
@@ -70,19 +122,20 @@ const articleSlice = createSlice({
             state.articles = action.payload;
         },
         addArticle(state, action: PayloadAction<Article>) {
-            state.articles = [...state.articles, action.payload];
+            state.articles.push(action.payload);
         },
         updateArticle(state, action: PayloadAction<Article>) {
-            state.articles = state.articles.map((article) =>
-                article._id === action.payload._id ? action.payload : article
-            );
+            const index = state.articles.findIndex((article) => article._id === action.payload._id);
+            if (index !== -1) {
+                state.articles[index] = action.payload;
+            }
         },
         deleteArticle(state, action: PayloadAction<string>) {
             state.articles = state.articles.filter((article) => article._id !== action.payload);
         },
         setCurrentArticle(state, action: PayloadAction<Article>) {
-            state.currentArticle = action.payload;
-            if (!state.cachedArticles[action.payload._id]) {
+            if (action.payload._id) {
+                state.currentArticle = action.payload;
                 state.cachedArticles[action.payload._id] = action.payload;
             }
         },
@@ -90,7 +143,7 @@ const articleSlice = createSlice({
             state.currentArticle = null;
         },
         setCachedArticle(state, action: PayloadAction<Article>) {
-            if (!state.cachedArticles[action.payload._id]) {
+            if (action.payload._id) {
                 state.cachedArticles[action.payload._id] = action.payload;
             }
         },
@@ -126,6 +179,39 @@ const articleSlice = createSlice({
             .addCase(fetchArticles.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(voteArticle.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchUpdatedArticle.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchUpdatedArticle.fulfilled, (state, action) => {
+                if (state.currentArticle?._id === action.payload._id) {
+                    state.currentArticle = action.payload; // Update the current article with new data
+                }
+                state.isLoading = false;
+            })
+            .addCase(fetchUpdatedArticle.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(voteArticle.fulfilled, (state, action) => {
+                const updatedArticle = action.payload;
+                const index = state.articles.findIndex((a) => a._id === updatedArticle._id);
+                if (index !== -1) {
+                    state.articles[index] = updatedArticle;
+                }
+                if (state.currentArticle?._id === updatedArticle._id) {
+                    state.currentArticle = updatedArticle;
+                }
+                state.isLoading = false;
+            })
+            .addCase(voteArticle.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
             });
     },
 });
@@ -148,7 +234,7 @@ export default articleSlice.reducer;
 // Selectors
 export const selectArticles = (state: RootState) => state.article.articles;
 export const selectCurrentArticle = (state: RootState) => state.article.currentArticle;
-export const selectCachedArticle = (_id: string) => (state: RootState) =>
-    state.article.cachedArticles[_id];
+export const selectCachedArticle = (id: string) => (state: RootState) =>
+    state.article.cachedArticles[id];
 export const selectIsLoading = (state: RootState) => state.article.isLoading;
 export const selectError = (state: RootState) => state.article.error;

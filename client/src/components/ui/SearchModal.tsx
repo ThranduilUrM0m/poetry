@@ -47,7 +47,7 @@ const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 // -----------------------------------------------------------------------------
 const calculateViewScore = (article: Article): number => {
     const viewsCount = _.get(article, 'views.length', 0);
-    const createdAt = new Date(article.createdAt);
+    const createdAt = new Date(article.createdAt!);
     const now = new Date();
     const daysSincePublication = Math.floor(
         (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -57,8 +57,8 @@ const calculateViewScore = (article: Article): number => {
 };
 
 const calculateUpvoteScore = (article: Article): number => {
-    const upvotesCount = _.get(article, 'upvotes.length', 0);
-    const createdAt = new Date(article.createdAt);
+    const upvotesCount = article.votes?.filter(vote => vote.direction === 'up').length || 0;
+    const createdAt = new Date(article.createdAt!);
     const now = new Date();
     const daysSincePublication = Math.floor(
         (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -69,7 +69,7 @@ const calculateUpvoteScore = (article: Article): number => {
 
 const calculateCommentsScore = (article: Article): number => {
     const commentsCount = _.get(article, 'comments.length', 0);
-    const updatedAt = new Date(article.updatedAt);
+    const updatedAt = new Date(article.updatedAt!);
     const now = new Date();
     const daysSinceUpdate = Math.floor(
         (now.getTime() - updatedAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -88,8 +88,8 @@ const calculateTrendingScore = (article: Article): number => {
 const getAttractionScore = (article: Article): number => {
     const viewsCount = _.get(article, 'views.length', 0);
     const commentsCount = _.get(article, 'comments.length', 0);
-    const upvotesCount = _.get(article, 'upvotes.length', 0);
-    const downvotesCount = _.get(article, 'downvotes.length', 0);
+    const upvotesCount = article.votes?.filter(vote => vote.direction === 'up').length || 0;
+    const downvotesCount = article.votes?.filter(vote => vote.direction === 'down').length || 0;
     let score: number = viewsCount + 2 * commentsCount + 3 * upvotesCount - 2 * downvotesCount;
     if (article.isFeatured) {
         score *= 1.5;
@@ -130,7 +130,7 @@ const applyFilters = (
                 days = Infinity;
         }
         filtered = filtered.filter((article) => {
-            const createdAt = new Date(article.createdAt);
+            const createdAt = new Date(article.createdAt!);
             const diffDays = (new Date().getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
             return diffDays <= days;
         });
@@ -151,7 +151,7 @@ const applyFilters = (
             );
             break;
         case 'mostRecent':
-            filtered = _.orderBy(filtered, [(a) => new Date(a.updatedAt)], ['desc']);
+            filtered = _.orderBy(filtered, [(a) => new Date(a.updatedAt!)], ['desc']);
             break;
         case 'trending':
             filtered = _.orderBy(
@@ -187,7 +187,7 @@ const filterArticlesBySuggestions = (
         const tagMatches =
             !groupedSuggestions.tag ||
             groupedSuggestions.tag.some((tag) =>
-                article.tags.some((t) => _.toLower(t) === _.toLower(tag.title))
+                article.tags!.some((t) => _.toLower(t) === _.toLower(tag.title))
             );
         const categoryMatches =
             !groupedSuggestions.category ||
@@ -304,7 +304,7 @@ export default function SearchModal(): JSX.Element | null {
         });
         const uniqueTitles = new Set(articles.map((a) => _.startCase(a.title)));
         const uniqueCategories = new Set(articles.map((a) => _.startCase(a.category)));
-        const uniqueTags = new Set(articles.flatMap((a) => a.tags.map((tag) => _.startCase(tag))));
+        const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => _.startCase(tag))));
         const uniqueAuthors = new Set(articles.map((a) => _.startCase(a.author.username)));
         const suggestions: SearchSuggestion[] = [];
         uniqueTitles.forEach((title) => {
@@ -327,7 +327,7 @@ export default function SearchModal(): JSX.Element | null {
         });
         uniqueTags.forEach((tag) => {
             const article = articles.find((a) =>
-                a.tags.some((t) => _.toLower(t) === _.toLower(tag))
+                a.tags!.some((t) => _.toLower(t) === _.toLower(tag))
             )!;
             suggestions.push(
                 createSuggestion(
@@ -368,7 +368,7 @@ export default function SearchModal(): JSX.Element | null {
                 _.includes(_.toLower(article.title), searchLower) ||
                 _.includes(_.toLower(article.category), searchLower) ||
                 _.includes(_.toLower(article.author.username), searchLower) ||
-                article.tags.some((tag) => _.includes(_.toLower(tag), searchLower))
+                article.tags!.some((tag) => _.includes(_.toLower(tag), searchLower))
         );
         if (exactMatches.length === 0) {
             const articlesWithSimilarity = articles.map((article) => ({
@@ -376,7 +376,7 @@ export default function SearchModal(): JSX.Element | null {
                 similarity: Math.max(
                     stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.title)),
                     stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.category)),
-                    article.tags.reduce(
+                    article.tags!.reduce(
                         (maxSim, tag) =>
                             Math.max(
                                 maxSim,
@@ -540,25 +540,27 @@ export default function SearchModal(): JSX.Element | null {
                 <div className="_header">
                     <div className="_formContainer">
                         <form>
-                            <FormField
-                                label="Search"
-                                name="searchQuery"
-                                type="text"
-                                icon={<Search />}
-                                error={
-                                    transformedSuggestions.length === 0 && searchQuery
-                                        ? 'No exact matches found, here are some suggestions.'
-                                        : errors.searchQuery?.message
-                                }
-                                suggestions={transformedSuggestions}
-                                allArticles={articles}
-                                control={control}
-                                rules={{ required: 'This field is required' }}
-                                onClear={handleClear}
-                                onInputChange={handleSearch}
-                                onSuggestionSelect={handleSuggestionSelect}
-                                selectedSuggestions={selectedSuggestions}
-                            />
+                            <div className="_row">
+                                <FormField
+                                    label="Search"
+                                    name="searchQuery"
+                                    type="text"
+                                    icon={<Search />}
+                                    error={
+                                        transformedSuggestions.length === 0 && searchQuery
+                                            ? 'No exact matches found, here are some suggestions.'
+                                            : errors.searchQuery?.message
+                                    }
+                                    suggestions={transformedSuggestions}
+                                    allArticles={articles}
+                                    control={control}
+                                    rules={{ required: 'This field is required' }}
+                                    onClear={handleClear}
+                                    onInputChange={handleSearch}
+                                    onSuggestionSelect={handleSuggestionSelect}
+                                    selectedSuggestions={selectedSuggestions}
+                                />
+                            </div>
                         </form>
                     </div>
                     <AnimatedWrapper
@@ -650,34 +652,36 @@ export default function SearchModal(): JSX.Element | null {
 
                         {/* FILTERS DROPDOWNS */}
                         <form className="__filters">
-                            <FormField
-                                control={control}
-                                icon={<ArrowLeftRight />}
-                                name="sortOption"
-                                type="select"
-                                options={[
-                                    { value: 'trending', label: 'Trending' },
-                                    { value: 'mostViewed', label: 'Most Viewed' },
-                                    { value: 'topRated', label: 'Top Rated' },
-                                    { value: 'mostRecent', label: 'Most Recent' },
-                                    { value: 'mostRelevant', label: 'Most Relevant' },
-                                ]}
-                                rules={{ required: true }}
-                            />
-                            <FormField
-                                control={control}
-                                icon={<Timer />}
-                                name="timeFrameOption"
-                                type="select"
-                                options={[
-                                    { value: '24h', label: 'Last 24 hours' },
-                                    { value: '7d', label: 'Last 7 days' },
-                                    { value: '30d', label: 'Last 30 days' },
-                                    { value: '6m', label: 'Last 6 months' },
-                                    { value: 'all', label: 'All time' },
-                                ]}
-                                rules={{ required: true }}
-                            />
+                            <div className="_row">
+                                <FormField
+                                    control={control}
+                                    icon={<ArrowLeftRight />}
+                                    name="sortOption"
+                                    type="select"
+                                    options={[
+                                        { value: 'trending', label: 'Trending' },
+                                        { value: 'mostViewed', label: 'Most Viewed' },
+                                        { value: 'topRated', label: 'Top Rated' },
+                                        { value: 'mostRecent', label: 'Most Recent' },
+                                        { value: 'mostRelevant', label: 'Most Relevant' },
+                                    ]}
+                                    rules={{ required: true }}
+                                />
+                                <FormField
+                                    control={control}
+                                    icon={<Timer />}
+                                    name="timeFrameOption"
+                                    type="select"
+                                    options={[
+                                        { value: '24h', label: 'Last 24 hours' },
+                                        { value: '7d', label: 'Last 7 days' },
+                                        { value: '30d', label: 'Last 30 days' },
+                                        { value: '6m', label: 'Last 6 months' },
+                                        { value: 'all', label: 'All time' },
+                                    ]}
+                                    rules={{ required: true }}
+                                />
+                            </div>
                         </form>
                     </div>
                     <SearchResults

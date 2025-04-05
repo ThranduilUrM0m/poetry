@@ -48,11 +48,7 @@ interface SliderSettings {
 // Helper function: duplicate an array until target length is reached.
 function repeatComments<T>(comments: T[], target: number): T[] {
     if (comments.length === 0) return [];
-    const repeated: T[] = [];
-    while (repeated.length < target) {
-        repeated.push(...comments);
-    }
-    return repeated.slice(0, target);
+    return Array.from({ length: target }, (_, i) => comments[i % comments.length]);
 }
 
 export default function AboutPage() {
@@ -79,53 +75,93 @@ export default function AboutPage() {
     }, [dispatch]);
 
     useEffect(() => {
-        if (isLoaded && !isLoading && articles.length > 0) {
+        if (isLoaded && !isLoading && (articles.length > 0 || comments.length > 0)) {
             const timer = setTimeout(() => setIsReady(true), 100);
+            console.log('Comments:', displayCommentsUpdated);
             return () => clearTimeout(timer);
         }
-    }, [isLoaded, isLoading, articles]);
+    }, [isLoaded, isLoading, articles, comments]);
 
-    useEffect(() => {
-        if (isLoaded && !isLoading && comments.length > 0) {
-            const timer = setTimeout(() => setIsReady(true), 100);
-            return () => clearTimeout(timer);
-        }
-    }, [isLoaded, isLoading, comments]);
+    // STEP 1: Filter out only approved comments with detailed logging
+    console.log('Raw comments from Redux:', comments); 
+    console.log('Sample comment structure:', comments[0]); // Log structure of first comment
 
-    // STEP 1: Filter out only approved comments.
-    const validComments = comments.filter((comment: Comment) => comment._comment_isOK);
+    const validComments = comments.filter((comment: Comment) => {
+        console.log('Checking comment:', {
+            id: comment._id,
+            isOK: comment._comment_isOK,
+            createdAt: comment.createdAt,
+            hasVotes: Boolean(comment._comment_votes)
+        });
+        // Accept comments that are either explicitly approved or don't have the field
+        return comment._comment_isOK !== false;
+    });
+    console.log('Comments after _comment_isOK filter:', validComments);
 
-    // STEP 2: Use a similar time range & scoring logic as the best-of-week article.
+    // STEP 2: Time range filtering with detailed logging
     const now: Date = new Date();
-    const initialRangeDaysComments = 7; // Editable initial time range in days
+    const initialRangeDaysComments = 7;
     const timeRangesComments: number[] = [initialRangeDaysComments, 30, 60, 90, 120, 150, 180];
 
     const filteredCommentsByTime = _.chain(validComments)
         .thru((comms: Comment[]) => {
+            console.log('Starting time range filtering with comments:', comms);
             for (const range of timeRangesComments) {
                 const filtered = comms.filter((comment) => {
+                    if (!comment.createdAt) {
+                        console.log('Comment missing createdAt:', comment._id);
+                        return true; // Include comments without dates
+                    }
+                    
                     const createdAt = new Date(comment.createdAt);
-                    const diffDays: number =
-                        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                    if (isNaN(createdAt.getTime())) {
+                        console.log('Invalid date for comment:', comment._id, comment.createdAt);
+                        return true; // Include comments with invalid dates
+                    }
+
+                    const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                    console.log('Comment date check:', {
+                        id: comment._id,
+                        createdAt,
+                        diffDays,
+                        range,
+                        passes: diffDays <= range
+                    });
                     return diffDays <= range;
                 });
-                if (filtered.length > 0) return filtered;
+
+                if (filtered.length > 0) {
+                    console.log(`Found ${filtered.length} comments within ${range} days`);
+                    return filtered;
+                }
             }
+            console.log('Falling back to all comments');
             return comms;
         })
-        .map((comment: Comment) => ({
-            ...comment,
-            score:
-                3 * _.get(comment, '_comment_upvotes.length', 0) -
-                2 * _.get(comment, '_comment_downvotes.length', 0),
-        }))
+        .map((comment: Comment) => {
+            const votes = comment._comment_votes || [];
+            console.log('Processing votes for comment:', {
+                id: comment._id,
+                totalVotes: votes.length,
+                voteStructure: votes[0] // Log structure of first vote if exists
+            });
+            
+            const upvotes = votes.filter((vote) => vote.direction === 'up').length;
+            const downvotes = votes.filter((vote) => vote.direction === 'down').length;
+            console.log('Vote counts:', { id: comment._id, upvotes, downvotes });
+            
+            return { ...comment, score: 3 * upvotes - 2 * downvotes };
+        })
         .orderBy(['score'], ['desc'])
         .value();
+
+    console.log('Final filtered and scored comments:', filteredCommentsByTime);
 
     // STEP 3: Limit the number of comments to 9 for each slider.
     // If fewer than 9 unique comments, duplicate until you have exactly 9.
     const maxDisplayComments = 9;
     const displayCommentsUpdated = repeatComments(filteredCommentsByTime, maxDisplayComments);
+    console.log('Display comments:', displayCommentsUpdated); // Debug log
 
     // Slider configuration for a smooth, continuous slide.
     const _slider1CommentsSettings: SliderSettings = {
@@ -193,10 +229,7 @@ export default function AboutPage() {
     };
 
     // Function to check if a string contains Arabic characters
-    const containsArabic = (text: string) => {
-        const arabicRegex = /[\u0600-\u06FF]/;
-        return arabicRegex.test(text);
-    };
+    const containsArabic = (text: string) => /[\u0600-\u06FF]+/.test(text);
 
     return (
         <main className="about">
@@ -361,17 +394,16 @@ export default function AboutPage() {
                                                                     <b>
                                                                         {_.get(
                                                                             comment,
-                                                                            '_comment_upvotes.length',
+                                                                            '_comment_votes.length',
                                                                             0
-                                                                        )}
-                                                                    </b>{' '}
-                                                                    Likes
+                                                                        )}{' '}
+                                                                    </b>
+                                                                    Votes
                                                                 </span>
                                                                 <Squircle />
                                                                 <span>
                                                                     {formatDistanceToNow(
-                                                                        new Date(comment.createdAt),
-                                                                        { addSuffix: true }
+                                                                        new Date(comment.createdAt!)
                                                                     )}
                                                                 </span>
                                                             </div>
@@ -437,7 +469,7 @@ export default function AboutPage() {
                                                             <h2
                                                                 className={`_article__title ${
                                                                     /[\u0600-\u06FF]/.test(
-                                                                        comment.article.title
+                                                                        comment.article?.title
                                                                     )
                                                                         ? '_article__title__arabic'
                                                                         : ''
@@ -461,7 +493,9 @@ export default function AboutPage() {
                                                                 <Squircle />
                                                                 <span>
                                                                     {formatDistanceToNow(
-                                                                        new Date(comment.createdAt),
+                                                                        new Date(
+                                                                            comment.createdAt!
+                                                                        ),
                                                                         { addSuffix: true }
                                                                     )}
                                                                 </span>

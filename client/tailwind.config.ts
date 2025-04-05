@@ -16,6 +16,7 @@ export default {
             },
             colors: {
                 d: 'rgb(var(--d) / <alpha-value>)',
+                redNoBG: 'rgb(var(--redNoBG) / <alpha-value>)',
                 redNo: 'rgb(var(--redNo) / <alpha-value>)',
                 greenYes: 'rgb(var(--greenYes) / <alpha-value>)',
                 hoverGray: 'rgb(var(--hoverGray) / <alpha-value>)',

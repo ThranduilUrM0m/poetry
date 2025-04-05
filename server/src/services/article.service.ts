@@ -13,26 +13,55 @@ export class ArticleService {
     }
 
     async getAllArticles(): Promise<Article[]> {
-        const articles = await this.articleModel.find().populate('author');
+        const articles = await this.articleModel
+            .find()
+            .populate('author')
+            .populate({
+                path: 'votes',
+                match: { targetType: 'Article' },
+            })
+            .lean()
+            .exec();
         return articles;
     }
 
     async getArticleBySlug(slug: string): Promise<Article> {
-        const article = await this.articleModel.findOne({ slug }).populate('author');
+        const article = await this.articleModel
+            .findOne({ slug })
+            .populate('author')
+            .populate({
+                path: 'votes',
+                match: { targetType: 'Article' },
+            })
+            .lean()
+            .exec();
         if (!article) throw new NotFoundException('Article not found');
         return article;
     }
 
     async getArticleByCategory(category: string): Promise<Article[]> {
-        const article = await this.articleModel.find({ category: category }).populate('author');
-        if (!article) throw new NotFoundException('Article not found');
-        return article;
+        const articles = await this.articleModel
+            .find({ category: category })
+            .populate('author')
+            .populate({
+                path: 'votes',
+                match: { targetType: 'Article' },
+            })
+            .lean()
+            .exec();
+        if (!articles) throw new NotFoundException('Article not found');
+        return articles;
     }
 
     async findBySlug(category: string, slug: string): Promise<Article | null> {
         return this.articleModel
             .findOne({ category: new RegExp(`^${category}$`, 'i'), slug })
             .populate('author')
+            .populate({
+                path: 'votes',
+                match: { targetType: 'Article' },
+            })
+            .lean()
             .exec();
     }
 
