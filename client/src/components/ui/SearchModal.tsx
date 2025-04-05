@@ -265,8 +265,21 @@ export default function SearchModal(): JSX.Element | null {
         if (filters) {
             if (filters.sortOption) setValue('sortOption', filters.sortOption);
             if (filters.timeFrameOption) setValue('timeFrameOption', filters.timeFrameOption);
+            if (filters.initialSuggestions) {
+                setSelectedSuggestions(filters.initialSuggestions);
+                // Filter articles based on initial suggestions
+                const filteredArticles = filterArticlesBySuggestions(articles, filters.initialSuggestions);
+                setArticleSuggestions(filteredArticles);
+                const availableSuggestions = generateSearchSuggestions(filteredArticles);
+                const compatibleSuggestions = getCompatibleSuggestions(
+                    articles,
+                    filters.initialSuggestions,
+                    availableSuggestions
+                );
+                setTransformedSuggestions(compatibleSuggestions);
+            }
         }
-    }, [filters, setValue]);
+    }, [filters, setValue, articles]);
 
     const sortOption = watch('sortOption');
     const timeFrameOption = watch('timeFrameOption');

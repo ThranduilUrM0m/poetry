@@ -263,23 +263,17 @@ export class CommentController {
      * Retrieves comments for a given article.
      * First, it tries to load from the database; if none are found, it falls back to dummy data.
      */
-    @Get('/article/:id')
+    @Get('article/:id')
     async fetchCommentsByArticle(@Param('id') id: string): Promise<PopulatedComment[]> {
         // Attempt to get comments from the database
         const commentsFromDb = await this.commentService.getCommentsByArticle(id);
-        if (commentsFromDb && commentsFromDb.length > 0) {
-            return Promise.all(commentsFromDb.map((comment) => this.populateComment(comment)));
+
+        // Return empty array if no comments found, don't throw error
+        if (!commentsFromDb || commentsFromDb.length === 0) {
+            return [];
         }
-        // Fallback to dummy data: filter dummyComments where comment.article matches the provided article ID
-        const fallbackComments = dummyComments.filter((comment) => {
-            return comment.article && comment.article.toString() === id;
-        });
-        if (fallbackComments.length === 0) {
-            throw new NotFoundException('No comments found for this article');
-        }
-        return Promise.all(
-            fallbackComments.map(async (comment) => this.populateComment(comment as Comment))
-        );
+
+        return Promise.all(commentsFromDb.map((comment) => this.populateComment(comment)));
     }
 
     @Put(':id')

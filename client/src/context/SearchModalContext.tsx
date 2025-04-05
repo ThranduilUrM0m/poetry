@@ -1,6 +1,7 @@
 // /src/context/SearchModalContext.tsx
 'use client';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { SearchSuggestion } from '@/types/search';
 
 export type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
 export type TimeFrameOption = '24h' | '7d' | '30d' | '6m' | 'all';
@@ -8,6 +9,7 @@ export type TimeFrameOption = '24h' | '7d' | '30d' | '6m' | 'all';
 export interface SearchModalFilters {
     sortOption?: SortOption;
     timeFrameOption?: TimeFrameOption;
+    initialSuggestions?: SearchSuggestion[];
     // Add additional filter properties if needed
 }
 
@@ -25,13 +27,20 @@ export const SearchModalProvider = ({ children }: { children: ReactNode }) => {
     const [filters, setFilters] = useState<SearchModalFilters | null>(null);
 
     const openModal = (newFilters: SearchModalFilters = {}) => {
+        // Ensure we set filters before opening the modal
         setFilters(newFilters);
-        setIsOpen(true);
+        // Use requestAnimationFrame to ensure state is updated
+        requestAnimationFrame(() => {
+            setIsOpen(true);
+        });
     };
 
     const closeModal = () => {
         setIsOpen(false);
-        setFilters(null);
+        // Clear filters after modal is closed
+        setTimeout(() => {
+            setFilters(null);
+        }, 300); // Add delay to match animation duration
     };
 
     return (

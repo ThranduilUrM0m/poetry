@@ -303,6 +303,8 @@ export default function ArticlePage() {
     // Fetch comments when the article is loaded
     useEffect(() => {
         if (article?._id) {
+            /* Check where is Rejected coming from, Why is there a comment from another article being displayed on another */
+            console.log(article._id);
             dispatch(fetchCommentsByArticle(article._id));
         }
     }, [article, dispatch]);
@@ -527,12 +529,11 @@ export default function ArticlePage() {
 
     // Error handling
     useEffect(() => {
-        if (errorComment) {
+        if (errorComment && isSubmitOpen) { // Only show errors when submit modal is already open
             setSubmitMessage(errorComment);
             setIsSuccess(false);
-            setIsSubmitOpen(true);
         }
-    }, [errorComment]);
+    }, [errorComment, isSubmitOpen]);
 
     const handleClearField = (fieldName: keyof FormData) => {
         setValue(fieldName, '');

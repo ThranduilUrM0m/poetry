@@ -120,10 +120,8 @@ export const fetchCommentsByArticle = createAsyncThunk(
             const response = await axios.get<Comment[]>(
                 `${API_BASE_URL}/api/comments/article/${articleId}`
             );
-            if (!response.data) {
-                throw new Error('No data received from server');
-            }
-            return response.data;
+            // If response is successful but empty, return empty array
+            return response.data || [];
         } catch (error: unknown) {
             let message = 'An unknown error occurred';
             if (axios.isAxiosError(error)) {
