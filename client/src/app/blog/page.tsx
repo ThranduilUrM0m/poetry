@@ -13,6 +13,7 @@ import { LuEye, LuThumbsUp, LuMessageSquareMore, LuSquircle } from 'react-icons/
 import { config } from '@react-spring/web';
 import Link from 'next/link';
 import { Article, Vote } from '@/types/article';
+import { useSearchParams } from 'next/navigation';
 import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
 
@@ -64,6 +65,25 @@ export default function BlogPage() {
 
     // Combined ready state
     const [isReady, setIsReady] = useState(false);
+
+    // Catgeory
+    const params = useSearchParams()
+    const category = params.get('slug')
+
+    useEffect(() => {
+        if (category) {
+            openModal({
+                initialSuggestions: [
+                    {
+                        _id: `category-${category}`, // Unique ID for the suggestion
+                        title: category, // The category name
+                        type: 'category', // Type must match the expected values
+                    },
+                ],
+            });
+            console.log('category', category);
+        }
+    }, [category]);
 
     // Fetch articles on mount
     useEffect(() => {

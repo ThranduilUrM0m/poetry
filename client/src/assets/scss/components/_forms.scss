@@ -79,7 +79,7 @@ form {
 
                     ._customSelectWrapper {
                         button {
-                            @apply bg-transparent border-t-0 border-x-0 border-b-[rgb(var(--text)/.1)];
+                            @apply bg-transparent border-t-0 border-x-0 border-b-[rgb(var(--text)/.1)] w-max;
 
                             &::after {
                                 content: '';

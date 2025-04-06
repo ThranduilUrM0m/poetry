@@ -180,16 +180,10 @@ let CommentController = class CommentController {
     }
     async fetchCommentsByArticle(id) {
         const commentsFromDb = await this.commentService.getCommentsByArticle(id);
-        if (commentsFromDb && commentsFromDb.length > 0) {
-            return Promise.all(commentsFromDb.map((comment) => this.populateComment(comment)));
+        if (!commentsFromDb || commentsFromDb.length === 0) {
+            return [];
         }
-        const fallbackComments = dummyData_1.dummyComments.filter((comment) => {
-            return comment.article && comment.article.toString() === id;
-        });
-        if (fallbackComments.length === 0) {
-            throw new common_1.NotFoundException('No comments found for this article');
-        }
-        return Promise.all(fallbackComments.map(async (comment) => this.populateComment(comment)));
+        return Promise.all(commentsFromDb.map((comment) => this.populateComment(comment)));
     }
     async updateComment(id, data) {
         if (data.Parent) {
@@ -303,7 +297,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CommentController.prototype, "getCommentById", null);
 __decorate([
-    (0, common_1.Get)('/article/:id'),
+    (0, common_1.Get)('article/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
