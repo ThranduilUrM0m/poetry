@@ -9,6 +9,8 @@ import { ContactModule } from './modules/contact.module';
 import { CommentModule } from './modules/comment.module';
 import { ViewModule } from './modules/view.module';
 import { VoteModule } from './modules/vote.module';
+import { UserModule } from './modules/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
     imports: [
@@ -28,6 +30,8 @@ import { VoteModule } from './modules/vote.module';
         VoteModule,
         SubscriberModule,
         ContactModule,
+        UserModule,
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppService],

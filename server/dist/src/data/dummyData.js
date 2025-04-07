@@ -49,8 +49,8 @@ exports.dummyUsers = [
     {
         _id: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         email: 'zakariaeboutaleb@gmail.com',
-        username: 'zakariae',
-        password: 'hashed_password',
+        username: 'Dickhead',
+        passwordHash: '$2a$12$dhNcfpLRfKKB0kpVKeqnQeJAPcmdW2XMK047N1y09.A9GHQd.83Ba',
         isVerified: true,
         isActive: true,
         createdAt: new Date('2023-07-29T15:25:10.397Z'),

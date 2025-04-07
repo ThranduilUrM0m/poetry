@@ -18,6 +18,8 @@ const contact_module_1 = require("./modules/contact.module");
 const comment_module_1 = require("./modules/comment.module");
 const view_module_1 = require("./modules/view.module");
 const vote_module_1 = require("./modules/vote.module");
+const user_module_1 = require("./modules/user.module");
+const auth_module_1 = require("./auth/auth.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,6 +42,8 @@ exports.AppModule = AppModule = __decorate([
             vote_module_1.VoteModule,
             subscriber_module_1.SubscriberModule,
             contact_module_1.ContactModule,
+            user_module_1.UserModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

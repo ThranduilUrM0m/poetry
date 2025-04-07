@@ -13,7 +13,7 @@ import 'nprogress/nprogress.css';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const isDashboard = pathname?.startsWith('/dashboard');
+    const isPrivate = pathname?.startsWith('/dashboard') || pathname?.startsWith('/login');
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
@@ -33,7 +33,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         <LoadingContext.Provider value={{ isLoaded }}>
             <HeaderThemeProvider>
                 <SearchModalProvider>
-                    {!isDashboard && (
+                    {!isPrivate && (
                         <AnimatedWrapper
                             className="__headerWrapper"
                             from={{ transform: 'translateY(-100%)', opacity: 0 }}
@@ -57,7 +57,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     >
                         {children}
                     </AnimatedWrapper>
-                    {!isDashboard && (
+                    {!isPrivate && (
                         <AnimatedWrapper
                             className="__footerWrapper"
                             from={{ transform: 'translateY(100%)', opacity: 0 }}

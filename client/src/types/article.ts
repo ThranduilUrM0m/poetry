@@ -7,12 +7,16 @@ export interface Author {
     _id?: string; // Converted from Types.ObjectId
     email: string;
     username: string;
-    isVerified: boolean;
-    isActive: boolean;
-    city?: string;
+    passwordHash?: string;
     firstName?: string;
     lastName?: string;
+    city?: string;
     country?: Country;
+    phone?: string;
+    isVerified: boolean;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Vote {

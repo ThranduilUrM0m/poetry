@@ -1,14 +1,8 @@
 ﻿import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import * as jwt from 'jsonwebtoken';
-import * as passwordHash from 'password-hash';
+import * as bcrypt from 'bcrypt';
 
 export type UserDocument = User & Document & { _id: Types.ObjectId };
-
-interface Country {
-    _code: string;
-    _country: string;
-}
 
 @Schema({ timestamps: true })
 export class User {
@@ -19,7 +13,7 @@ export class User {
     username: string;
 
     @Prop({ required: true })
-    password: string;
+    passwordHash: string;
 
     @Prop()
     firstName?: string;
@@ -31,7 +25,7 @@ export class User {
     city?: string;
 
     @Prop({ type: { _code: String, _country: String } })
-    country?: Country;
+    country?: { _code: string; _country: string };
 
     @Prop()
     phone?: string;
@@ -48,25 +42,20 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.methods.authenticate = function (
-    this: UserDocument,
-    password: string
-): Promise<boolean> {
-    return Promise.resolve(passwordHash.verify(password, this.password));
-};
+UserSchema.pre<UserDocument>('save', async function (next) {
+    // If the password hasn't been modified, skip the hook.
+    if (!this.isModified('passwordHash')) return next();
 
-UserSchema.methods.getToken = function (this: UserDocument): string {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-        throw new Error('JWT_SECRET is not defined');
+    try {
+        // Generate a salt with 12 rounds.
+        const salt: string = await bcrypt.genSalt(12);
+        // Hash the password using the generated salt.
+        const hashedPassword: string = await bcrypt.hash(this.passwordHash, salt);
+        // Replace the plain password with the hashed version.
+        this.passwordHash = hashedPassword;
+        return next();
+    } catch (error: unknown) {
+        // Cast the caught error to an Error object before passing it along.
+        return next(error as Error);
     }
-    return jwt.sign({ sub: this._id, email: this.email, username: this.username }, secret, {
-        expiresIn: '24h',
-    });
-};
-
-UserSchema.pre('save', function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = passwordHash.generate(this.password);
-    next();
 });

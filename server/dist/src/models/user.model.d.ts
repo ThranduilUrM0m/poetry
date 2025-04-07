@@ -2,18 +2,17 @@ import { Document, Types } from 'mongoose';
 export type UserDocument = User & Document & {
     _id: Types.ObjectId;
 };
-interface Country {
-    _code: string;
-    _country: string;
-}
 export declare class User {
     email: string;
     username: string;
-    password: string;
+    passwordHash: string;
     firstName?: string;
     lastName?: string;
     city?: string;
-    country?: Country;
+    country?: {
+        _code: string;
+        _country: string;
+    };
     phone?: string;
     isVerified: boolean;
     isActive: boolean;
@@ -29,4 +28,3 @@ export declare const UserSchema: import("mongoose").Schema<User, import("mongoos
 } & {
     __v: number;
 }>;
-export {};

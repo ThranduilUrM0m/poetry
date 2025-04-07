@@ -304,7 +304,6 @@ export default function ArticlePage() {
     useEffect(() => {
         if (article?._id) {
             /* Check where is Rejected coming from, Why is there a comment from another article being displayed on another */
-            console.log(article._id);
             dispatch(fetchCommentsByArticle(article._id));
         }
     }, [article, dispatch]);

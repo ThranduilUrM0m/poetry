@@ -1,5 +1,5 @@
 ﻿import { configureStore } from '@reduxjs/toolkit';
-import userReducer from '@/slices/userSlice';
+import authReducer from '@/slices/authSlice';
 import contactReducer from '@/slices/contactSlice';
 import articleReducer from '@/slices/articleSlice';
 import subscriberReducer from '@/slices/subscriberSlice';
@@ -9,7 +9,7 @@ import viewReducer from '@/slices/viewSlice';
 
 export const store = configureStore({
     reducer: {
-        user: userReducer,
+        auth: authReducer,
         contact: contactReducer,
         article: articleReducer,
         subscriber: subscriberReducer,

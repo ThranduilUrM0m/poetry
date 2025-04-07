@@ -1,0 +1,35 @@
+.login {
+    @apply w-full h-full;
+    background-color: #FF3CAC;
+    background-image: linear-gradient(225deg, #FF3CAC 0, #784BA0 50%, #2B86C5 100%);
+
+    // Global Section Styles
+    &__section {
+        &-1 {
+            @apply flex justify-center items-center;
+
+            // Left Column
+            ._card {
+                @apply relative flex flex-col justify-center items-center bg-[rgb(var(--background)/1)] p-[5vh] my-[10vh] h-[calc(100%-20vh)] w-[80vh];
+
+                &Header {
+                    h3 {
+                        @apply relative mb-[2.5vh] text-[5vh] w-fit;
+
+                        &::before {
+                            @apply content-[''] block absolute w-[10vh] h-[2vh] bg-[rgb(var(--primary-light)/.15)] bottom-[.5vh] right-0 translate-x-1/2;
+                        }
+                    }
+                }
+
+                &Body {
+                    @apply relative w-full;
+
+                    ._form {
+                        @apply gap-[2.5vh;]
+                    }
+                }
+            }
+        }
+    }
+}
