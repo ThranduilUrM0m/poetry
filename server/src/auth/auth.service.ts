@@ -31,7 +31,6 @@ export class AuthService {
                     (u.username && u.username.toLowerCase() === login.toLowerCase())
             );
             if (dummyUser) {
-                console.log(dummyUser);
                 // Verify password using bcrypt.
                 if (!dummyUser.passwordHash) {
                     throw new UnauthorizedException('Invalid credentials: password hash is missing.');

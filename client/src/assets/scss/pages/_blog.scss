@@ -26,7 +26,7 @@
                     }
 
                     .__viewMore {
-                        @apply flex-1;
+                        @apply flex-1 mx-[2.75vh];
                         @apply w-fit h-[6vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] text-sm font-medium;
 
                         span {
@@ -64,7 +64,7 @@
 
                             .__background {
                                 @apply z-[0] absolute -top-[2.75vh] -left-[2.75vh] w-[calc(100%+5.5vh)] h-[calc(100%+5.5vh)];
-                            
+
                                 img {
                                     @apply w-full h-full;
                                 }
@@ -211,7 +211,7 @@
 
                             .__background {
                                 @apply z-[0] absolute top-0 left-0 w-full h-full;
-                            
+
                                 img {
                                     @apply w-full h-full;
                                 }
@@ -264,6 +264,201 @@
 
                             .firstPhrase {
                                 @apply text-[2.5vh] leading-[1.2] flex-1 overflow-hidden text-ellipsis line-clamp-3;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        &-2 {
+            @apply flex justify-stretch min-h-[100vh];
+
+            &-left,
+            &-right {
+                @apply relative;
+
+                ._sliderArticles {
+                    @apply relative p-[5vh] w-full h-full;
+
+                    .slick-slider {
+                        @apply relative p-[5vh] w-full h-full;
+
+                        .slick-list {
+                            .slick-track {
+                                .slick-slide {
+                                    &>div {
+                                        ._card {
+                                            @apply relative bg-[rgb(var(--white)/1)] my-[2.75vh] p-[2.75vh];
+
+                                            &Body {
+                                                @apply relative overflow-hidden h-full;
+
+                                                .__background {
+                                                    @apply z-[0] absolute top-0 left-0 w-full h-[17.25vh];
+
+                                                    img {
+                                                        @apply w-full h-full;
+                                                    }
+                                                }
+
+                                                ._form {
+                                                    @apply pt-[17.25vh];
+
+                                                    .articleCategory {
+                                                        @apply relative text-[1.75vh] mt-[1vh] w-fit h-fit text-[rgb(var(--text)/.5)];
+                                                    }
+
+                                                    .articleTitle {
+                                                        @apply relative font-medium text-[3vh] text-[rgb(var(--text)/1)] leading-[3vh] w-fit;
+
+                                                        &:not(:lang(ar)) {
+                                                            @apply font-abril;
+                                                        }
+                                                    }
+
+                                                    .firstPhrase {
+                                                        @apply text-[2vh] leading-[1.2] flex-1 overflow-hidden text-ellipsis line-clamp-2;
+                                                    }
+
+                                                    .information {
+                                                        @apply flex items-center justify-end gap-[2.5vh] mt-[.25vh] w-full text-[1.75vh] text-[rgb(var(--text)/.5)] self-end;
+
+                                                        span {
+                                                            @apply flex gap-[1vh] items-center;
+
+                                                            b {
+                                                                @apply leading-[1];
+                                                            }
+
+                                                            &:last-of-type {
+                                                                @apply ml-auto;
+                                                            }
+                                                        }
+
+                                                        svg {
+                                                            @apply w-[2.5vh] h-[2.5vh] stroke-[2] stroke-[rgb(var(--text)/.25)];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        .slick-slide {
+                            transition: opacity 0.3s ease;
+
+                            &.sliding-out {
+                                opacity: 0;
+                            }
+                        }
+
+                        .slick-dots {
+                            @apply absolute bottom-[5vh] right-0 translate-x-1/2 w-[5vh] h-[20vh];
+
+                            li {
+                                @apply hidden m-[.5vh] w-[3vh] h-[3vh];
+
+                                &.slick-active {
+                                    @apply h-[11vh];
+
+                                    button {
+                                        @apply p-0 w-full h-full;
+
+                                        &::before {
+                                            @apply rounded-[2.5vh] bg-[rgb(var(--text)/1)] w-[.3vh] h-full left-1/2 -translate-x-1/2;
+                                            content: '';
+                                        }
+                                    }
+
+                                    &:first-of-type {
+                                        @apply mt-[4vh]
+                                    }
+                                }
+
+                                &:not(.slick-active) {
+                                    button {
+                                        @apply p-0 text-[2vh] leading-[3vh] text-[rgb(var(--text)/1)] w-full h-full;
+
+                                        &::before {
+                                            @apply hidden;
+                                        }
+                                    }
+                                }
+
+                                &:has(+ .slick-active),
+                                &.slick-active,
+                                &.slick-active+li {
+                                    @apply inline-block;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            &-left {
+                @apply relative basis-2/5 px-[5vh] flex;
+
+                ._sliderArticles {
+                    .slick-slider {
+                        .slick-list {
+                            .slick-track {
+                                .slick-slide {
+                                    &>div {
+                                        ._card {
+                                            @apply h-[40vh];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            &-right {
+                @apply relative basis-3/5 px-[5vh] flex;
+
+                ._sliderArticles {
+                    @apply h-fit;
+                    
+                    .slick-slider {
+                        .slick-list {
+                            .slick-track {
+                                .slick-slide {
+                                    &>div {
+                                        ._card {
+                                            @apply h-[85.5vh];
+
+                                            &Body {
+                                                .__background {
+                                                    @apply h-[40vh];
+                                                }
+
+                                                ._form {
+                                                    @apply pt-[40vh];
+
+                                                    .firstPhrase {
+                                                        $available-height: 85.5vh - 40 - 8vh; // 8vh accounts for other elements
+                                                        $line-height: 1.2; // Your current line-height
+                                                        $font-size: 2.5vh;
+                                                        $lines: floor($available-height / ($font-size * $line-height));
+
+                                                        @apply text-[2.5vh] leading-[1.2];
+                                                        -webkit-line-clamp: $lines;
+                                                        display: -webkit-box;
+                                                        -webkit-box-orient: vertical;
+                                                        overflow: hidden;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

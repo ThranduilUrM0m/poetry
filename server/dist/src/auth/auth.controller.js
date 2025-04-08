@@ -21,7 +21,6 @@ let AuthController = class AuthController {
         this.auth = auth;
     }
     async login(req) {
-        console.log('Hello');
         return this.auth.login(req.user);
     }
 };

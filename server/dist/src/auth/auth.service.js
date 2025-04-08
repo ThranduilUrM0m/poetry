@@ -26,7 +26,6 @@ let AuthService = class AuthService {
             const dummyUser = dummyData_1.dummyUsers.find((u) => (u.email && u.email.toLowerCase() === login.toLowerCase()) ||
                 (u.username && u.username.toLowerCase() === login.toLowerCase()));
             if (dummyUser) {
-                console.log(dummyUser);
                 if (!dummyUser.passwordHash) {
                     throw new common_1.UnauthorizedException('Invalid credentials: password hash is missing.');
                 }

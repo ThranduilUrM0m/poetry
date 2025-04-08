@@ -18,18 +18,27 @@ import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 
 interface SliderSettings {
-    dots: boolean;
-    infinite: boolean;
-    speed: number;
-    slidesToShow: number;
-    slidesToScroll: number;
-    vertical: boolean;
-    verticalSwiping: boolean;
-    swipeToSlide: boolean;
-    arrows: boolean;
+    centerMode?: boolean;
+    centerPadding?: string;
+    className?: string;
+    dots?: boolean;
+    infinite?: boolean;
     draggable?: boolean;
     touchThreshold?: number;
+    speed?: number;
+    slidesToShow?: number;
+    slidesToScroll?: number;
+    vertical?: boolean;
+    verticalSwiping?: boolean;
+    swipeToSlide?: boolean;
+    arrows?: boolean;
+    autoplay?: boolean;
+    autoplaySpeed?: number;
+    rtl?: boolean;
     adaptiveHeight?: boolean;
+    cssEase?: string;
+    pauseOnFocus?: boolean;
+    pauseOnHover?: boolean;
     onInit?: () => void;
     beforeChange?: (current: number, next: number) => void;
     onSwipe?: (direction: string) => void;
@@ -88,7 +97,7 @@ export default function HomePage() {
         swipeToSlide: true,
         arrows: false,
         draggable: true,
-        touchThreshold: 1, // Reduce this value to make vertical swiping more sensitive
+        touchThreshold: 1,
         adaptiveHeight: true,
         onInit: () => {
             _handleArticleJSONTOHTML(articles, 0);

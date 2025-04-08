@@ -24,6 +24,8 @@ interface SliderSettings {
     className?: string;
     dots?: boolean;
     infinite?: boolean;
+    draggable?: boolean;
+    touchThreshold?: number;
     speed?: number;
     slidesToShow?: number;
     slidesToScroll?: number;
@@ -83,9 +85,6 @@ export default function AboutPage() {
     }, [isLoaded, isLoading, articles, comments]);
 
     // STEP 1: Filter out only approved comments with detailed logging
-    console.log('Raw comments from Redux:', comments); 
-    console.log('Sample comment structure:', comments[0]); // Log structure of first comment
-
     const validComments = comments.filter((comment: Comment) => {
         console.log('Checking comment:', {
             id: comment._id,
@@ -96,7 +95,6 @@ export default function AboutPage() {
         // Accept comments that are either explicitly approved or don't have the field
         return comment._comment_isOK !== false;
     });
-    console.log('Comments after _comment_isOK filter:', validComments);
 
     // STEP 2: Time range filtering with detailed logging
     const now: Date = new Date();
@@ -155,13 +153,10 @@ export default function AboutPage() {
         .orderBy(['score'], ['desc'])
         .value();
 
-    console.log('Final filtered and scored comments:', filteredCommentsByTime);
-
     // STEP 3: Limit the number of comments to 9 for each slider.
     // If fewer than 9 unique comments, duplicate until you have exactly 9.
     const maxDisplayComments = 9;
     const displayCommentsUpdated = repeatComments(filteredCommentsByTime, maxDisplayComments);
-    console.log('Display comments:', displayCommentsUpdated); // Debug log
 
     // Slider configuration for a smooth, continuous slide.
     const _slider1CommentsSettings: SliderSettings = {

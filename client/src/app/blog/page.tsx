@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchArticles, selectArticles, selectIsLoading } from '@/slices/articleSlice';
 import _ from 'lodash';
-import { formatDistanceToNow } from 'date-fns';
-import { Hash } from 'lucide-react';
+import { formatDistanceToNow, format } from 'date-fns';
+import { Eye, Hash, MessagesSquare, ThumbsUp, Clock9 } from 'lucide-react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
@@ -16,6 +16,36 @@ import { Article, Vote } from '@/types/article';
 import { useSearchParams } from 'next/navigation';
 import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
+import Slider from 'react-slick';
+
+interface SliderSettings {
+    centerMode?: boolean;
+    centerPadding?: string;
+    className?: string;
+    dots?: boolean;
+    infinite?: boolean;
+    draggable?: boolean;
+    touchThreshold?: number;
+    speed?: number;
+    slidesToShow?: number;
+    slidesToScroll?: number;
+    vertical?: boolean;
+    verticalSwiping?: boolean;
+    swipeToSlide?: boolean;
+    arrows?: boolean;
+    autoplay?: boolean;
+    autoplaySpeed?: number;
+    rtl?: boolean;
+    adaptiveHeight?: boolean;
+    cssEase?: string;
+    pauseOnFocus?: boolean;
+    pauseOnHover?: boolean;
+    onInit?: () => void;
+    beforeChange?: (current: number, next: number) => void;
+    onSwipe?: (direction: string) => void;
+    afterChange?: (current: number) => void;
+    onDrag?: () => void;
+}
 
 /**
  * Extracts the first <img> element from the given HTML string
@@ -67,8 +97,8 @@ export default function BlogPage() {
     const [isReady, setIsReady] = useState(false);
 
     // Catgeory
-    const params = useSearchParams()
-    const category = params.get('slug')
+    const params = useSearchParams();
+    const category = params.get('slug');
 
     useEffect(() => {
         if (category) {
@@ -203,6 +233,48 @@ export default function BlogPage() {
         return arabicRegex.test(text);
     };
 
+    const sliderSettings__1: SliderSettings = {
+        dots: true,
+        infinite: false,
+        speed: 500,
+        slidesToShow: 5,
+        slidesToScroll: 5,
+        vertical: true,
+        verticalSwiping: true,
+        swipeToSlide: true,
+        arrows: false,
+        draggable: true,
+        touchThreshold: 1,
+        adaptiveHeight: false,
+    };
+
+    const sliderSettings__2: SliderSettings = {
+        dots: true,
+        infinite: false,
+        speed: 500,
+        slidesToShow: 2,
+        slidesToScroll: 2,
+        vertical: true,
+        verticalSwiping: true,
+        swipeToSlide: true,
+        arrows: false,
+        draggable: true,
+        touchThreshold: 1,
+        adaptiveHeight: false,
+    };
+
+    const latestArticles = _.orderBy(
+        _.filter(articles, (_a) => !_a.isPrivate),
+        [(article) => new Date(article.createdAt || 0)],
+        ['desc']
+    ).slice(0, 100);
+
+    const commentedArticles = _.orderBy(
+        _.filter(articles, (_a) => !_a.isPrivate),
+        [(article) => _.size(article.comments)],
+        ['desc']
+    ).slice(0, 100);
+
     return (
         <main className="blog">
             <SectionObserver theme="dark">
@@ -327,9 +399,13 @@ export default function BlogPage() {
                                                                 onRest={() => {
                                                                     // Trigger the next animation after this one completes
                                                                     document
-                                                                        .querySelector('.borderRight')
+                                                                        .querySelector(
+                                                                            '.borderRight'
+                                                                        )
                                                                         ?.dispatchEvent(
-                                                                            new Event('startAnimation')
+                                                                            new Event(
+                                                                                'startAnimation'
+                                                                            )
                                                                         );
                                                                 }}
                                                             />
@@ -346,9 +422,13 @@ export default function BlogPage() {
                                                                 onRest={() => {
                                                                     // Trigger the next animation after this one completes
                                                                     document
-                                                                        .querySelector('.borderBottom')
+                                                                        .querySelector(
+                                                                            '.borderBottom'
+                                                                        )
                                                                         ?.dispatchEvent(
-                                                                            new Event('startAnimation')
+                                                                            new Event(
+                                                                                'startAnimation'
+                                                                            )
                                                                         );
                                                                 }}
                                                             />
@@ -365,9 +445,13 @@ export default function BlogPage() {
                                                                 onRest={() => {
                                                                     // Trigger the next animation after this one completes
                                                                     document
-                                                                        .querySelector('.borderLeft')
+                                                                        .querySelector(
+                                                                            '.borderLeft'
+                                                                        )
                                                                         ?.dispatchEvent(
-                                                                            new Event('startAnimation')
+                                                                            new Event(
+                                                                                'startAnimation'
+                                                                            )
                                                                         );
                                                                 }}
                                                             />
@@ -528,7 +612,10 @@ export default function BlogPage() {
                             <button
                                 className="__viewMore"
                                 onClick={() =>
-                                    openModal({ sortOption: 'mostViewed', timeFrameOption: 'all' })
+                                    openModal({
+                                        sortOption: 'mostViewed',
+                                        timeFrameOption: 'all',
+                                    })
                                 }
                             >
                                 <AnimatedWrapper
@@ -582,6 +669,218 @@ export default function BlogPage() {
                             ))}
                         </ul>
                     </AnimatedWrapper>
+                </section>
+            </SectionObserver>
+
+            <SectionObserver theme="dark">
+                <section className="blog__section-2 !h-full">
+                    <div className="blog__section-2-left">
+                        <AnimatedWrapper
+                            as="div"
+                            className="_sliderArticles"
+                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                            delay={1000}
+                        >
+                            {!_.isEmpty(articles) && (
+                                <Slider {...sliderSettings__1}>
+                                    {_.map(latestArticles, (_article, index) => (
+                                        <div key={_article._id} className={`_card _card-${index}`}>
+                                            <Link
+                                                className="_cardBody"
+                                                href={`/blog/${_article.category.toLowerCase()}/${
+                                                    _article.slug
+                                                }`}
+                                            >
+                                                <div className="__background">
+                                                    {extractFirstImage(_article.body)}
+                                                </div>
+
+                                                <form className="_form">
+                                                    <span
+                                                        lang={
+                                                            containsArabic(_article.category)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleCategory"
+                                                    >
+                                                        {_article.category}
+                                                    </span>
+
+                                                    <h2
+                                                        lang={
+                                                            containsArabic(_article.title)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleTitle"
+                                                    >
+                                                        {_article.title}
+                                                    </h2>
+
+                                                    <span
+                                                        lang={
+                                                            containsArabic(_article.body)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="firstPhrase"
+                                                    >
+                                                        {_article.body &&
+                                                            extractFirstPhrase(_article.body)}
+                                                    </span>
+
+                                                    <div className="information">
+                                                        <span>
+                                                            <MessagesSquare />
+                                                            <b>{_.size(_article.comments)}</b>{' '}
+                                                        </span>
+                                                        <span>
+                                                            <ThumbsUp />
+                                                            <b>
+                                                                {_.size(
+                                                                    _article.votes?.filter(
+                                                                        (vote) =>
+                                                                            vote.direction === 'up'
+                                                                    )
+                                                                )}
+                                                            </b>{' '}
+                                                        </span>
+                                                        <span>
+                                                            <Eye />
+                                                            <b>{_.size(_article.views)}</b>{' '}
+                                                        </span>
+
+                                                        <span>
+                                                            <b>
+                                                                {format(
+                                                                    new Date(_article.updatedAt!),
+                                                                    'dd MMMM yyyy'
+                                                                )}
+                                                            </b>
+                                                            <Clock9 />
+                                                            <b>
+                                                                {format(
+                                                                    new Date(_article.updatedAt!),
+                                                                    'HH:mm'
+                                                                )}
+                                                            </b>
+                                                        </span>
+                                                    </div>
+                                                </form>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </Slider>
+                            )}
+                        </AnimatedWrapper>
+                    </div>
+
+                    <div className="blog__section-2-right">
+                        <AnimatedWrapper
+                            as="div"
+                            className="_sliderArticles"
+                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                            delay={1000}
+                        >
+                            {!_.isEmpty(articles) && (
+                                <Slider {...sliderSettings__2}>
+                                    {_.map(commentedArticles, (_article, index) => (
+                                        <div key={_article._id} className={`_card _card-${index}`}>
+                                            <Link
+                                                className="_cardBody"
+                                                href={`/blog/${_article.category.toLowerCase()}/${
+                                                    _article.slug
+                                                }`}
+                                            >
+                                                <div className="__background">
+                                                    {extractFirstImage(_article.body)}
+                                                </div>
+
+                                                <form className="_form">
+                                                    <span
+                                                        lang={
+                                                            containsArabic(_article.category)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleCategory"
+                                                    >
+                                                        {_article.category}
+                                                    </span>
+
+                                                    <h2
+                                                        lang={
+                                                            containsArabic(_article.title)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleTitle"
+                                                    >
+                                                        {_article.title}
+                                                    </h2>
+
+                                                    <span
+                                                        lang={
+                                                            containsArabic(_article.body)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="firstPhrase"
+                                                    >
+                                                        {_article.body &&
+                                                            extractFirstPhrase(_article.body)}
+                                                    </span>
+
+                                                    <div className="information">
+                                                        <span>
+                                                            <MessagesSquare />
+                                                            <b>{_.size(_article.comments)}</b>{' '}
+                                                        </span>
+                                                        <span>
+                                                            <ThumbsUp />
+                                                            <b>
+                                                                {_.size(
+                                                                    _article.votes?.filter(
+                                                                        (vote) =>
+                                                                            vote.direction === 'up'
+                                                                    )
+                                                                )}
+                                                            </b>{' '}
+                                                        </span>
+                                                        <span>
+                                                            <Eye />
+                                                            <b>{_.size(_article.views)}</b>{' '}
+                                                        </span>
+
+                                                        <span>
+                                                            <b>
+                                                                {format(
+                                                                    new Date(_article.updatedAt!),
+                                                                    'dd MMMM yyyy'
+                                                                )}
+                                                            </b>
+                                                            <Clock9 />
+                                                            <b>
+                                                                {format(
+                                                                    new Date(_article.updatedAt!),
+                                                                    'HH:mm'
+                                                                )}
+                                                            </b>
+                                                        </span>
+                                                    </div>
+                                                </form>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </Slider>
+                            )}
+                        </AnimatedWrapper>
+                    </div>
                 </section>
             </SectionObserver>
 
