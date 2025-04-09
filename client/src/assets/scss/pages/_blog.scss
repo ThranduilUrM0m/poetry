@@ -425,7 +425,7 @@
 
                 ._sliderArticles {
                     @apply h-fit;
-                    
+
                     .slick-slider {
                         .slick-list {
                             .slick-track {
@@ -443,13 +443,14 @@
                                                     @apply pt-[40vh];
 
                                                     .firstPhrase {
-                                                        $available-height: 85.5vh - 40 - 8vh; // 8vh accounts for other elements
-                                                        $line-height: 1.2; // Your current line-height
+                                                        $available-height: 85.5vh - 40vh - 8vh; // Perform arithmetic directly instead of using calc()
+                                                        $line-height: 1.2;
                                                         $font-size: 2.5vh;
-                                                        $lines: floor($available-height / ($font-size * $line-height));
+                                                        // Use the math module for safe division and floor calculation
+                                                        $lines: math.floor($available-height / ($font-size * $line-height));
 
                                                         @apply text-[2.5vh] leading-[1.2];
-                                                        -webkit-line-clamp: $lines;
+                                                        -webkit-line-clamp: #{$lines}; // Interpolate the computed line count
                                                         display: -webkit-box;
                                                         -webkit-box-orient: vertical;
                                                         overflow: hidden;
