@@ -6,6 +6,7 @@ import subscriberReducer from '@/slices/subscriberSlice';
 import commentReducer from '@/slices/commentSlice';
 import voteReducer from '@/slices/voteSlice';
 import viewReducer from '@/slices/viewSlice';
+import analyticsReducer from '@/slices/analyticsSlice';
 
 export const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
         comment: commentReducer,
         vote: voteReducer,
         view: viewReducer,
+        analytics: analyticsReducer,
     },
 });
 

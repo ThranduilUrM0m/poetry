@@ -23,6 +23,8 @@
 @use 'pages/contact';
 @use 'pages/notfound';
 
+@use 'sass:math';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
