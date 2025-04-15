@@ -706,13 +706,9 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                                     containsArabic(
                                                                                                         // Safely combine first + last name with proper undefined handling
                                                                                                         [
-                                                                                                            typedItem
-                                                                                                                .source
-                                                                                                                .author
+                                                                                                            typedItem?.source?.author
                                                                                                                 ?.firstName,
-                                                                                                            typedItem
-                                                                                                                .source
-                                                                                                                .author
+                                                                                                            typedItem?.source?.author
                                                                                                                 ?.lastName,
                                                                                                         ]
                                                                                                             .filter(
@@ -733,16 +729,12 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                                 className="fullname"
                                                                                             >
                                                                                                 {
-                                                                                                    typedItem
-                                                                                                        .source
-                                                                                                        .author
-                                                                                                        .firstName
+                                                                                                    typedItem?.source?.author
+                                                                                                    ?.firstName
                                                                                                 }{' '}
                                                                                                 {
-                                                                                                    typedItem
-                                                                                                        .source
-                                                                                                        .author
-                                                                                                        .lastName
+                                                                                                    typedItem?.source?.author
+                                                                                                    ?.lastName
                                                                                                 }
                                                                                             </span>
                                                                                             <span
@@ -766,19 +758,13 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                         </div>
                                                                                         <div className="location">
                                                                                             {
-                                                                                                typedItem
-                                                                                                    .source
-                                                                                                    .author
+                                                                                                typedItem?.source?.author
                                                                                                     .city
                                                                                             }
                                                                                             ,{' '}
-                                                                                            {typedItem
-                                                                                                .source
-                                                                                                .author
+                                                                                            {typedItem?.source?.author
                                                                                                 .country
-                                                                                                ? typedItem
-                                                                                                      .source
-                                                                                                      .author
+                                                                                                ? typedItem?.source?.author
                                                                                                       .country
                                                                                                       ._country
                                                                                                 : ''}

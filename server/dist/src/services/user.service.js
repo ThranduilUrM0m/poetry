@@ -32,10 +32,19 @@ let UserService = class UserService {
         return this.userModel.findOne({ email }).exec();
     }
     async findById(id) {
-        const user = await this.userModel.findById(id).exec();
-        if (!user)
-            throw new common_1.NotFoundException('User not found');
-        return user;
+        try {
+            if (!(0, mongoose_2.isValidObjectId)(id)) {
+                throw new common_1.BadRequestException('Invalid user ID format');
+            }
+            const user = await this.userModel.findById(id).exec();
+            if (!user) {
+                throw new common_1.NotFoundException('User not found in database');
+            }
+            return user;
+        }
+        catch (error) {
+            throw error;
+        }
     }
 };
 exports.UserService = UserService;

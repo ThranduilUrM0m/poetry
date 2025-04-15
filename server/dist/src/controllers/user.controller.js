@@ -16,6 +16,7 @@ exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const passport_1 = require("@nestjs/passport");
 const user_model_1 = require("../models/user.model");
 const user_service_1 = require("../services/user.service");
 const dummyData_1 = require("../data/dummyData");
@@ -24,7 +25,26 @@ let UserController = class UserController {
         this.userService = userService;
         this.userModel = userModel;
     }
+    async getProfile(req) {
+        if (!req.user || !req.user.userId) {
+            throw new common_1.BadRequestException('Invalid user ID from token');
+        }
+        try {
+            const userFromDb = await this.userService.findById(req.user.userId);
+            return userFromDb;
+        }
+        catch (error) {
+            const dummyUser = dummyData_1.dummyUsers.find((a) => a._id?.toString() === req.user.userId);
+            if (!dummyUser) {
+                throw new common_1.NotFoundException('User not found in database or dummy data');
+            }
+            return dummyUser;
+        }
+    }
     async getUserById(id) {
+        if (!(0, mongoose_2.isValidObjectId)(id)) {
+            throw new common_1.BadRequestException('Invalid user ID format');
+        }
         const userFromDb = await this.userService.findById(id);
         if (userFromDb) {
             return userFromDb;
@@ -37,6 +57,14 @@ let UserController = class UserController {
     }
 };
 exports.UserController = UserController;
+__decorate([
+    (0, common_1.Get)('profile'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getProfile", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),

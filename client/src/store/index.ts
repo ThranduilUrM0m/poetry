@@ -7,6 +7,8 @@ import commentReducer from '@/slices/commentSlice';
 import voteReducer from '@/slices/voteSlice';
 import viewReducer from '@/slices/viewSlice';
 import analyticsReducer from '@/slices/analyticsSlice';
+import userReducer from '@/slices/userSlice';
+import notificationReducer from '@/slices/notificationSlice';
 
 export const store = configureStore({
     reducer: {
@@ -18,8 +20,12 @@ export const store = configureStore({
         vote: voteReducer,
         view: viewReducer,
         analytics: analyticsReducer,
+        user: userReducer,
+        notifications: notificationReducer,
     },
 });
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export default store;

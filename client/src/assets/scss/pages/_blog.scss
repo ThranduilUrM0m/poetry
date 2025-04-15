@@ -443,17 +443,10 @@
                                                     @apply pt-[40vh];
 
                                                     .firstPhrase {
-                                                        $available-height: 85.5vh - 40vh - 8vh; // Perform arithmetic directly instead of using calc()
-                                                        $line-height: 1.2;
-                                                        $font-size: 2.5vh;
-                                                        // Use the math module for safe division and floor calculation
-                                                        $lines: math.floor($available-height / ($font-size * $line-height));
-
-                                                        @apply text-[2.5vh] leading-[1.2];
-                                                        -webkit-line-clamp: #{$lines}; // Interpolate the computed line count
+                                                        @apply text-[2.5vh] leading-[1.2] overflow-hidden;
                                                         display: -webkit-box;
                                                         -webkit-box-orient: vertical;
-                                                        overflow: hidden;
+                                                        -webkit-line-clamp: 12;
                                                     }
                                                 }
                                             }

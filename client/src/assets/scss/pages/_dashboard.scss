@@ -1,0 +1,439 @@
+.dashboard {
+    @apply w-full h-full;
+
+    &__section-1 {
+        @apply flex justify-center items-center;
+
+        .dashboard__sidebar {
+            @apply sticky top-0 left-0 bottom-0 h-[100vh] bg-[rgb(var(--white)/1)] flex flex-col transition-all duration-300 ease-in-out;
+
+            &.open {
+                @apply w-[50vh];
+            }
+
+            &.closed {
+                @apply w-[15vh];
+            }
+
+            &-header {
+                @apply flex items-center justify-between w-full h-[10vh] px-[2.5vh];
+
+                &-logo {
+                    @apply w-[10vh] h-[10vh] flex items-end justify-center;
+                }
+            }
+
+            &-nav {
+                @apply flex-1 w-full pb-[2.5vh] pt-[5vh] px-[2.5vh];
+
+                &-list {
+                    @apply flex flex-col h-full w-full;
+
+                    li {
+                        @apply h-[7.5vh] w-full;
+
+                        a,
+                        button {
+                            @apply flex items-center w-[fit];
+
+                            span:not(.__liText) {
+                                @apply flex items-center justify-center w-[10vh] h-[7.5vh];
+
+                                svg {
+                                    @apply w-[4vh] h-[4vh] stroke-[2px] stroke-[rgb(var(--text)/1)];
+                                }
+                            }
+
+                            span.__liText {
+                                @apply flex items-center justify-center h-[7.5vh];
+                            }
+                        }
+
+                        &:last-of-type {
+                            @apply mt-auto;
+                        }
+                    }
+                }
+            }
+        }
+
+        .dashboard__main {
+            @apply flex flex-col flex-1 h-full;
+
+            &-header {
+                @apply flex justify-between items-end h-[10vh];
+
+                &-left {
+                    @apply flex flex-col h-full px-[2.5vh] pt-[2.5vh];
+
+                    .dashboard__greeting {
+                        @apply text-[rgb(var(--text)/.5)] font-semibold text-[2.5vh] leading-[3vh];
+                    }
+
+                    .dashboard__welcome {
+                        @apply text-[rgb(var(--text)/.5)];
+                    }
+                }
+
+                &-right {
+                    @apply flex flex-row h-full;
+
+                    .dashboard__notifications {
+                        @apply flex items-center justify-center w-[10vh];
+
+                        .notification-dropdown {
+                            .notification-trigger {
+                                @apply flex items-center justify-center w-[10vh] h-[10vh];
+
+                                svg {
+                                    @apply w-[4vh] h-[4vh] stroke-[2px] stroke-[rgb(var(--text)/1)];
+                                }
+                            }
+
+                            .notification-content {
+                                @apply absolute;
+                            }
+                        }
+                    }
+
+                    .dashboard__avatar {
+                        @apply flex items-center justify-center w-[10vh];
+
+                        .avatar-circle {
+                            @apply flex items-center justify-center w-[7.5vh] h-[7.5vh] rounded-full text-[rgb(var(--white)/1)];
+                            @apply text-white font-[600] text-[2.5vh] transition-transform duration-200 ease-in-out shadow-lg;
+
+                            svg {
+                                @apply w-full h-full;
+
+                                path {
+                                    fill: currentColor;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            &__controls {
+                @apply flex justify-between items-center p-[1rem] border-b-[1px] border-[rgb(var(--text)/.1)];
+
+                &-timespan,
+                &-axis {
+                    @apply flex items-center;
+
+                    label {
+                        @apply mr-[0.5rem] text-[0.9rem];
+                    }
+
+                    select,
+                    input[type="checkbox"] {
+                        @apply text-[0.9rem];
+                    }
+                }
+            }
+
+            &__summary-card {
+                @apply flex justify-center items-center bg-[rgb(var(--white)/1)] rounded-[0.5rem] shadow-lg p-[1.5rem] mx-[1rem];
+
+                .dashboard__summary-content {
+                    @apply flex flex-col items-end justify-center;
+
+                    .summary__count {
+                        @apply text-[1.5rem] font-bold;
+                    }
+
+                    .summary__percentage {
+                        @apply text-[1rem] text-green-500;
+                    }
+
+                    .summary__label {
+                        @apply text-[0.9rem] text-[rgb(var(--text)/.7)];
+                    }
+                }
+            }
+
+            &-content {
+                @apply h-[115vh];
+
+                &-error {
+                    @apply bg-[#fff3cd] text-[#856404] p-[1rem] border border-[#ffeeba] rounded-[0.25rem] mb-[1rem];
+                }
+
+                &-loader {
+                    @apply flex justify-center items-center h-[16rem] text-[1.125rem];
+                }
+
+                &-grid {
+                    @apply w-full h-full p-[2.5vh] gap-[2.5vh] flex flex-col;
+
+                    .__row {
+                        @apply flex gap-[2.5vh] basis-1/2 h-[53.75vh];
+
+                        .__card {
+                            @apply flex flex-col bg-[rgb(var(--white)/1)] shadow-lg p-[2.5vh] h-full w-full;
+
+                            .__header {
+                                @apply flex flex-row h-[7vh] px-[2.5vh] w-full gap-[2.5vh];
+
+                                ._row {
+                                    @apply w-full;
+
+                                    .__header-title {
+                                        @apply text-[rgb(var(--text)/.75)] font-semibold text-[2.5vh] leading-[3vh] flex-1 content-center;
+                                    }
+
+                                    ._formGroup {
+                                        @apply flex-none w-fit;
+                                    }
+                                }
+                            }
+
+                            .__body {
+                                @apply flex h-[41.75vh] p-[2.5vh];
+
+                                &-chart {
+                                    @apply basis-4/5 h-full;
+                                }
+
+                                &-summary {
+                                    @apply basis-1/5 flex flex-col items-end;
+
+                                    &-count {
+                                        @apply text-[1.5rem] font-bold;
+                                    }
+
+                                    &-percentage {
+                                        @apply text-[1rem] text-green-500;
+                                    }
+
+                                    &-label {
+                                        @apply text-[0.9rem] text-[rgb(var(--text)/.7)];
+                                    }
+                                }
+                            }
+
+                            &--visits-overview {
+                                @apply basis-3/5;
+
+                                .__body {
+                                    @apply gap-[2vh];
+
+                                    &-left {
+                                        @apply basis-2/5 flex flex-col justify-between;
+
+                                        .__todays-visits {
+                                            .__count {
+                                                @apply text-[10vh] font-bold leading-[0];
+                                            }
+                                        }
+
+                                        .__stats-grid {
+                                            @apply flex flex-col gap-[2.5vh];
+
+                                            .__stat-item {
+                                                @apply flex items-center relative;
+
+                                                svg {
+                                                    @apply h-[5vh] w-[5vh] m-[1.25vh];
+                                                }
+
+                                                &::before {
+                                                    @apply content-[''] absolute h-[7.5vh] w-[7.5vh] rounded-[.75vh] bg-[rgb(var(--primary-light)/.25)] top-1/2 left-0 -translate-y-1/2;
+                                                }
+
+                                                ._content {
+                                                    @apply ml-[1.25vh];
+
+                                                    .__stat-label,
+                                                    .__stat-value {
+                                                        @apply font-semibold text-[2.5vh] leading-[3vh];
+                                                    }
+
+                                                    .__stat-value {
+                                                        @apply text-[rgb(var(--text)/.5)];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    &-right {
+                                        @apply basis-3/5 flex justify-center;
+
+                                        .__body-chart {
+                                            @apply basis-full;
+                                        }
+                                    }
+                                }
+                            }
+
+                            &--demographics {
+                                @apply basis-2/5;
+
+                                .__body {
+                                    @apply flex gap-[2vh];
+
+                                    &-age {
+                                        @apply basis-2/5;
+
+                                        .__age-stats {
+                                            .__range {
+                                                @apply text-[10vh] font-bold leading-[10vh];
+                                            }
+
+                                            .__count {
+                                                @apply font-semibold text-[3.5vh] leading-[3vh];
+                                            }
+                                        }
+                                    }
+
+                                    &-gender {
+                                        @apply basis-3/5 flex flex-col justify-center;
+
+                                        .recharts-wrapper {
+                                            @apply w-full h-full;
+                                        }
+
+                                        .recharts-tooltip-wrapper {
+                                            @apply bg-[rgb(var(--white)/1)] text-[rgb(var(--text)/1)] p-[1vh] rounded-[0.5vh] shadow-lg;
+                                        }
+
+                                        .recharts-legend-item {
+                                            @apply text-[1.5vh] font-medium text-[rgb(var(--text)/1)];
+                                        }
+                                    }
+                                }
+                            }
+
+                            &--subscribers {
+                                .__body {
+                                    &-chart {
+                                        @apply basis-full;
+                                    }
+                                }
+                            }
+
+                            &--top-articles {
+                                .__body {
+                                    @apply py-[0];
+
+                                    .__article-list {
+                                        @apply flex flex-col gap-[1.5vh] w-full h-full;
+
+                                        .__article-item {
+                                            @apply relative flex items-center flex-1 w-full;
+                                            transition: transform 0.2s ease;
+
+                                            &:not(:last-of-type)::before {
+                                                @apply content-[''] absolute h-[.1vh] w-[80%] bg-[rgb(var(--text)/.25)] bottom-0 right-0 translate-y-[.75vh];
+                                            }
+
+                                            &:hover {
+                                                @apply transform scale-[1.02];
+                                            }
+
+                                            .__article-link {
+                                                @apply block no-underline text-[rgb(var(--text)/1)] w-full;
+
+                                                .__article-content {
+                                                    .__article-meta {
+                                                        @apply flex justify-between text-[1.8vh];
+
+                                                        .__article-category {
+                                                            @apply font-semibold text-[rgb(var(--primary)/1)];
+                                                        }
+
+                                                        .__article-date {
+                                                            @apply text-[rgb(var(--text)/0.7)];
+                                                        }
+                                                    }
+
+                                                    ._corps {
+                                                        @apply flex justify-between gap-[1vh] h-full;
+                                                        .__article-title {
+                                                            @apply text-[2.2vh] font-semibold mb-[1vh] truncate;
+                                                        }
+
+                                                        .__article-stats {
+                                                            @apply flex gap-[2vh] text-[1.6vh] text-[rgb(var(--text)/0.7)];
+        
+                                                            span {
+                                                                @apply flex items-center gap-[0.5vh];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            &--double {
+                                @apply flex flex-col gap-[2.5vh] bg-[rgb(var(--white)/0)] shadow-none p-0;
+
+                                &Summary, &Return {
+                                    @apply h-[calc(50%-1.25vh)];
+
+                                    .__body {
+                                        @apply flex-col relative;
+
+                                        .summary__count {
+                                            @apply font-semibold text-[3.5vh] leading-[3vh];
+                                        }
+
+                                        .summary__percentage {
+                                            @apply text-[10vh] font-bold leading-[10vh];
+                                        }
+
+                                        img {
+                                            @apply absolute w-1/2 h-full top-0 right-0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Variants using border-left
+                            /* &--traffic {
+                                @apply basis-1/2;
+                            }
+    
+                            &--engagement {
+                                @apply basis-1/2;
+                            }
+    
+                            &--categories {
+                                @apply basis-1/2;
+                            }
+    
+                            &--devices {
+                                @apply basis-1/2;
+                            }
+    
+                            &--geographic {
+                                @apply basis-1/2;
+                            }
+    
+                            &--acquisition {
+                                @apply basis-1/2;
+                            }
+    
+                            &--subscribers {
+                                @apply basis-1/2;
+                            }
+    
+                            &--votes {
+                                @apply basis-1/2;
+                            }
+    
+                            &--comments {
+                                @apply basis-1/2;
+                            } */
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

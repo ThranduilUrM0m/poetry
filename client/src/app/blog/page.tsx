@@ -111,7 +111,6 @@ export default function BlogPage() {
                     },
                 ],
             });
-            console.log('category', category);
         }
     }, [category]);
 

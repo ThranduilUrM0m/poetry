@@ -1,8 +1,8 @@
 ﻿'use client';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '@/slices/authSlice';
-import { AppDispatch, RootState } from '@/store';
+import { loginUser, selectToken, selectAuthIsLoading, setToken } from '@/slices/authSlice';
+import { AppDispatch } from '@/store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
@@ -13,7 +13,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import SubmitModal from '@/components/ui/SubmitModal';
 import FormField from '@/components/ui/FormField';
-import axios, { AxiosError } from 'axios';
 
 interface FormData {
     login: string; // Can be either email or username.
@@ -41,7 +40,8 @@ export default function LoginPage() {
     // Get NextJS router instance.
     const router = useRouter();
     // Select auth state from Redux.
-    const { token, isLoading } = useSelector((state: RootState) => state.auth);
+    const token = useSelector(selectToken);
+    const isLoading = useSelector(selectAuthIsLoading);
     // Ready Loading
     const { isLoaded } = useLoading();
     const [isReady, setIsReady] = useState(false);
@@ -79,31 +79,41 @@ export default function LoginPage() {
     // Form submission handler.
     const onSubmit: SubmitHandler<FormData> = async (data) => {
         try {
-            setIsSubmitOpen(true);
             setError(null);
-            // Dispatch the loginUser async thunk.
             const resultAction = await dispatch(loginUser(data));
-            // If login is successful, redirect to the dashboard.
+            
             if (loginUser.fulfilled.match(resultAction)) {
                 router.push('/dashboard');
+            } else {
+                // Set specific error messages based on the error
+                const errorMessage = resultAction.payload as string;
+                let userFriendlyMessage = 'An unknown error occurred';
+
+                if (errorMessage.includes('not found')) {
+                    userFriendlyMessage = 'User not found. Please check your email/username.';
+                } else if (errorMessage.includes('password does not match')) {
+                    userFriendlyMessage = 'Incorrect password. Please try again.';
+                } else if (errorMessage.includes('hash is missing')) {
+                    userFriendlyMessage = 'Account setup incomplete. Please contact support.';
+                }
+
+                setError(userFriendlyMessage);
+                setIsSubmitOpen(true);
             }
         } catch (err) {
-            if (axios.isAxiosError(err)) {
-                const axiosError = err as AxiosError;
-                if (axiosError.response?.status === 401) {
-                    setError('Incorrect email or password.');
-                } else if (axiosError.response?.status === 400) {
-                    setError('Invalid input. Please check your details.');
-                } else {
-                    setError('An unexpected error occurred. Please try again.');
-                }
-            } else {
-                setError('An unknown error occurred.');
-            }
-        } finally {
-            setIsSubmitOpen(false);
+            console.error(err);
+            setError('Unable to connect to the server. Please try again later.');
+            setIsSubmitOpen(true);
         }
     };
+
+    // Check for existing token on mount
+    useEffect(() => {
+        const savedToken = localStorage.getItem('token');
+        if (savedToken && !token) {
+            dispatch(setToken(savedToken));
+        }
+    }, []);
 
     // If a session token already exists, redirect to the dashboard.
     useEffect(() => {
@@ -286,12 +296,10 @@ export default function LoginPage() {
 
             <SubmitModal
                 isSubmitOpen={isSubmitOpen}
-                onSubmitClose={() => {
-                    setIsSubmitOpen(false);
-                }}
-                header="Login Error"
-                message={error || 'Processing your request...'}
-                isSuccess={!error}
+                onSubmitClose={() => setIsSubmitOpen(false)}
+                header="Authentication Failed"
+                message={error || ''}
+                isSuccess={false}
             />
         </main>
     );

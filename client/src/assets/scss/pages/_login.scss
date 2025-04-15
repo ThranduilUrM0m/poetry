@@ -14,10 +14,10 @@
 
                 &Header {
                     h3 {
-                        @apply relative mb-[2.5vh] text-[5vh] w-fit;
+                        @apply relative mb-[5vh] text-[5vh] w-fit;
 
                         &::before {
-                            @apply content-[''] block absolute w-[10vh] h-[2vh] bg-[rgb(var(--primary-light)/.15)] bottom-[.5vh] right-0 translate-x-1/2;
+                            @apply content-[''] block absolute w-[20vh] h-[2vh] bg-[rgb(var(--primary-light)/.15)] bottom-[.5vh] right-0 translate-x-1/2;
                         }
                     }
                 }

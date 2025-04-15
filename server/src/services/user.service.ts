@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, isValidObjectId } from 'mongoose';
 import { User, UserDocument } from '../models/user.model';
 
 @Injectable()
@@ -21,8 +21,19 @@ export class UserService {
     }
 
     async findById(id: string): Promise<UserDocument> {
-        const user = await this.userModel.findById(id).exec();
-        if (!user) throw new NotFoundException('User not found');
-        return user;
+        try {
+            if (!isValidObjectId(id)) {
+                throw new BadRequestException('Invalid user ID format');
+            }
+
+            const user = await this.userModel.findById(id).exec();
+            if (!user) {
+                throw new NotFoundException('User not found in database');
+            }
+            return user;
+        } catch (error) {
+            // Re-throw the error to be handled by the controller
+            throw error;
+        }
     }
 }

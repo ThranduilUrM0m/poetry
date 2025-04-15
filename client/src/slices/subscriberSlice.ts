@@ -90,9 +90,12 @@ export const fetchSubscribers = createAsyncThunk(
     'subscriber/fetchSubscribers',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Subscriber[]>(`${API_BASE_URL}/api/subscribers/_subscribers`);
+            // Fix the URL to match the backend endpoint
+            const response = await axios.get<Subscriber[]>(`${API_BASE_URL}/api/subscribers`);
+            console.log('Subscribers response:', response.data); // Debug log
             return response.data;
         } catch (error: unknown) {
+            console.error('Fetch subscribers error:', error); // Debug log
             return rejectWithValue(getErrorMessage(error));
         }
     }

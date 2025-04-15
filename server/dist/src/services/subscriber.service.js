@@ -21,6 +21,17 @@ let SubscriberService = class SubscriberService {
     constructor(subscriberModel) {
         this.subscriberModel = subscriberModel;
     }
+    async ensureTestData() {
+        const count = await this.subscriberModel.countDocuments();
+        if (count === 0) {
+            console.log('Adding test subscribers...');
+            await this.subscriberModel.create([
+                { email: 'test1@example.com', isSubscribed: true },
+                { email: 'test2@example.com', isSubscribed: true },
+                { email: 'test3@example.com', isSubscribed: true }
+            ]);
+        }
+    }
     async subscribe(email) {
         const existingSubscriber = await this.subscriberModel.findOne({ email }).exec();
         if (existingSubscriber) {
@@ -30,7 +41,15 @@ let SubscriberService = class SubscriberService {
         return subscriber.save();
     }
     async getAllSubscribers() {
-        return this.subscriberModel.find();
+        try {
+            const subscribers = await this.subscriberModel.find().exec();
+            console.log(`Found ${subscribers.length} subscribers`);
+            return subscribers;
+        }
+        catch (error) {
+            console.error('Error fetching subscribers:', error);
+            throw new Error('Failed to fetch subscribers');
+        }
     }
     async getSubscriberBySlug(email) {
         const subscriber = await this.subscriberModel.findOne({ email });
