@@ -375,7 +375,7 @@ export default function AboutPage() {
                                                                 <span
                                                                     lang={
                                                                         containsArabic(
-                                                                            comment.article?.title
+                                                                            comment.article?.title || ''
                                                                         )
                                                                             ? 'ar'
                                                                             : 'en'
@@ -464,7 +464,7 @@ export default function AboutPage() {
                                                             <h2
                                                                 className={`_article__title ${
                                                                     /[\u0600-\u06FF]/.test(
-                                                                        comment.article?.title
+                                                                        comment.article?.title || ''
                                                                     )
                                                                         ? '_article__title__arabic'
                                                                         : ''

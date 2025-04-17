@@ -153,7 +153,7 @@ exports.dummyArticles = [
         slug: (0, slugify_1.default)('Hello World', { lower: true, strict: true }),
         body: '<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg"></strong></p><p>My name is <em><u>Zakariae</u></em></p>',
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        category: 'community',
+        category: 'Community',
         isPrivate: false,
         isFeatured: true,
         tags: ['helloWorld'],

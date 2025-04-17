@@ -47,7 +47,7 @@ export interface Comment {
     _comment_fingerprint: string;
     _comment_votes?: Vote[];
     isFeatured?: boolean;
-    article: Article; // Add _article field to Comment
+    article: Article | null; // Add _article field to Comment
     createdAt?: string;
     updatedAt?: string;
 }

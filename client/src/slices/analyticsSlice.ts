@@ -91,7 +91,7 @@ const dummyGAMetrics: AnalyticsData = {
         // Last 24 hours data (today and yesterday)
         { date: new Date().toISOString().split('T')[0], views: 245 },
         { date: new Date(Date.now() - 86400000).toISOString().split('T')[0], views: 188 },
-        
+
         // Last week
         { date: new Date(Date.now() - 2 * 86400000).toISOString().split('T')[0], views: 167 },
         { date: new Date(Date.now() - 3 * 86400000).toISOString().split('T')[0], views: 142 },
@@ -99,7 +99,7 @@ const dummyGAMetrics: AnalyticsData = {
         { date: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0], views: 176 },
         { date: new Date(Date.now() - 6 * 86400000).toISOString().split('T')[0], views: 198 },
         { date: new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0], views: 167 },
-        
+
         // Last month (sampling every 3-4 days)
         { date: new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0], views: 156 },
         { date: new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0], views: 178 },
@@ -108,7 +108,7 @@ const dummyGAMetrics: AnalyticsData = {
         { date: new Date(Date.now() - 24 * 86400000).toISOString().split('T')[0], views: 267 },
         { date: new Date(Date.now() - 28 * 86400000).toISOString().split('T')[0], views: 208 },
         { date: new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0], views: 189 },
-        
+
         // 6 months data (sampling every 15-20 days)
         { date: new Date(Date.now() - 45 * 86400000).toISOString().split('T')[0], views: 178 },
         { date: new Date(Date.now() - 60 * 86400000).toISOString().split('T')[0], views: 156 },
@@ -119,7 +119,7 @@ const dummyGAMetrics: AnalyticsData = {
         { date: new Date(Date.now() - 135 * 86400000).toISOString().split('T')[0], views: 167 },
         { date: new Date(Date.now() - 150 * 86400000).toISOString().split('T')[0], views: 178 },
         { date: new Date(Date.now() - 165 * 86400000).toISOString().split('T')[0], views: 198 },
-        { date: new Date(Date.now() - 180 * 86400000).toISOString().split('T')[0], views: 187 }
+        { date: new Date(Date.now() - 180 * 86400000).toISOString().split('T')[0], views: 187 },
     ],
     subscribers: [], // Add empty arrays for these fields
     articleStats: [],
@@ -188,7 +188,7 @@ const initialState: AnalyticsState = {
         articleStats: [],
         votes: [],
         comments: [],
-        attractions: []
+        attractions: [],
     },
     isCalculating: false,
     error: null,
@@ -252,15 +252,6 @@ const computeArticleMetrics = (articles: Article[]) => {
  * and computes the aggregated analytics metrics.
  */
 const calculateAnalytics = (state: RootState): AnalyticsData => {
-    console.log('==== Analytics Calculation Debug ====');
-    
-    // Debug raw data from slices with better formatting
-    console.group('Raw Data');
-    console.log('Articles:', state.article.articles?.length || 0, 'items');
-    console.log('Views:', state.view.views?.length || 0, 'items');
-    console.log('Subscribers:', state.subscriber.subscribers?.length || 0, 'items');
-    console.groupEnd();
-
     // Retrieve data from other slices
     const articles = state.article.articles || [];
     const views = state.view.views || [];
@@ -301,22 +292,14 @@ const calculateAnalytics = (state: RootState): AnalyticsData => {
     }
 
     // Calculate article metrics with proper typing
-    const { votes, comments, attractions } = articles.length > 0 
-        ? computeArticleMetrics(articles)
-        : {
-            votes: [] as AnalyticsData['votes'],
-            comments: [] as AnalyticsData['comments'],
-            attractions: [] as AnalyticsData['attractions']
-        };
-
-    // Debug computed metrics
-    console.group('Computed Metrics');
-    console.log('Page Views:', pageViews.length, pageViews);
-    console.log('Subscriber Trends:', subscribersByDate.length, subscribersByDate);
-    console.log('Article Categories:', articleStats.length, articleStats);
-    console.log('Votes:', votes.length, votes);
-    console.log('Comments:', comments.length, comments);
-    console.groupEnd();
+    const { votes, comments, attractions } =
+        articles.length > 0
+            ? computeArticleMetrics(articles)
+            : {
+                  votes: [] as AnalyticsData['votes'],
+                  comments: [] as AnalyticsData['comments'],
+                  attractions: [] as AnalyticsData['attractions'],
+              };
 
     // Ensure we always have complete data by merging with dummy data
     const analyticsData: AnalyticsData = {
@@ -336,7 +319,6 @@ const calculateAnalytics = (state: RootState): AnalyticsData => {
         conversionTracking: dummyGAMetrics.conversionTracking,
     };
 
-    console.log('Final Analytics Data:', analyticsData);
     return analyticsData;
 };
 
