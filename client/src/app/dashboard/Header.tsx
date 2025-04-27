@@ -8,6 +8,34 @@ import { openPeeps } from '@dicebear/collection';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import NotificationDropdown from '@/components/ui/NotificationDropdown';
 import { useDashboard } from '@/context/DashboardContext';
+import chroma from 'chroma-js';
+
+// 1. Base HSL from CSS variables
+const PRIMARY_HSL = [217, 45, 65];
+
+// 2. Deterministic hash → hue within ±Δ of baseHue
+const stringToBrandColor = (str: string, delta = 15) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    // Map hash to [-delta, delta]
+    const shift = ((hash % (2 * delta)) - delta + 360) % 360;
+    const hue = (PRIMARY_HSL[0] + shift + 360) % 360;
+    return chroma.hsl(hue, PRIMARY_HSL[1] / 100, PRIMARY_HSL[2] / 100).css();
+    // returns 'hsl(hue, sat%, light%)'
+};
+
+// 3. Variant generator using chroma.js
+const createColorVariants = (baseColor: string) => {
+    const c = chroma(baseColor);
+    return {
+        base: c.css(),
+        light: c.luminance(Math.min(c.luminance() + 0.2, 1)).css(),
+        dark: c.darken(1).css(),
+        muted: c.desaturate(1).css(),
+    };
+};
 
 export default function Header() {
     const { isReady } = useDashboard();
@@ -16,34 +44,22 @@ export default function Header() {
     // Avatar and color logic
     const avatar = React.useMemo(() => {
         return createAvatar(openPeeps, {
-            size: 128,
-            seed: 'Felix',
+            seed: 'Aiden',
+            flip: true,
+            backgroundType: [],
+            accessories: ['glasses', 'glasses2', 'glasses3', 'glasses4', 'glasses5'],
+            accessoriesProbability: 50,
+            face: ['smileBig'],
+            facialHair: [],
+            facialHairProbability: 0,
+            head: ['bangs', 'grayMedium'],
+            mask: [],
+            maskProbability: 0,
         }).toDataUri();
     }, []);
 
-    const stringToColor = (str: string): string => {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const hue = hash % 360;
-        const saturation = 70 + (hash % 15);
-        const lightness = 45 + (hash % 10);
-        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-    };
-
-    const createColorVariants = (baseColor: string) => {
-        const [h, s, l] = baseColor.match(/\d+/g)?.map(Number) || [0, 0, 0];
-        return {
-            base: baseColor,
-            light: `hsl(${h}, ${s}%, ${Math.min(l + 20, 95)}%)`,
-            dark: `hsl(${h}, ${s}%, ${Math.max(l - 20, 5)}%)`,
-            muted: `hsl(${h}, ${Math.max(s - 30, 10)}%, ${l}%)`,
-        };
-    };
-
-    const userColor = user ? stringToColor(user.username || 'Anonymous') : '#888888';
-    const colorVariants = createColorVariants(userColor);
+    const brandColor = stringToBrandColor(user?.username || 'Aiden');;
+    const { light, dark, muted } = createColorVariants(brandColor);
 
     return (
         <AnimatedWrapper
@@ -70,10 +86,25 @@ export default function Header() {
                     <NotificationDropdown />
                 </div>
                 <div className="dashboard__avatar">
+                    <span>
+                        <p>{_.capitalize(user?.email)}</p>
+                        <p>
+                            {'@' +
+                                user?.username +
+                                ' - ' +
+                                (!_.isEmpty(user?.city)
+                                    ? user?.city + ', ' + user?.country?._country
+                                    : user?.country?._country)}
+                        </p>
+                    </span>
                     <div
                         className="avatar-circle"
                         style={{
-                            background: `linear-gradient(135deg, ${colorVariants.light}, ${colorVariants.dark})`,
+                            background: `linear-gradient(135deg, ${light}, ${dark})`,
+                            borderColor: muted,
+                            // Use CSS vars to allow runtime theming:
+                            // background: `linear-gradient(135deg, var(--avatar-light), var(--avatar-dark))`,
+                            // borderColor: `var(--avatar-muted)`,
                             overflow: 'hidden',
                             borderRadius: '50%',
                         }}

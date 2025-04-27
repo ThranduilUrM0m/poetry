@@ -9,11 +9,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const jwt_1 = require("@nestjs/jwt");
 const comment_controller_1 = require("../controllers/comment.controller");
 const comment_service_1 = require("../services/comment.service");
 const comment_model_1 = require("../models/comment.model");
-const vote_model_1 = require("../models/vote.model");
 const article_model_1 = require("../models/article.model");
+const vote_model_1 = require("../models/vote.model");
+const constants_1 = require("../auth/constants");
 let CommentModule = class CommentModule {
 };
 exports.CommentModule = CommentModule;
@@ -25,9 +27,14 @@ exports.CommentModule = CommentModule = __decorate([
                 { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
                 { name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema },
             ]),
+            jwt_1.JwtModule.register({
+                secret: constants_1.jwtConstants.secret,
+                signOptions: { expiresIn: constants_1.jwtConstants.expiresIn },
+            }),
         ],
         controllers: [comment_controller_1.CommentController],
         providers: [comment_service_1.CommentService],
+        exports: [comment_service_1.CommentService],
     })
 ], CommentModule);
 //# sourceMappingURL=comment.module.js.map

@@ -16,7 +16,7 @@ import {
     FilePenLine,
     Trash2,
 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -51,6 +51,7 @@ import {
     voteComment,
     setComments,
     clearCommentState,
+    selectApprovedComments,
 } from '@/slices/commentSlice';
 
 interface FormData {
@@ -58,7 +59,6 @@ interface FormData {
     _comment_author: string;
     _comment_email: string;
     _comment_body: string;
-    _comment_isPrivate: boolean;
     _comment_fingerprint: string;
     article: Article;
 }
@@ -73,7 +73,6 @@ const validationSchema = Yup.object().shape({
         .required('Email is required')
         .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Invalid email format'),
     _comment_body: Yup.string().required('Please provide a message.'),
-    _comment_isPrivate: Yup.boolean().default(false),
     _comment_fingerprint: Yup.string().default(''),
     article: Yup.mixed<Article>().test(
         'article-required',
@@ -93,7 +92,7 @@ export interface CommentTree extends Comment {
     children?: CommentTree[];
 }
 
-export const buildCommentTree = (comments: Comment[]): CommentTree[] => {
+export const buildCommentTree = (comments: Comment[]): CommentTree[] => {    
     const commentMap: { [id: string]: CommentTree } = {};
     const roots: CommentTree[] = [];
 
@@ -104,11 +103,23 @@ export const buildCommentTree = (comments: Comment[]): CommentTree[] => {
         }
     });
 
-    // Build the tree by grouping children with their parent
     comments.forEach((comment) => {
-        if (comment.Parent && commentMap[comment.Parent]) {
-            commentMap[comment.Parent].children!.push(commentMap[comment._id!]);
-        } else if (comment._id) {
+        if (!comment._id) return;
+
+        if (comment.Parent) {
+            // Handle comments with parents
+            const parentId = typeof comment.Parent === 'string' 
+                ? comment.Parent 
+                : (comment.Parent as Comment)._id;
+
+            if (parentId && commentMap[parentId]) {
+                commentMap[parentId].children!.push(commentMap[comment._id]);
+            } else {
+                // If parent not found, treat as root
+                roots.push(commentMap[comment._id]);
+            }
+        } else {
+            // Explicitly handle root comments
             roots.push(commentMap[comment._id]);
         }
     });
@@ -148,6 +159,36 @@ const CommentCard: React.FC<CommentCardProps> = ({
         (vote) => vote.voter === fingerprint && vote.direction === 'down'
     );
 
+    // Get parent author safely
+    /* const getParentAuthor = () => {
+        if (!comment.Parent) return null;
+        
+        if (typeof comment.Parent === 'string') {
+            // If Parent is just an ID, we can't get the author
+            return null;
+        }
+        
+        // If Parent is populated Comment object
+        return (comment.Parent as Comment)._comment_author;
+    };
+
+    const parentAuthor = getParentAuthor(); */
+
+    const formatCommentBody = (body: string) => {
+        const mentionMatch = body.match(/^@[\w\s]+\s/);
+        if (mentionMatch) {
+            const mention = mentionMatch[0];
+            const rest = body.slice(mention.length);
+            return (
+                <>
+                    <span className="__mention">{mention}</span>
+                    {rest}
+                </>
+            );
+        }
+        return body;
+    };
+
     return (
         <div className={`_card ${level > 0 ? `_cardReply-${level}` : ''}`}>
             <div className="_cardBody">
@@ -157,20 +198,12 @@ const CommentCard: React.FC<CommentCardProps> = ({
                         {comment.updatedAt &&
                             formatDistanceToNow(new Date(comment.updatedAt), { addSuffix: true })}
                     </p>
-                    {/* If this comment is a reply, you might want to add a "Replied to" indicator.
-                You can use comment.Parent (or fetch parent details if needed). */}
-                    {comment.Parent && (
-                        <div className="__replyingTo">
-                            <AtSign />
-                            <span> Replied</span>
-                        </div>
-                    )}
                     {currentComment?._id === comment._id && (
                         <div className="__editing">Editing</div>
                     )}
                 </div>
                 <div className="_middleRow">
-                    <h4>{_.capitalize(comment._comment_body)}</h4>
+                    <h4>{formatCommentBody(comment._comment_body)}</h4>
                 </div>
                 <div className="_bottomRow">
                     <div className={`upvotes ${!hasUserUpvoted ? '' : 'active'}`}>
@@ -248,6 +281,7 @@ export default function ArticlePage() {
     const article = useSelector(selectCurrentArticle);
     const isLoading = useSelector(selectIsLoading);
     const comments = useSelector(selectComments);
+    const approvedComments = useSelector(selectApprovedComments);
     const currentComment = useSelector(selectCurrentComment);
     const errorComment = useSelector(selectErrorComment);
 
@@ -267,6 +301,7 @@ export default function ArticlePage() {
         control,
         handleSubmit,
         setValue,
+        setFocus,
         watch,
         formState: { errors },
         clearErrors,
@@ -278,11 +313,11 @@ export default function ArticlePage() {
             _comment_author: '',
             _comment_email: '',
             _comment_body: '',
-            _comment_isPrivate: false,
             _comment_fingerprint: '',
             article: article || ({} as Article),
         },
     });
+    const watchedBody = useWatch({ control, name: '_comment_body' });
 
     // Initial effects: retrieve fingerprint
     useEffect(() => {
@@ -337,7 +372,14 @@ export default function ArticlePage() {
         if (currentComment) {
             reset({
                 ...currentComment,
-                article: article || currentComment.article,
+                // Convert Parent to string if it's a Comment object
+                Parent:
+                    typeof currentComment.Parent === 'string'
+                        ? currentComment.Parent
+                        : currentComment.Parent
+                        ? (currentComment.Parent as Comment)._id
+                        : null,
+                article: article ?? currentComment.article ?? ({} as Article),
             });
         } else {
             reset({
@@ -345,7 +387,6 @@ export default function ArticlePage() {
                 _comment_author: '',
                 _comment_email: '',
                 _comment_body: '',
-                _comment_isPrivate: false,
                 _comment_fingerprint: fingerprint,
                 article: article || ({} as Article),
             });
@@ -365,29 +406,51 @@ export default function ArticlePage() {
         }
     }, [article?._id, dispatch]);
 
-    // Comment handlers
+    // Add this helper function at the top of the file
+    const isMentionValid = (body: string, parentAuthor: string) => {
+        return body.startsWith(`@${parentAuthor} `);
+    };
+
+    // Update the handleReply function
     const handleReply = (comment: Comment) => {
+        const mention = `@${comment._comment_author} `;
+    
+        // Clear any existing currentComment state
+        dispatch(clearCurrentComment());
+        
+        // Reset form with new values
         reset({
-            Parent: comment._id!, // Set parent ID
+            Parent: comment._id!,
             _comment_author: '',
             _comment_email: '',
-            _comment_body: `@${comment._comment_author} `,
-            _comment_isPrivate: false,
+            _comment_body: mention,
             _comment_fingerprint: fingerprint,
-            article: article!,
+            article: article!
         });
-
-        // Optional: Automatically focus the message field
+    
+        // Use setTimeout to ensure the form has been reset before setting focus
         setTimeout(() => {
-            const textarea = document.querySelector('textarea[name="_comment_body"]');
-            if (textarea) {
-                (textarea as HTMLElement).focus();
-                // Move cursor to end
-                const length = (textarea as HTMLTextAreaElement).value.length;
-                (textarea as HTMLTextAreaElement).setSelectionRange(length, length);
-            }
+            setFocus('_comment_body');
         }, 0);
     };
+
+    // Update the watch effect to handle mention validation
+    useEffect(() => {
+        const subscription = watch((value) => {
+            if (value.Parent) {
+                const parentComment = comments.find((c) => c._id === value.Parent);
+                if (
+                    parentComment &&
+                    !isMentionValid(value._comment_body || '', parentComment._comment_author)
+                ) {
+                    // If mention is invalid, remove Parent
+                    setValue('Parent', null);
+                }
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, [watch, comments, setValue]);
 
     const handleEditComment = (comment: Comment) => {
         if (comment._comment_fingerprint === fingerprint) {
@@ -498,7 +561,6 @@ export default function ArticlePage() {
                 _comment_author: '',
                 _comment_email: '',
                 _comment_body: '', // This clears the @ mention
-                _comment_isPrivate: false,
                 _comment_fingerprint: fingerprint,
                 article: article!,
             });
@@ -528,7 +590,8 @@ export default function ArticlePage() {
 
     // Error handling
     useEffect(() => {
-        if (errorComment && isSubmitOpen) { // Only show errors when submit modal is already open
+        if (errorComment && isSubmitOpen) {
+            // Only show errors when submit modal is already open
             setSubmitMessage(errorComment);
             setIsSuccess(false);
         }
@@ -543,7 +606,9 @@ export default function ArticlePage() {
     const containsArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
 
     // Build the nested comment tree
-    const nestedComments = buildCommentTree(comments.filter((c) => !c._comment_isPrivate));
+    const nestedComments = buildCommentTree(
+        _.filter(approvedComments, (c) => c._comment_isOK) as Comment[]
+    );
 
     return (
         <main className="post">
@@ -747,9 +812,7 @@ export default function ArticlePage() {
                                                         <FormField
                                                             label="Add comment..."
                                                             name="_comment_body"
-                                                            value={
-                                                                currentComment?._comment_body || ''
-                                                            }
+                                                            value={watchedBody}
                                                             type="textarea"
                                                             control={control}
                                                             error={errors._comment_body?.message}
@@ -761,28 +824,10 @@ export default function ArticlePage() {
                                                             }
                                                             icon={<MessageSquareText />}
                                                             forceReset={formReset}
+                                                            immediateSync={true}
                                                         />
                                                     </div>
                                                     <div className="_row">
-                                                        <FormField
-                                                            label="Only for Poet"
-                                                            name="_comment_isPrivate"
-                                                            value={
-                                                                currentComment?._comment_isPrivate ||
-                                                                false
-                                                            }
-                                                            type="checkbox"
-                                                            control={control}
-                                                            error={
-                                                                errors._comment_isPrivate?.message
-                                                            }
-                                                            onClear={() =>
-                                                                handleClearField(
-                                                                    '_comment_isPrivate'
-                                                                )
-                                                            }
-                                                        />
-
                                                         {currentComment ||
                                                         watch('_comment_body').startsWith('@') ? (
                                                             <button
@@ -796,7 +841,6 @@ export default function ArticlePage() {
                                                                         _comment_author: '',
                                                                         _comment_email: '',
                                                                         _comment_body: '',
-                                                                        _comment_isPrivate: false,
                                                                         _comment_fingerprint:
                                                                             fingerprint,
                                                                         article:
@@ -970,9 +1014,7 @@ export default function ArticlePage() {
                                         <div className="__title">
                                             Comments
                                             <p>
-                                                {_.size(
-                                                    _.filter(comments, (c) => !c._comment_isPrivate)
-                                                )}
+                                                {_.size(_.filter(comments, (c) => c._comment_isOK))}
                                             </p>
                                         </div>
                                         <SimpleBar
@@ -1016,7 +1058,6 @@ export default function ArticlePage() {
                         _comment_author: '',
                         _comment_email: '',
                         _comment_body: '',
-                        _comment_isPrivate: false,
                         _comment_fingerprint: fingerprint,
                         article: article!,
                     });

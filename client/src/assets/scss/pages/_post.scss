@@ -141,7 +141,7 @@
 
                         ._card {
                             &Body {
-                                @apply pb-[4vh];
+                                @apply pb-[4vh] pr-[4vh];
 
                                 ._topRow {
                                     @apply flex flex-col;
@@ -152,10 +152,6 @@
                                         b {
                                             @apply text-[rgb(var(--text)/.75)] text-[2.5vh] leading-[3.5vh];
                                         }
-                                    }
-
-                                    .__replyingTo {
-                                        @apply text-[1.75vh] text-[rgb(var(--text)/.35)] flex items-center gap-1;
                                     }
 
                                     .__editing {

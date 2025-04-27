@@ -38,18 +38,24 @@ export interface View {
 
 export interface Comment {
     _id?: string; // Converted from Types.ObjectId
-    Parent?: string | null;
+    Parent?: string | Comment | null;
     _comment_isOK?: boolean;
     _comment_author: string;
     _comment_email: string;
     _comment_body: string;
-    _comment_isPrivate: boolean;
     _comment_fingerprint: string;
     _comment_votes?: Vote[];
     isFeatured?: boolean;
     article: Article | null; // Add _article field to Comment
     createdAt?: string;
     updatedAt?: string;
+    aiAnalysis?: {
+        toxic: boolean;
+        spam: boolean;
+        sentiment: string;
+        score: number;
+        reasons: string[];
+    };
 }
 
 export interface Article {

@@ -149,13 +149,13 @@ const dummyGAMetrics: AnalyticsData = {
         campaignPerformance: { campaignA: 100, campaignB: 50 },
     },
     userBehavior: {
-        pageViewsDetail: { '/home': 150, '/blog': 100, '/contact': 30 },
+        pageViewsDetail: { 'homepage': 150, 'blog': 100, 'contact': 30 },
         eventTracking: { click: 200, formSubmit: 50, videoPlay: 30 },
         siteSpeed: 2.5,
     },
     realTimeAnalytics: {
         activeUsers: 25,
-        pagesBeingViewed: { '/home': 10, '/blog': 8, '/dashboard': 7 },
+        pagesBeingViewed: { 'homepage': 10, 'blog': 8, 'dashboard': 7 },
         liveEvents: { liveChat: 5 },
     },
     enhancedMetrics: {

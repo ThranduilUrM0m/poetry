@@ -16,11 +16,52 @@ export class CommentService {
         try {
             const articleObjectId = new Types.ObjectId(articleId);
             // First get comments without population
-            const comments = await this.commentModel
-                .find({ article: articleObjectId })
-                .sort({ createdAt: -1 })
-                .lean()
-                .exec();
+            const comments = await this.commentModel.aggregate([
+                { $match: { article: articleObjectId } },
+                // Populate article
+                {
+                    $lookup: {
+                        from: 'articles',
+                        localField: 'article',
+                        foreignField: '_id',
+                        as: 'articleLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        article: {
+                            $cond: [
+                                { $gt: [{ $size: '$articleLookup' }, 0] },
+                                { $arrayElemAt: ['$articleLookup', 0] },
+                                '$article', // Keep original ID if not found
+                            ],
+                        },
+                    },
+                },
+                { $project: { articleLookup: 0 } },
+                // Populate Parent
+                {
+                    $lookup: {
+                        from: 'comments',
+                        localField: 'Parent',
+                        foreignField: '_id',
+                        as: 'parentLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        Parent: {
+                            $cond: [
+                                { $gt: [{ $size: '$parentLookup' }, 0] },
+                                { $arrayElemAt: ['$parentLookup', 0] },
+                                '$Parent', // Keep original ID
+                            ],
+                        },
+                    },
+                },
+                { $project: { parentLookup: 0 } },
+                { $sort: { createdAt: -1 } },
+            ]);
 
             return comments;
         } catch (error) {
@@ -63,7 +104,7 @@ export class CommentService {
 
         const newComment = new this.commentModel({
             ...data,
-            isFeatured: data.isFeatured || false,
+            isFeatured: data.isFeatured || true,
         });
         return newComment.save();
     }
@@ -75,14 +116,66 @@ export class CommentService {
     async getAllComments(): Promise<Comment[]> {
         try {
             // First get comments without population
-            const comments = await this.commentModel.find().sort({ createdAt: -1 }).lean().exec();
+            const comments = await this.commentModel.aggregate([
+                // Handle 'article' population
+                {
+                    $lookup: {
+                        from: 'articles', // The collection name for articles
+                        localField: 'article', // The field in comments
+                        foreignField: '_id', // The field in articles
+                        as: 'articleLookup', // Temporary array to hold lookup results
+                    },
+                },
+                {
+                    $addFields: {
+                        article: {
+                            $cond: {
+                                // Check if the lookup found any results
+                                if: { $gt: [{ $size: '$articleLookup' }, 0] },
+                                // If found, use the first (and only) document
+                                then: { $arrayElemAt: ['$articleLookup', 0] },
+                                // If not found, retain the original ObjectId
+                                else: '$article',
+                            },
+                        },
+                    },
+                },
+                { $project: { articleLookup: 0 } }, // Remove the temporary field
 
-            if (!comments || comments.length === 0) {
-                console.warn('No comments found in database');
+                // Handle 'Parent' population (assuming it's a self-reference)
+                {
+                    $lookup: {
+                        from: 'comments', // Collection name for parent comments
+                        localField: 'Parent',
+                        foreignField: '_id',
+                        as: 'parentLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        Parent: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$parentLookup' }, 0] },
+                                then: { $arrayElemAt: ['$parentLookup', 0] },
+                                else: '$Parent',
+                            },
+                        },
+                    },
+                },
+                { $project: { parentLookup: 0 } }, // Remove the temporary field
+
+                { $sort: { createdAt: -1 } }, // Sort by createdAt descending
+            ]);
+
+            // Filter out comments where article population failed (resulted in null)
+            const validComments = comments.filter((comment) => comment.article);
+
+            if (validComments.length === 0) {
+                console.warn('No valid comments found in database');
                 return [];
             }
 
-            return comments;
+            return validComments;
         } catch (error: unknown) {
             console.error('Error in getAllComments service:', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -97,7 +190,52 @@ export class CommentService {
      * @throws NotFoundException if the comment is not found.
      */
     async getCommentById(id: string): Promise<Comment> {
-        const comment = await this.commentModel.findById(id).populate('article').exec();
+        const [comment] = await this.commentModel.aggregate([
+            { $match: { _id: new Types.ObjectId(id) } },
+            // Same lookup/addFields logic as above
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
+
+        // Handle case where no document is found
         if (!comment) throw new NotFoundException('Comment not found');
         return comment;
     }
@@ -115,12 +253,56 @@ export class CommentService {
             throw new BadRequestException('Cannot change comment parent');
         }
 
-        const comment = await this.commentModel
-            .findByIdAndUpdate(id, data, {
-                new: true,
-                runValidators: true,
-            })
-            .exec();
+        const updatedComment = await this.commentModel.findByIdAndUpdate(id, data, {
+            new: true,
+            runValidators: true,
+        });
+
+        // Then populate using aggregation
+        const [comment] = await this.commentModel.aggregate([
+            { $match: { _id: updatedComment?._id } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
+
         if (!comment) throw new NotFoundException('Comment not found');
         return comment;
     }
@@ -132,8 +314,55 @@ export class CommentService {
      * @throws NotFoundException if the comment is not found.
      */
     async deleteComment(id: string): Promise<{ message: string }> {
-        const comment = await this.commentModel.findByIdAndDelete(id).exec();
-        if (!comment) throw new NotFoundException('Comment not found');
+        // First get the document with populated fields
+        const [commentToDelete] = await this.commentModel.aggregate([
+            { $match: { _id: new Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
+
+        // Then delete it
+        await this.commentModel.findByIdAndDelete(id);
+
+        if (!commentToDelete) throw new NotFoundException('Comment not found');
         return { message: 'Comment deleted successfully' };
     }
 }

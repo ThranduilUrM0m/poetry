@@ -4,7 +4,7 @@ import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import SimpleBar from 'simplebar-react';
 import { useTransition, useSpring } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
-import { SearchSuggestion } from '@/types/search';
+import { SearchSuggestion, SuggestionType } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';
 
@@ -113,7 +113,29 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
 
                 if (exactMatches.length > 0) {
                     return _.orderBy(exactMatches, [
-                        (item) => ({ title: 0, category: 1, tag: 2, author: 3 }[item.type] || 4),
+                        (item) => {
+                            // Define base priorities for all types
+                            const baseOrder: Record<SuggestionType, number> = {
+                                title: 0,
+                                category: 1,
+                                tag: 2,
+                                author: 3,
+                                status: 4,
+                                visibility: 5,
+                                featured: 6,
+                            };
+
+                            // Get base order value
+                            const orderValue = baseOrder[item.type] ?? 7;
+
+                            // Differentiate between article/comment suggestions
+                            if (item.sourceType === 'Comment') {
+                                // Example: Boost comment status visibility
+                                if (item.type === 'status') return orderValue - 3; // Higher priority
+                            }
+
+                            return orderValue;
+                        },
                         'title',
                     ]);
                 }
@@ -242,6 +264,11 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
     useEffect(() => {
         if (value !== undefined) {
             setInputValue(value);
+            setInternalValue(value);
+            // If the field is empty and there's a value, set focused state
+            if (!internalValue && value) {
+                setIsFocused(true);
+            }
         }
     }, [value]);
 
@@ -368,8 +395,13 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
             setInternalValue(value);
             setInputValue(value);
             previousValueRef.current = value;
+
+            // Force an update of the form control
+            if (immediateSync) {
+                onChangeRef.current?.(value as string);
+            }
         }
-    }, [value]);
+    }, [value, immediateSync]);
 
     // Update internal state when form is reset
     useEffect(() => {
@@ -693,85 +725,165 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                 {typedItem.type ===
                                                                                 'author' ? (
                                                                                     <div className="author-suggestion">
-                                                                                        <div className="author-info">
-                                                                                            {typedItem.icon && (
-                                                                                                <span className="suggestion-icon">
-                                                                                                    {
-                                                                                                        typedItem.icon
-                                                                                                    }
-                                                                                                </span>
-                                                                                            )}
-                                                                                            <span
-                                                                                                lang={
-                                                                                                    containsArabic(
-                                                                                                        // Safely combine first + last name with proper undefined handling
-                                                                                                        [
-                                                                                                            typedItem?.source?.author
-                                                                                                                ?.firstName,
-                                                                                                            typedItem?.source?.author
-                                                                                                                ?.lastName,
-                                                                                                        ]
-                                                                                                            .filter(
-                                                                                                                (
-                                                                                                                    name
-                                                                                                                ) =>
-                                                                                                                    !_.isEmpty(
-                                                                                                                        name
+                                                                                        {typedItem.sourceType ===
+                                                                                        'Article' ? (
+                                                                                            <>
+                                                                                                <div className="author-info">
+                                                                                                    {typedItem.icon && (
+                                                                                                        <span className="suggestion-icon">
+                                                                                                            {
+                                                                                                                typedItem.icon
+                                                                                                            }
+                                                                                                        </span>
+                                                                                                    )}
+
+                                                                                                    <span
+                                                                                                        lang={
+                                                                                                            containsArabic(
+                                                                                                                // Safely combine first + last name with proper undefined handling
+                                                                                                                [
+                                                                                                                    typedItem
+                                                                                                                        ?.source
+                                                                                                                        ?.author
+                                                                                                                        ?.firstName,
+                                                                                                                    typedItem
+                                                                                                                        ?.source
+                                                                                                                        ?.author
+                                                                                                                        ?.lastName,
+                                                                                                                ]
+                                                                                                                    .filter(
+                                                                                                                        (
+                                                                                                                            name
+                                                                                                                        ) =>
+                                                                                                                            !_.isEmpty(
+                                                                                                                                name
+                                                                                                                            )
+                                                                                                                    ) // Remove empty/undefined names
+                                                                                                                    .join(
+                                                                                                                        ' '
                                                                                                                     )
-                                                                                                            ) // Remove empty/undefined names
-                                                                                                            .join(
-                                                                                                                ' '
                                                                                                             )
-                                                                                                    )
-                                                                                                        ? 'ar'
-                                                                                                        : 'en'
-                                                                                                }
-                                                                                                className="fullname"
-                                                                                            >
-                                                                                                {
-                                                                                                    typedItem?.source?.author
-                                                                                                    ?.firstName
-                                                                                                }{' '}
-                                                                                                {
-                                                                                                    typedItem?.source?.author
-                                                                                                    ?.lastName
-                                                                                                }
-                                                                                            </span>
-                                                                                            <span
-                                                                                                lang={
-                                                                                                    containsArabic(
-                                                                                                        typedItem.title
-                                                                                                    )
-                                                                                                        ? 'ar'
-                                                                                                        : 'en'
-                                                                                                }
-                                                                                                className="username"
-                                                                                            >
-                                                                                                <span className="at-sign">
-                                                                                                    {' '}
-                                                                                                    @{' '}
-                                                                                                </span>
-                                                                                                {
-                                                                                                    typedItem.title
-                                                                                                }
-                                                                                            </span>
-                                                                                        </div>
-                                                                                        <div className="location">
-                                                                                            {
-                                                                                                typedItem?.source?.author
-                                                                                                    .city
-                                                                                            }
-                                                                                            ,{' '}
-                                                                                            {typedItem?.source?.author
-                                                                                                .country
-                                                                                                ? typedItem?.source?.author
-                                                                                                      .country
-                                                                                                      ._country
-                                                                                                : ''}
-                                                                                        </div>
+                                                                                                                ? 'ar'
+                                                                                                                : 'en'
+                                                                                                        }
+                                                                                                        className="fullname"
+                                                                                                    >
+                                                                                                        {
+                                                                                                            typedItem
+                                                                                                                ?.source
+                                                                                                                ?.author
+                                                                                                                ?.firstName
+                                                                                                        }{' '}
+                                                                                                        {
+                                                                                                            typedItem
+                                                                                                                ?.source
+                                                                                                                ?.author
+                                                                                                                ?.lastName
+                                                                                                        }
+                                                                                                    </span>
+                                                                                                    <span
+                                                                                                        lang={
+                                                                                                            containsArabic(
+                                                                                                                typedItem.title
+                                                                                                            )
+                                                                                                                ? 'ar'
+                                                                                                                : 'en'
+                                                                                                        }
+                                                                                                        className="username"
+                                                                                                    >
+                                                                                                        <span className="at-sign">
+                                                                                                            {' '}
+                                                                                                            @{' '}
+                                                                                                        </span>
+                                                                                                        {
+                                                                                                            typedItem.title
+                                                                                                        }
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                                <div className="location">
+                                                                                                    {
+                                                                                                        typedItem
+                                                                                                            ?.source
+                                                                                                            ?.author
+                                                                                                            .city
+                                                                                                    }
+
+                                                                                                    ,{' '}
+                                                                                                    {typedItem
+                                                                                                        ?.source
+                                                                                                        ?.author
+                                                                                                        .country
+                                                                                                        ? typedItem
+                                                                                                              ?.source
+                                                                                                              ?.author
+                                                                                                              .country
+                                                                                                              ._country
+                                                                                                        : ''}
+                                                                                                </div>
+                                                                                            </>
+                                                                                        ) : (
+                                                                                            <>
+                                                                                                <div className="author-info">
+                                                                                                    {typedItem.icon && (
+                                                                                                        <span className="suggestion-icon">
+                                                                                                            {
+                                                                                                                typedItem.icon
+                                                                                                            }
+                                                                                                        </span>
+                                                                                                    )}
+
+                                                                                                    {typedItem.sourceType ===
+                                                                                                        'Comment' &&
+                                                                                                        'source' in
+                                                                                                            typedItem && (
+                                                                                                            <span
+                                                                                                                lang={
+                                                                                                                    containsArabic(
+                                                                                                                        typedItem.source!
+                                                                                                                            ._comment_author
+                                                                                                                    )
+                                                                                                                        ? 'ar'
+                                                                                                                        : 'en'
+                                                                                                                }
+                                                                                                                className="fullname"
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    typedItem.source!
+                                                                                                                        ._comment_author
+                                                                                                                }
+                                                                                                            </span>
+                                                                                                        )}
+                                                                                                    {typedItem.sourceType ===
+                                                                                                        'Comment' &&
+                                                                                                        'source' in
+                                                                                                            typedItem && (
+                                                                                                            <span
+                                                                                                                lang={
+                                                                                                                    containsArabic(
+                                                                                                                        typedItem
+                                                                                                                            .source!
+                                                                                                                            ._comment_email
+                                                                                                                    )
+                                                                                                                        ? 'ar'
+                                                                                                                        : 'en'
+                                                                                                                }
+                                                                                                                className="username"
+                                                                                                            >
+                                                                                                                {
+                                                                                                                    typedItem
+                                                                                                                        .source!
+                                                                                                                        ._comment_email
+                                                                                                                }
+                                                                                                            </span>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                            </>
+                                                                                        )}
                                                                                     </div>
                                                                                 ) : typedItem.type ===
-                                                                                  'category' ? (
+                                                                                      'category' &&
+                                                                                  typedItem.sourceType ===
+                                                                                      'Article' ? (
                                                                                     <div className="category-suggestion">
                                                                                         <span
                                                                                             lang={

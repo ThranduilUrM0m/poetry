@@ -9,7 +9,6 @@ export declare class Comment {
     _comment_author: string;
     _comment_email: string;
     _comment_body: string;
-    _comment_isPrivate: boolean;
     _comment_fingerprint: string;
     article: Types.ObjectId;
     _comment_votes: Types.ObjectId[];

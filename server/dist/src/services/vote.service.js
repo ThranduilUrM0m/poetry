@@ -26,11 +26,55 @@ let VoteService = class VoteService {
         return newVote.save();
     }
     async getAllVotes() {
-        const votes = await this.voteModel.find().populate('target');
+        const votes = await this.voteModel.aggregate([
+            {
+                $lookup: {
+                    from: 'targets',
+                    localField: 'target',
+                    foreignField: '_id',
+                    as: 'targetLookup',
+                },
+            },
+            {
+                $addFields: {
+                    target: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$targetLookup' }, 0] },
+                            then: { $arrayElemAt: ['$targetLookup', 0] },
+                            else: '$target',
+                        },
+                    },
+                },
+            },
+            { $project: { targetLookup: 0 } },
+        ]);
         return votes;
     }
     async getVoteById(id) {
-        const vote = await this.voteModel.findById(id).populate('target');
+        const [vote] = await this.voteModel.aggregate([
+            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'targets',
+                    localField: 'target',
+                    foreignField: '_id',
+                    as: 'targetLookup',
+                },
+            },
+            {
+                $addFields: {
+                    target: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$targetLookup' }, 0] },
+                            then: { $arrayElemAt: ['$targetLookup', 0] },
+                            else: '$target',
+                        },
+                    },
+                },
+            },
+            { $project: { targetLookup: 0 } },
+            { $limit: 1 },
+        ]);
         if (!vote)
             throw new common_1.NotFoundException('Vote not found');
         return vote;

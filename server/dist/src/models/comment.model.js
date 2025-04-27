@@ -20,11 +20,11 @@ __decorate([
     __metadata("design:type", Object)
 ], Comment.prototype, "Parent", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, default: false }),
+    (0, mongoose_1.Prop)({ required: true, default: true }),
     __metadata("design:type", Boolean)
 ], Comment.prototype, "_comment_isOK", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ default: false }),
+    (0, mongoose_1.Prop)({ default: true }),
     __metadata("design:type", Boolean)
 ], Comment.prototype, "isFeatured", void 0);
 __decorate([
@@ -39,10 +39,6 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Comment.prototype, "_comment_body", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ default: false }),
-    __metadata("design:type", Boolean)
-], Comment.prototype, "_comment_isPrivate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)

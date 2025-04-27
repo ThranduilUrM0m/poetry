@@ -12,6 +12,17 @@ interface CommentState {
     cachedComments: Record<string, Comment>;
     isLoading: boolean;
     error: string | null;
+    commentAnalyses: Record<string, CommentAnalysis>;
+    flaggedComments: string[];
+}
+
+interface CommentAnalysis {
+    toxic: boolean;
+    spam: boolean;
+    sentiment: 'positive' | 'neutral' | 'negative';
+    score: number;
+    reasons: string[];
+    severity: 'low' | 'medium' | 'high';
 }
 
 const initialState: CommentState = {
@@ -21,6 +32,8 @@ const initialState: CommentState = {
     cachedComments: {},
     isLoading: false,
     error: null,
+    commentAnalyses: {},
+    flaggedComments: [],
 };
 
 // Utility function to extract error message
@@ -34,19 +47,107 @@ const getErrorMessage = (error: unknown): string => {
     return 'An unknown error occurred';
 };
 
-// Add to commentSlice.ts
+export const analyzeComment = createAsyncThunk(
+    'comments/analyze',
+    async (commentId: string, { getState, dispatch, rejectWithValue }) => {
+        try {
+            const state = getState() as RootState;
+            const comment = state.comment.comments.find((c) => c._id === commentId);
+
+            if (!comment) {
+                throw new Error('Comment not found');
+            }
+
+            const response = await axios.post(`${API_BASE_URL}/api/analyze-comment`, {
+                text: comment._comment_body,
+            });
+
+            const analysis = response.data;
+            const isFlagged = analysis.toxic || analysis.spam || analysis.sentiment === 'negative';
+
+            // Determine approval status based on analysis
+            let updateData = {};
+            if (!isFlagged) {
+                // Case 1: Not flagged
+                updateData = {
+                    _comment_isOK: true,
+                    isFeatured: true,
+                };
+            } else if (analysis.severity === 'low') {
+                // Case 2: Flagged with low severity
+                updateData = {
+                    _comment_isOK: true,
+                    isFeatured: false,
+                };
+            } else {
+                // Case 3: Flagged with medium/high severity
+                updateData = {
+                    _comment_isOK: false,
+                    isFeatured: false,
+                };
+            }
+
+            // Update the comment with new status
+            if (comment._id) {
+                await dispatch(
+                    updateComment({
+                        id: comment._id,
+                        data: updateData,
+                    })
+                ).unwrap();
+            }
+
+            return {
+                commentId,
+                analysis,
+            };
+        } catch (error) {
+            return rejectWithValue(getErrorMessage(error));
+        }
+    }
+);
+
+// Add batch analysis thunk
+export const analyzeComments = createAsyncThunk(
+    'comments/analyzeBatch',
+    async (_, { getState, dispatch }) => {
+        // Remove unused commentIds parameter
+        const state = getState() as RootState;
+        const { comments, commentAnalyses } = state.comment;
+
+        // Find comments that need analysis
+        const commentsToAnalyze = comments.filter(
+            (comment) => comment._id && !commentAnalyses[comment._id]
+        );
+
+        // Batch analyze only the needed comments
+        const analyses = await Promise.all(
+            commentsToAnalyze.map((comment) => dispatch(analyzeComment(comment._id!)).unwrap())
+        );
+
+        return analyses;
+    }
+);
+
 export const createComment = createAsyncThunk(
     'comments/create',
-    async (commentData: Partial<Comment>, { rejectWithValue }) => {
+    async (commentData: Partial<Comment>, { dispatch, rejectWithValue }) => {
         try {
-            // Convert Article object to ID string for backend
+            // Set default values for new comments
             const backendPayload = {
                 ...commentData,
                 article: commentData.article?._id,
+                _comment_isOK: true, // Default to true
+                isFeatured: true, // Default to true
             };
 
             const response = await axios.post(`${API_BASE_URL}/api/comments`, backendPayload);
-            return response.data;
+            const newComment = response.data;
+
+            // Trigger analysis immediately after creation
+            await dispatch(analyzeComment(newComment._id!)).unwrap();
+
+            return newComment;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
         }
@@ -104,9 +205,7 @@ export const fetchComments = createAsyncThunk(
         } catch (error: unknown) {
             console.error('Error fetching comments:', error);
             if (axios.isAxiosError(error)) {
-                return rejectWithValue(
-                    error.response?.data?.message || 'Failed to fetch comments'
-                );
+                return rejectWithValue(error.response?.data?.message || 'Failed to fetch comments');
             }
             return rejectWithValue('An error occurred while fetching comments');
         }
@@ -148,12 +247,47 @@ export const fetchUpdatedComment = createAsyncThunk(
 
 export const deleteComment = createAsyncThunk(
     'comments/delete',
-    async ({ id, fingerprint }: { id: string; fingerprint: string }, { rejectWithValue }) => {
+    async (
+        {
+            id,
+            fingerprint,
+            isAdmin = false,
+        }: {
+            id: string;
+            fingerprint?: string;
+            isAdmin?: boolean;
+        },
+        { rejectWithValue }
+    ) => {
         try {
-            const response = await axios.delete(`${API_BASE_URL}/api/comments/${id}`, {
-                data: { fingerprint }, // Send fingerprint in the request body
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add admin authorization header if deleting as admin
+            if (isAdmin) {
+                const adminToken = localStorage.getItem('token'); // Or however you store admin auth
+                if (!adminToken) {
+                    throw new Error('Admin authorization required');
+                }
+                headers['Authorization'] = `Bearer ${adminToken}`;
+            } else if (fingerprint) {
+                // For regular users, include fingerprint
+                headers['X-Comment-Fingerprint'] = fingerprint;
+            } else {
+                throw new Error('Either admin rights or fingerprint required');
+            }
+
+            const response = await fetch(`${API_BASE_URL}/api/comments/${id}`, {
+                method: 'DELETE',
+                headers,
             });
-            return { id, message: response.data.message };
+
+            if (!response.ok) {
+                throw new Error('Failed to delete comment');
+            }
+
+            return id;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
         }
@@ -194,10 +328,31 @@ const commentSlice = createSlice({
             state.error = null;
             state.currentComment = null;
             state.successMessage = null;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder
+            .addCase(analyzeComment.fulfilled, (state, action) => {
+                const { commentId, analysis } = action.payload;
+                state.commentAnalyses[commentId] = analysis;
+
+                if (analysis.toxic || analysis.spam || analysis.sentiment === 'negative') {
+                    if (!state.flaggedComments.includes(commentId)) {
+                        state.flaggedComments.push(commentId);
+                    }
+                }
+            })
+            .addCase(analyzeComments.fulfilled, (state, action) => {
+                action.payload.forEach(({ commentId, analysis }) => {
+                    state.commentAnalyses[commentId] = analysis;
+                    if (
+                        (analysis.toxic || analysis.spam || analysis.sentiment === 'negative') &&
+                        !state.flaggedComments.includes(commentId)
+                    ) {
+                        state.flaggedComments.push(commentId);
+                    }
+                });
+            })
             .addCase(fetchComments.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
@@ -209,7 +364,7 @@ const commentSlice = createSlice({
             })
             .addCase(fetchComments.rejected, (state, action) => {
                 state.isLoading = false;
-                state.error = action.payload as string || 'Failed to fetch comments';
+                state.error = (action.payload as string) || 'Failed to fetch comments';
                 state.comments = []; // Reset comments on error
             })
             .addCase(fetchCommentsByArticle.pending, (state) => {
@@ -250,9 +405,15 @@ const commentSlice = createSlice({
             .addCase(voteComment.rejected, (state, action) => {
                 state.error = action.error.message || 'Failed to vote on comment';
             })
-            .addCase(deleteComment.fulfilled, (state, action) => {
-                // Remove the deleted comment from the state
-                state.comments = state.comments.filter((comment) => comment._id !== action.payload.id);
+            .addCase(deleteComment.fulfilled, (state, action: PayloadAction<string>) => {
+                // Remove the deleted comment from the state using the ID directly
+                state.comments = state.comments.filter((comment) => comment._id !== action.payload);
+                state.isLoading = false;
+                state.error = null;
+            })
+            .addCase(deleteComment.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
             })
             .addCase(deleteComment.rejected, (state, action) => {
                 state.error = action.error.message || 'Failed to delete comment';
@@ -270,7 +431,7 @@ const commentSlice = createSlice({
                 state.error = null;
                 state.successMessage = 'Comment updated successfully';
                 state.currentComment = null;
-                const index = state.comments.findIndex(c => c._id === action.payload._id);
+                const index = state.comments.findIndex((c) => c._id === action.payload._id);
                 if (index !== -1) {
                     state.comments[index] = action.payload;
                 }
@@ -292,6 +453,13 @@ export const {
 export default commentSlice.reducer;
 
 // Selectors
+export const selectApprovedComments = (state: RootState) =>
+    state.comment.comments.filter((c) => c._comment_isOK);
+export const selectFeaturedComments = (state: RootState) =>
+    state.comment.comments.filter((c) => c.isFeatured && c._comment_isOK);
+export const selectCommentAnalysis = (commentId: string) => (state: RootState) =>
+    state.comment.commentAnalyses[commentId];
+export const selectFlaggedComments = (state: RootState) => state.comment.flaggedComments;
 export const selectComments = (state: RootState) => state.comment.comments;
 export const selectCurrentComment = (state: RootState) => state.comment.currentComment;
 export const selectCachedComment = (_id: string) => (state: RootState) =>

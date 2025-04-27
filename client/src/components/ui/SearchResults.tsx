@@ -26,7 +26,7 @@ export default function SearchResults({
     const handleArticleClick = (article: Article) => {
         onSearchClose(); // Close the modal
         // Use the article's slug and category for navigation
-        router.push(`/${article.category.toLowerCase()}/${article.slug}`);
+        router.push(`/blog/${article.category.toLowerCase()}/${article.slug}`);
     };
 
     return (

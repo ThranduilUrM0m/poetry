@@ -26,11 +26,55 @@ let ViewService = class ViewService {
         return newView.save();
     }
     async getAllViews() {
-        const views = await this.viewModel.find().populate('article');
+        const views = await this.viewModel.aggregate([
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$articleLookup' }, 0] },
+                            then: { $arrayElemAt: ['$articleLookup', 0] },
+                            else: '$article',
+                        },
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+        ]);
         return views;
     }
     async getViewById(id) {
-        const view = await this.viewModel.findById(id).populate('article');
+        const [view] = await this.viewModel.aggregate([
+            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$articleLookup' }, 0] },
+                            then: { $arrayElemAt: ['$articleLookup', 0] },
+                            else: '$article',
+                        },
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            { $limit: 1 },
+        ]);
         if (!view)
             throw new common_1.NotFoundException('View not found');
         return view;

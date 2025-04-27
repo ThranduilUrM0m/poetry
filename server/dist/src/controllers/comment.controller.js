@@ -21,9 +21,11 @@ const article_model_1 = require("../models/article.model");
 const vote_model_1 = require("../models/vote.model");
 const comment_service_1 = require("../services/comment.service");
 const dummyData_1 = require("../data/dummyData");
+const jwt_1 = require("@nestjs/jwt");
 let CommentController = class CommentController {
-    constructor(commentService, commentModel, articleModel, voteModel) {
+    constructor(commentService, jwtService, commentModel, articleModel, voteModel) {
         this.commentService = commentService;
+        this.jwtService = jwtService;
         this.commentModel = commentModel;
         this.articleModel = articleModel;
         this.voteModel = voteModel;
@@ -67,46 +69,79 @@ let CommentController = class CommentController {
     async populateComment(comment) {
         const populatedComment = {
             ...comment,
-            article: {},
+            Parent: comment.Parent ? comment.Parent : null,
+            article: comment.article ? comment.article : null,
             _comment_votes: [],
         };
         try {
-            if (comment.article) {
-                const articleId = comment.article instanceof mongoose_2.Types.ObjectId
-                    ? comment.article
-                    : new mongoose_2.Types.ObjectId(comment.article.toString());
-                let populatedArticle = await this.articleModel
-                    .findById(articleId)
-                    .lean()
-                    .exec();
-                if (!populatedArticle) {
-                    const dummyArticle = dummyData_1.dummyArticles.find((a) => a._id?.toString() === articleId.toString());
-                    if (dummyArticle) {
-                        populatedArticle = {
-                            ...dummyArticle,
-                            _id: articleId,
-                            __v: 0,
-                        };
+            if (comment.Parent) {
+                try {
+                    const parentId = typeof comment.Parent === 'string'
+                        ? new mongoose_2.Types.ObjectId(comment.Parent)
+                        : comment.Parent instanceof mongoose_2.Types.ObjectId
+                            ? comment.Parent
+                            : new mongoose_2.Types.ObjectId(comment.Parent._id || comment.Parent);
+                    let populatedParent = await this.commentModel
+                        .findById(parentId)
+                        .lean()
+                        .exec();
+                    if (!populatedParent) {
+                        const dummyParent = dummyData_1.dummyComments.find((c) => c._id?.toString() === parentId.toString());
+                        if (dummyParent) {
+                            populatedParent = {
+                                ...dummyParent,
+                                _id: parentId,
+                                __v: 0,
+                            };
+                        }
                     }
-                    else {
-                        populatedArticle = {
-                            _id: articleId,
-                            __v: 0,
-                            title: 'Unknown Article',
-                            category: 'Unknown',
-                            slug: 'unknown',
-                            author: {
-                                username: 'Unknown Author',
-                            },
-                            isPrivate: false,
-                            status: 'pending',
-                            isFeatured: false,
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        };
+                    if (populatedParent) {
+                        populatedComment.Parent = populatedParent;
                     }
                 }
-                populatedComment.article = populatedArticle;
+                catch (error) {
+                    console.warn('Invalid Parent ID format:', error);
+                    populatedComment.Parent = null;
+                }
+            }
+            if (comment.article) {
+                try {
+                    console.log('Article before population:', comment.article);
+                    const articleId = typeof comment.article === 'string'
+                        ? new mongoose_2.Types.ObjectId(comment.article)
+                        : comment.article instanceof mongoose_2.Types.ObjectId
+                            ? comment.article
+                            : new mongoose_2.Types.ObjectId(comment.article?._id?.toString() || comment.article.toString());
+                    console.log('Article ID after conversion:', articleId.toString());
+                    let populatedArticle = await this.articleModel
+                        .findById(articleId)
+                        .lean()
+                        .exec();
+                    console.log('Found in database:', !!populatedArticle);
+                    if (!populatedArticle) {
+                        const dummyArticle = dummyData_1.dummyArticles.find((a) => a._id?.toString() === articleId.toString());
+                        console.log('Found in dummy data:', !!dummyArticle);
+                        if (dummyArticle) {
+                            populatedArticle = {
+                                ...dummyArticle,
+                                _id: articleId,
+                                __v: 0,
+                            };
+                        }
+                    }
+                    if (populatedArticle) {
+                        populatedComment.article = populatedArticle;
+                    }
+                    else {
+                        console.warn(`No article found for ID: ${articleId}`);
+                        populatedComment.article = null;
+                    }
+                }
+                catch (error) {
+                    console.error('Error populating article:', error);
+                    console.debug('Original article value:', comment.article);
+                    populatedComment.article = null;
+                }
             }
             if (Array.isArray(comment._comment_votes) && comment._comment_votes.length > 0) {
                 const voteIds = comment._comment_votes.map((v) => v instanceof mongoose_2.Types.ObjectId ? v : new mongoose_2.Types.ObjectId(v.toString()));
@@ -138,13 +173,14 @@ let CommentController = class CommentController {
         }
         const newComment = new this.commentModel({
             ...data,
-            isFeatured: data.isFeatured || false,
+            isFeatured: data.isFeatured || true,
         });
         return newComment.save();
     }
     async getAllComments() {
         try {
             const commentsFromDb = await this.commentService.getAllComments();
+            console.log('Retrieving :', commentsFromDb.filter((c) => { return c.article; }));
             if (!commentsFromDb) {
                 return Promise.all(dummyData_1.dummyComments.map((comment) => this.populateComment(comment)));
             }
@@ -192,20 +228,27 @@ let CommentController = class CommentController {
         const updatedComment = await this.commentService.updateComment(id, data);
         return this.populateComment(updatedComment);
     }
-    async deleteComment(id, fingerprint) {
-        const commentFromDb = await this.commentModel.findById(id).lean().exec();
-        if (commentFromDb) {
-            if (commentFromDb._comment_fingerprint !== fingerprint) {
-                throw new common_1.HttpException('Unauthorized', common_1.HttpStatus.UNAUTHORIZED);
+    async deleteComment(id, authHeader, fingerprint) {
+        const comment = await this.commentService.getCommentById(id);
+        if (!comment) {
+            throw new common_1.NotFoundException('Comment not found');
+        }
+        if (authHeader) {
+            const token = authHeader.split(' ')[1];
+            try {
+                const payload = this.jwtService.verify(token);
+                if (payload) {
+                    return this.commentService.deleteComment(id);
+                }
             }
-            await this.commentModel.findByIdAndDelete(id).exec();
-            return { message: 'Comment deleted successfully' };
+            catch (error) {
+                throw new common_1.UnauthorizedException('Invalid token');
+            }
         }
-        const dummyComment = dummyData_1.dummyComments.find((comment) => comment._id?.toString() === id);
-        if (dummyComment) {
-            throw new common_1.HttpException('Cannot delete immutable dummy data', common_1.HttpStatus.BAD_REQUEST);
+        if (fingerprint && comment._comment_fingerprint === fingerprint) {
+            return this.commentService.deleteComment(id);
         }
-        throw new common_1.NotFoundException('Comment not found');
+        throw new common_1.UnauthorizedException('Unauthorized to delete this comment');
     }
     async vote(id, body) {
         const { fingerprint, direction } = body;
@@ -314,9 +357,10 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)('fingerprint')),
+    __param(1, (0, common_1.Headers)('authorization')),
+    __param(2, (0, common_1.Headers)('x-comment-fingerprint')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], CommentController.prototype, "deleteComment", null);
 __decorate([
@@ -329,10 +373,11 @@ __decorate([
 ], CommentController.prototype, "vote", null);
 exports.CommentController = CommentController = __decorate([
     (0, common_1.Controller)('api/comments'),
-    __param(1, (0, mongoose_1.InjectModel)(comment_model_1.Comment.name)),
-    __param(2, (0, mongoose_1.InjectModel)(article_model_1.Article.name)),
-    __param(3, (0, mongoose_1.InjectModel)(vote_model_1.Vote.name)),
+    __param(2, (0, mongoose_1.InjectModel)(comment_model_1.Comment.name)),
+    __param(3, (0, mongoose_1.InjectModel)(article_model_1.Article.name)),
+    __param(4, (0, mongoose_1.InjectModel)(vote_model_1.Vote.name)),
     __metadata("design:paramtypes", [comment_service_1.CommentService,
+        jwt_1.JwtService,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model])

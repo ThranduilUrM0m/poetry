@@ -10,6 +10,7 @@ import { CommentModule } from './modules/comment.module';
 import { ViewModule } from './modules/view.module';
 import { VoteModule } from './modules/vote.module';
 import { UserModule } from './modules/user.module';
+import { OpenAIModule } from './modules/openai.module';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { AuthModule } from './auth/auth.module';
         ContactModule,
         UserModule,
         AuthModule,
+        OpenAIModule
     ],
     controllers: [AppController],
     providers: [AppService],

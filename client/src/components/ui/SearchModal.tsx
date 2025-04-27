@@ -302,7 +302,7 @@ export default function SearchModal(): JSX.Element | null {
     const generateSearchSuggestions = (articles: Article[]): SearchSuggestion[] => {
         const createSuggestion = (
             id: string,
-            type: 'title' | 'category' | 'author' | 'tag',
+            type: 'title' | 'category' | 'author' | 'tag',  // Valid SuggestionType values
             title: string,
             article: Article,
             priority: number,
@@ -311,13 +311,14 @@ export default function SearchModal(): JSX.Element | null {
             _id: id,
             title: _.startCase(title),
             type,
-            source: article,
-            priority,
+            sourceType: 'Article' as const,  // Required by the discriminated union
+            source: article,  // Must match sourceType ('Article')
+            priority,  // Now required by BaseSuggestion
             icon,
         });
         const uniqueTitles = new Set(articles.map((a) => _.startCase(a.title)));
         const uniqueCategories = new Set(articles.map((a) => _.startCase(a.category)));
-        const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => _.startCase(tag))));
+        const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => _.toLower(tag))));
         const uniqueAuthors = new Set(articles.map((a) => _.startCase(a.author.username)));
         const suggestions: SearchSuggestion[] = [];
         uniqueTitles.forEach((title) => {
@@ -346,7 +347,7 @@ export default function SearchModal(): JSX.Element | null {
                 createSuggestion(
                     `tag-${_.toLower(tag)}`,
                     'tag',
-                    tag,
+                    _.startCase(tag),
                     article,
                     3,
                     <Hash size={16} />
@@ -536,6 +537,21 @@ export default function SearchModal(): JSX.Element | null {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen, closeModal, dispatch]); // Removed "articles" from here
+
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset all states when modal closes
+            setSearchQuery('');
+            setSelectedSuggestions([]);
+            setTransformedSuggestions([]);
+            setArticleSuggestions(articles);
+            setCurrentPage(1);
+            // Reset form values
+            setValue('searchQuery', '');
+            setValue('sortOption', 'trending');
+            setValue('timeFrameOption', 'all');
+        }
+    }, [isOpen, setValue, articles]);
 
     if (!isOpen) return null;
 

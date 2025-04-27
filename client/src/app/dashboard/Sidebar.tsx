@@ -10,13 +10,16 @@ import logo from '@/assets/images/b_white_orange..svg';
 import { clearAuth } from '@/slices/authSlice';
 import { clearUserState } from '@/slices/userSlice';
 import { useDashboard } from '@/context/DashboardContext';
+import { usePathname } from 'next/navigation';
 
 export default function Sidebar() {
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
     const { isReady } = useDashboard();
-    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+    const pathname = usePathname();
     const dispatch = useDispatch();
     const router = useRouter();
+
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
     const handleMouseEnter = () => setIsSidebarOpen(true);
     const handleMouseLeave = () => setIsSidebarOpen(false);
@@ -48,9 +51,11 @@ export default function Sidebar() {
                         as="li"
                         config={smoothConfig}
                         hover={{ from: { opacity: 0.5 }, to: { opacity: 1 } }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                     >
-                        <Link href="/dashboard">
+                        <Link
+                            href="/dashboard"
+                            className={pathname === '/dashboard' ? 'active' : ''}
+                        >
                             <span>
                                 <LayoutDashboard />
                             </span>
@@ -61,9 +66,11 @@ export default function Sidebar() {
                         as="li"
                         config={smoothConfig}
                         hover={{ from: { opacity: 0.5 }, to: { opacity: 1 } }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                     >
-                        <Link href="/dashboard/articles">
+                        <Link
+                            href="/dashboard/articles"
+                            className={pathname === '/dashboard/articles' ? 'active' : ''}
+                        >
                             <span>
                                 <Newspaper />
                             </span>
@@ -74,9 +81,11 @@ export default function Sidebar() {
                         as="li"
                         config={smoothConfig}
                         hover={{ from: { opacity: 0.5 }, to: { opacity: 1 } }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                     >
-                        <Link href="/dashboard/settings">
+                        <Link
+                            href="/dashboard/settings"
+                            className={pathname === '/dashboard/settings' ? 'active' : ''}
+                        >
                             <span>
                                 <UserCog />
                             </span>
@@ -87,7 +96,6 @@ export default function Sidebar() {
                         as="li"
                         config={smoothConfig}
                         hover={{ from: { opacity: 0.5 }, to: { opacity: 1 } }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                     >
                         <button onClick={handleLogout} className="__logout">
                             <span>

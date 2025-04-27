@@ -13,7 +13,7 @@ import { useDashboard } from '@/context/DashboardContext';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Article } from '@/types/article';
-import { Eye, LayoutTemplate, MessagesSquare, SquareUser, ThumbsUp, Timer } from 'lucide-react';
+import { CalendarRange, Eye, LayoutTemplate, MessagesSquare, MonitorSmartphone, SquareUser, ThumbsUp, Timer, Users } from 'lucide-react';
 import _ from 'lodash';
 import { useForm } from 'react-hook-form';
 import FormField from '@/components/ui/FormField';
@@ -266,13 +266,42 @@ export default function DashboardPage() {
     };
 
     // Add this helper function with the other helper functions
-    const getMostPopularAgeRange = (): { range: string; count: number } => {
-        if (!analyticsData?.audienceDemographics?.age) return { range: 'N/A', count: 0 };
+    const formatAgeRange = (range: string): JSX.Element => {
+        // Handle various possible formats
+        const [start, end] = range.split('-');
+        if (!start || !end) return <>{range}</>; // Return original if not in expected format
+
+        // Remove any existing 'yo' suffix and clean numbers
+        const cleanStart = start.replace('yo', '').trim();
+        const cleanEnd = end.replace('yo', '').trim();
+
+        return (
+            <>
+                {cleanStart}
+                <span className="__age-suffix">yo</span>-{cleanEnd}
+                <span className="__age-suffix">yo</span>
+            </>
+        );
+    };
+
+    // Update the getMostPopularAgeRange function to handle JSX
+    const getMostPopularAgeRange = (): { range: JSX.Element; count: number } => {
+        if (!analyticsData?.audienceDemographics?.age) {
+            return { range: <>N/A</>, count: 0 };
+        }
+
         const ageRanges = Object.entries(analyticsData.audienceDemographics.age);
-        return ageRanges.reduce(
+
+        // Get the max range and format it
+        const { range, count } = ageRanges.reduce(
             (max, [range, count]) => (count > max.count ? { range, count } : max),
             { range: '', count: 0 }
         );
+
+        return {
+            range: formatAgeRange(range),
+            count,
+        };
     };
 
     const getDeviceDistribution = (): { label: string; value: number }[] => {
@@ -376,7 +405,7 @@ export default function DashboardPage() {
                         <div className="__card __card--demographics">
                             <form className="__header _form">
                                 <div className="_row">
-                                    <h3 className="__header-title">Popular Age Range</h3>
+                                    <h3 className="__header-title">Age & Device Insights</h3>
                                 </div>
                             </form>
                             <div className="__body">
@@ -386,11 +415,14 @@ export default function DashboardPage() {
                                             {getMostPopularAgeRange().range}
                                         </div>
                                         <div className="__count">
-                                            {getMostPopularAgeRange().count} users
+                                            <Users />
+                                            {getMostPopularAgeRange().count} usr.
                                         </div>
+                                        <CalendarRange />
                                     </div>
                                 </div>
-                                <div className="__body-gender">
+                                <div className="__body-devices">
+                                    <MonitorSmartphone />
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart
                                             margin={{
@@ -430,7 +462,7 @@ export default function DashboardPage() {
                                                             label?: string;
                                                         }
                                                     )?.label; // Explicit type cast
-                                                    return label || value;
+                                                    return _.startCase(label || value);
                                                 }}
                                                 wrapperStyle={{
                                                     paddingTop: '20px',

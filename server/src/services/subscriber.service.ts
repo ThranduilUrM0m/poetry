@@ -10,7 +10,6 @@ export class SubscriberService {
     async ensureTestData() {
         const count = await this.subscriberModel.countDocuments();
         if (count === 0) {
-            console.log('Adding test subscribers...');
             await this.subscriberModel.create([
                 { email: 'test1@example.com', isSubscribed: true },
                 { email: 'test2@example.com', isSubscribed: true },
@@ -31,7 +30,6 @@ export class SubscriberService {
     async getAllSubscribers(): Promise<Subscriber[]> {
         try {
             const subscribers = await this.subscriberModel.find().exec();
-            console.log(`Found ${subscribers.length} subscribers`);
             return subscribers;
         } catch (error) {
             console.error('Error fetching subscribers:', error);

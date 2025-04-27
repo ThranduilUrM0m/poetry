@@ -24,11 +24,50 @@ let CommentService = class CommentService {
     async getCommentsByArticle(articleId) {
         try {
             const articleObjectId = new mongoose_2.Types.ObjectId(articleId);
-            const comments = await this.commentModel
-                .find({ article: articleObjectId })
-                .sort({ createdAt: -1 })
-                .lean()
-                .exec();
+            const comments = await this.commentModel.aggregate([
+                { $match: { article: articleObjectId } },
+                {
+                    $lookup: {
+                        from: 'articles',
+                        localField: 'article',
+                        foreignField: '_id',
+                        as: 'articleLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        article: {
+                            $cond: [
+                                { $gt: [{ $size: '$articleLookup' }, 0] },
+                                { $arrayElemAt: ['$articleLookup', 0] },
+                                '$article',
+                            ],
+                        },
+                    },
+                },
+                { $project: { articleLookup: 0 } },
+                {
+                    $lookup: {
+                        from: 'comments',
+                        localField: 'Parent',
+                        foreignField: '_id',
+                        as: 'parentLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        Parent: {
+                            $cond: [
+                                { $gt: [{ $size: '$parentLookup' }, 0] },
+                                { $arrayElemAt: ['$parentLookup', 0] },
+                                '$Parent',
+                            ],
+                        },
+                    },
+                },
+                { $project: { parentLookup: 0 } },
+                { $sort: { createdAt: -1 } },
+            ]);
             return comments;
         }
         catch (error) {
@@ -55,18 +94,61 @@ let CommentService = class CommentService {
         }
         const newComment = new this.commentModel({
             ...data,
-            isFeatured: data.isFeatured || false,
+            isFeatured: data.isFeatured || true,
         });
         return newComment.save();
     }
     async getAllComments() {
         try {
-            const comments = await this.commentModel.find().sort({ createdAt: -1 }).lean().exec();
-            if (!comments || comments.length === 0) {
-                console.warn('No comments found in database');
+            const comments = await this.commentModel.aggregate([
+                {
+                    $lookup: {
+                        from: 'articles',
+                        localField: 'article',
+                        foreignField: '_id',
+                        as: 'articleLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        article: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$articleLookup' }, 0] },
+                                then: { $arrayElemAt: ['$articleLookup', 0] },
+                                else: '$article',
+                            },
+                        },
+                    },
+                },
+                { $project: { articleLookup: 0 } },
+                {
+                    $lookup: {
+                        from: 'comments',
+                        localField: 'Parent',
+                        foreignField: '_id',
+                        as: 'parentLookup',
+                    },
+                },
+                {
+                    $addFields: {
+                        Parent: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$parentLookup' }, 0] },
+                                then: { $arrayElemAt: ['$parentLookup', 0] },
+                                else: '$Parent',
+                            },
+                        },
+                    },
+                },
+                { $project: { parentLookup: 0 } },
+                { $sort: { createdAt: -1 } },
+            ]);
+            const validComments = comments.filter((comment) => comment.article);
+            if (validComments.length === 0) {
+                console.warn('No valid comments found in database');
                 return [];
             }
-            return comments;
+            return validComments;
         }
         catch (error) {
             console.error('Error in getAllComments service:', error);
@@ -75,7 +157,49 @@ let CommentService = class CommentService {
         }
     }
     async getCommentById(id) {
-        const comment = await this.commentModel.findById(id).populate('article').exec();
+        const [comment] = await this.commentModel.aggregate([
+            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
         return comment;
@@ -84,19 +208,103 @@ let CommentService = class CommentService {
         if (data.Parent) {
             throw new common_1.BadRequestException('Cannot change comment parent');
         }
-        const comment = await this.commentModel
-            .findByIdAndUpdate(id, data, {
+        const updatedComment = await this.commentModel.findByIdAndUpdate(id, data, {
             new: true,
             runValidators: true,
-        })
-            .exec();
+        });
+        const [comment] = await this.commentModel.aggregate([
+            { $match: { _id: updatedComment?._id } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
         if (!comment)
             throw new common_1.NotFoundException('Comment not found');
         return comment;
     }
     async deleteComment(id) {
-        const comment = await this.commentModel.findByIdAndDelete(id).exec();
-        if (!comment)
+        const [commentToDelete] = await this.commentModel.aggregate([
+            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
+            {
+                $lookup: {
+                    from: 'articles',
+                    localField: 'article',
+                    foreignField: '_id',
+                    as: 'articleLookup',
+                },
+            },
+            {
+                $addFields: {
+                    article: {
+                        $cond: [
+                            { $gt: [{ $size: '$articleLookup' }, 0] },
+                            { $arrayElemAt: ['$articleLookup', 0] },
+                            '$article',
+                        ],
+                    },
+                },
+            },
+            { $project: { articleLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: 'Parent',
+                    foreignField: '_id',
+                    as: 'parentLookup',
+                },
+            },
+            {
+                $addFields: {
+                    Parent: {
+                        $cond: [
+                            { $gt: [{ $size: '$parentLookup' }, 0] },
+                            { $arrayElemAt: ['$parentLookup', 0] },
+                            '$Parent',
+                        ],
+                    },
+                },
+            },
+            { $project: { parentLookup: 0 } },
+        ]);
+        await this.commentModel.findByIdAndDelete(id);
+        if (!commentToDelete)
             throw new common_1.NotFoundException('Comment not found');
         return { message: 'Comment deleted successfully' };
     }

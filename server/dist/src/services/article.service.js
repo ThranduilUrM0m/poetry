@@ -26,55 +26,319 @@ let ArticleService = class ArticleService {
         return newArticle.save();
     }
     async getAllArticles() {
-        const articles = await this.articleModel
-            .find()
-            .populate('author')
-            .populate({
-            path: 'votes',
-            match: { targetType: 'Article' },
-        })
-            .lean()
-            .exec();
+        const articles = await this.articleModel.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'authorLookup',
+                },
+            },
+            {
+                $addFields: {
+                    author: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$authorLookup' }, 0] },
+                            then: { $arrayElemAt: ['$authorLookup', 0] },
+                            else: '$author',
+                        },
+                    },
+                },
+            },
+            { $project: { authorLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'votes',
+                    localField: 'votes',
+                    foreignField: '_id',
+                    as: 'votesLookup',
+                },
+            },
+            {
+                $addFields: {
+                    votes: {
+                        $map: {
+                            input: '$votes',
+                            as: 'voteId',
+                            in: {
+                                $let: {
+                                    vars: {
+                                        foundVote: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$votesLookup',
+                                                        cond: { $eq: ['$$this._id', '$$voteId'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    in: {
+                                        $cond: [
+                                            { $ne: ['$$foundVote', null] },
+                                            {
+                                                $cond: [
+                                                    { $eq: ['$$foundVote.targetType', 'Article'] },
+                                                    '$$foundVote',
+                                                    null,
+                                                ],
+                                            },
+                                            '$$voteId',
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { votesLookup: 0 } },
+        ]);
         return articles;
     }
     async getArticleBySlug(slug) {
-        const article = await this.articleModel
-            .findOne({ slug })
-            .populate('author')
-            .populate({
-            path: 'votes',
-            match: { targetType: 'Article' },
-        })
-            .lean()
-            .exec();
+        const [article] = await this.articleModel.aggregate([
+            { $match: { slug } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'authorLookup',
+                },
+            },
+            {
+                $addFields: {
+                    author: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$authorLookup' }, 0] },
+                            then: { $arrayElemAt: ['$authorLookup', 0] },
+                            else: '$author',
+                        },
+                    },
+                },
+            },
+            { $project: { authorLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'votes',
+                    localField: 'votes',
+                    foreignField: '_id',
+                    as: 'votesLookup',
+                },
+            },
+            {
+                $addFields: {
+                    votes: {
+                        $map: {
+                            input: '$votes',
+                            as: 'voteId',
+                            in: {
+                                $let: {
+                                    vars: {
+                                        foundVote: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$votesLookup',
+                                                        cond: { $eq: ['$$this._id', '$$voteId'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    in: {
+                                        $cond: [
+                                            { $ne: ['$$foundVote', null] },
+                                            {
+                                                $cond: [
+                                                    { $eq: ['$$foundVote.targetType', 'Article'] },
+                                                    '$$foundVote',
+                                                    null,
+                                                ],
+                                            },
+                                            '$$voteId',
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { votesLookup: 0 } },
+            { $limit: 1 },
+        ]);
         if (!article)
             throw new common_1.NotFoundException('Article not found');
         return article;
     }
     async getArticleByCategory(category) {
-        const articles = await this.articleModel
-            .find({ category: category })
-            .populate('author')
-            .populate({
-            path: 'votes',
-            match: { targetType: 'Article' },
-        })
-            .lean()
-            .exec();
+        const articles = await this.articleModel.aggregate([
+            { $match: { category } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'authorLookup',
+                },
+            },
+            {
+                $addFields: {
+                    author: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$authorLookup' }, 0] },
+                            then: { $arrayElemAt: ['$authorLookup', 0] },
+                            else: '$author',
+                        },
+                    },
+                },
+            },
+            { $project: { authorLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'votes',
+                    localField: 'votes',
+                    foreignField: '_id',
+                    as: 'votesLookup',
+                },
+            },
+            {
+                $addFields: {
+                    votes: {
+                        $map: {
+                            input: '$votes',
+                            as: 'voteId',
+                            in: {
+                                $let: {
+                                    vars: {
+                                        foundVote: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$votesLookup',
+                                                        cond: { $eq: ['$$this._id', '$$voteId'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    in: {
+                                        $cond: [
+                                            { $ne: ['$$foundVote', null] },
+                                            {
+                                                $cond: [
+                                                    { $eq: ['$$foundVote.targetType', 'Article'] },
+                                                    '$$foundVote',
+                                                    null,
+                                                ],
+                                            },
+                                            '$$voteId',
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { votesLookup: 0 } },
+        ]);
         if (!articles)
             throw new common_1.NotFoundException('Article not found');
         return articles;
     }
     async findBySlug(category, slug) {
-        return this.articleModel
-            .findOne({ category: new RegExp(`^${category}$`, 'i'), slug })
-            .populate('author')
-            .populate({
-            path: 'votes',
-            match: { targetType: 'Article' },
-        })
-            .lean()
-            .exec();
+        const [article] = await this.articleModel.aggregate([
+            {
+                $match: {
+                    slug,
+                    category: {
+                        $regex: `^${category}$`,
+                        $options: 'i',
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'author',
+                    foreignField: '_id',
+                    as: 'authorLookup',
+                },
+            },
+            {
+                $addFields: {
+                    author: {
+                        $cond: {
+                            if: { $gt: [{ $size: '$authorLookup' }, 0] },
+                            then: { $arrayElemAt: ['$authorLookup', 0] },
+                            else: '$author',
+                        },
+                    },
+                },
+            },
+            { $project: { authorLookup: 0 } },
+            {
+                $lookup: {
+                    from: 'votes',
+                    localField: 'votes',
+                    foreignField: '_id',
+                    as: 'votesLookup',
+                },
+            },
+            {
+                $addFields: {
+                    votes: {
+                        $map: {
+                            input: '$votes',
+                            as: 'voteId',
+                            in: {
+                                $let: {
+                                    vars: {
+                                        foundVote: {
+                                            $arrayElemAt: [
+                                                {
+                                                    $filter: {
+                                                        input: '$votesLookup',
+                                                        cond: { $eq: ['$$this._id', '$$voteId'] },
+                                                    },
+                                                },
+                                                0,
+                                            ],
+                                        },
+                                    },
+                                    in: {
+                                        $cond: [
+                                            { $ne: ['$$foundVote', null] },
+                                            {
+                                                $cond: [
+                                                    { $eq: ['$$foundVote.targetType', 'Article'] },
+                                                    '$$foundVote',
+                                                    null,
+                                                ],
+                                            },
+                                            '$$voteId',
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            { $project: { votesLookup: 0 } },
+            { $limit: 1 },
+        ]);
+        if (!article)
+            throw new common_1.NotFoundException('Article not found');
+        return article;
     }
     async deleteArticle(slug) {
         const article = await this.articleModel.findOneAndDelete({ slug });

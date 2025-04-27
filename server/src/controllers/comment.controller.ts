@@ -7,11 +7,13 @@ import {
     Put,
     Delete,
     Param,
+    Headers,
     Body,
     NotFoundException,
     HttpException,
     HttpStatus,
     BadRequestException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, FlattenMaps } from 'mongoose';
@@ -21,17 +23,20 @@ import { Article, ArticleDocument } from '../models/article.model';
 import { Vote, VoteDocument } from '../models/vote.model';
 import { CommentService } from '../services/comment.service';
 import { dummyArticles, dummyComments, dummyVotes } from '../data/dummyData';
+import { JwtService } from '@nestjs/jwt';
 
 // Define a type representing a Comment with its article field populated.
-export type PopulatedComment = Omit<Comment, 'article' | '_comment_votes'> & {
+export type PopulatedComment = Omit<Comment, 'article' | '_comment_votes' | 'Parent'> & {
     article: ArticleDocument;
     _comment_votes: VoteDocument[];
+    Parent?: Comment | Types.ObjectId | null;
 };
 
 @Controller('api/comments')
 export class CommentController {
     constructor(
         private readonly commentService: CommentService,
+        private readonly jwtService: JwtService,
         @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
         @InjectModel(Article.name) private readonly articleModel: Model<ArticleDocument>,
         @InjectModel(Vote.name) private readonly voteModel: Model<VoteDocument>
@@ -101,61 +106,111 @@ export class CommentController {
     private async populateComment(comment: Comment): Promise<PopulatedComment> {
         const populatedComment: PopulatedComment = {
             ...comment,
-            article: {} as ArticleDocument,
+            // Keep original Parent and article values (ObjectIds) for population
+            Parent: comment.Parent ? comment.Parent : null,
+            article: comment.article ? comment.article : null,
             _comment_votes: [],
-        };
+          } as unknown as PopulatedComment; // Temporary type assertion
 
         try {
-            // First try to find the article in the database
-            if (comment.article) {
-                const articleId =
-                    comment.article instanceof Types.ObjectId
-                        ? comment.article
-                        : new Types.ObjectId((comment.article as Types.ObjectId).toString());
-
-                // Explicitly type the lean document
-                type LeanArticle = FlattenMaps<ArticleDocument> &
-                    Required<{ _id: Types.ObjectId }> & { __v: number };
-
-                let populatedArticle: LeanArticle | null = await this.articleModel
-                    .findById(articleId)
-                    .lean()
-                    .exec();
-
-                if (!populatedArticle) {
-                    // If not found in database, look in dummy data
-                    const dummyArticle = dummyArticles.find(
-                        (a) => a._id?.toString() === articleId.toString()
-                    );
-
-                    if (dummyArticle) {
-                        // Convert dummy article to lean format
-                        populatedArticle = {
-                            ...dummyArticle,
-                            _id: articleId,
-                            __v: 0,
-                        } as LeanArticle;
-                    } else {
-                        // Provide fallback article data if not found in either place
-                        populatedArticle = {
-                            _id: articleId,
-                            __v: 0,
-                            title: 'Unknown Article',
-                            category: 'Unknown',
-                            slug: 'unknown',
-                            author: {
-                                username: 'Unknown Author',
-                            },
-                            isPrivate: false,
-                            status: 'pending',
-                            isFeatured: false,
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        } as unknown as LeanArticle;
+            // Populate Parent field
+            if (comment.Parent) {
+                try {
+                    // Safely convert Parent to ObjectId
+                    const parentId = typeof comment.Parent === 'string'
+                        ? new Types.ObjectId(comment.Parent)
+                        : comment.Parent instanceof Types.ObjectId
+                            ? comment.Parent
+                            : new Types.ObjectId((comment.Parent as any)._id || comment.Parent);
+    
+                    // Explicitly type the lean document
+                    type LeanComment = FlattenMaps<Comment> &
+                        Required<{ _id: Types.ObjectId }> & { __v: number };
+    
+                    let populatedParent: LeanComment | null = await this.commentModel
+                        .findById(parentId)
+                        .lean()
+                        .exec();
+    
+                    if (!populatedParent) {
+                        // If not found in database, look in dummy data
+                        const dummyParent = dummyComments.find(
+                            (c) => c._id?.toString() === parentId.toString()
+                        );
+    
+                        if (dummyParent) {
+                            // Convert dummy parent to lean format
+                            populatedParent = {
+                                ...dummyParent,
+                                _id: parentId,
+                                __v: 0,
+                            } as LeanComment;
+                        }
                     }
+    
+                    if (populatedParent) {
+                        populatedComment.Parent = populatedParent as unknown as Comment;
+                    }
+                } catch (error) {
+                    console.warn('Invalid Parent ID format:', error);
+                    populatedComment.Parent = null;
                 }
+            }
 
-                populatedComment.article = populatedArticle as unknown as ArticleDocument;
+            // Populate article field
+            if (comment.article) {
+                try {
+                    // Add debug logging
+                    console.log('Article before population:', comment.article);
+            
+                    // Handle different article ID formats
+                    const articleId = typeof comment.article === 'string'
+                        ? new Types.ObjectId(comment.article)
+                        : comment.article instanceof Types.ObjectId
+                            ? comment.article
+                            : new Types.ObjectId(
+                                (comment.article as ArticleDocument)?._id?.toString() || (comment.article as string | Types.ObjectId).toString()
+                            );
+            
+                    console.log('Article ID after conversion:', articleId.toString());
+            
+                    // Try to find in database first
+                    let populatedArticle = await this.articleModel
+                        .findById(articleId)
+                        .lean()
+                        .exec();
+            
+                    console.log('Found in database:', !!populatedArticle);
+            
+                    if (!populatedArticle) {
+                        // If not found in database, look in dummy data
+                        const dummyArticle = dummyArticles.find(
+                            (a) => a._id?.toString() === articleId.toString()
+                        );
+            
+                        console.log('Found in dummy data:', !!dummyArticle);
+            
+                        if (dummyArticle) {
+                            populatedArticle = {
+                                ...dummyArticle,
+                                _id: articleId,
+                                __v: 0,
+                            } as unknown as FlattenMaps<ArticleDocument> & Required<{ _id: Types.ObjectId }> & { __v: number };
+                        }
+                    }
+            
+                    if (populatedArticle) {
+                        populatedComment.article = populatedArticle;
+                    } else {
+                        console.warn(`No article found for ID: ${articleId}`);
+                        // Set to null instead of empty object
+                        populatedComment.article = null as any;
+                    }
+                } catch (error) {
+                    console.error('Error populating article:', error);
+                    console.debug('Original article value:', comment.article);
+                    populatedComment.article = null as any;
+                }
             }
 
             // Handle votes population
@@ -199,7 +254,7 @@ export class CommentController {
         }
         const newComment = new this.commentModel({
             ...data,
-            isFeatured: data.isFeatured || false,
+            isFeatured: data.isFeatured || true,
         });
         return newComment.save();
     }
@@ -208,6 +263,7 @@ export class CommentController {
     async getAllComments(): Promise<PopulatedComment[]> {
         try {
             const commentsFromDb = await this.commentService.getAllComments();
+            console.log('Retrieving :', commentsFromDb.filter((c) => {return c.article}));
 
             // Ensure we have comments
             if (!commentsFromDb) {
@@ -291,30 +347,35 @@ export class CommentController {
     @Delete(':id')
     async deleteComment(
         @Param('id') id: string,
-        @Body('fingerprint') fingerprint: string
-    ): Promise<{ message: string }> {
-        // Check if the comment exists in the database
-        const commentFromDb = await this.commentModel.findById(id).lean().exec();
+        @Headers('authorization') authHeader?: string,
+        @Headers('x-comment-fingerprint') fingerprint?: string
+    ) {
+        const comment = await this.commentService.getCommentById(id);
+        if (!comment) {
+            throw new NotFoundException('Comment not found');
+        }
 
-        if (commentFromDb) {
-            // Verify fingerprint matches
-            if (commentFromDb._comment_fingerprint !== fingerprint) {
-                throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+        // If there's an auth header, it's the admin
+        if (authHeader) {
+            const token = authHeader.split(' ')[1];
+            try {
+                // Just verify the token is valid
+                const payload = this.jwtService.verify(token);
+                if (payload) {
+                    // Token is valid, allow deletion
+                    return this.commentService.deleteComment(id);
+                }
+            } catch (error) {
+                throw new UnauthorizedException('Invalid token');
             }
-
-            // Delete the comment from the database
-            await this.commentModel.findByIdAndDelete(id).exec();
-            return { message: 'Comment deleted successfully' };
         }
 
-        // Check if the comment exists in dummyData
-        const dummyComment = dummyComments.find((comment) => comment._id?.toString() === id);
-        if (dummyComment) {
-            throw new HttpException('Cannot delete immutable dummy data', HttpStatus.BAD_REQUEST);
+        // If not admin (no auth header), check fingerprint
+        if (fingerprint && comment._comment_fingerprint === fingerprint) {
+            return this.commentService.deleteComment(id);
         }
 
-        // If the comment doesn't exist
-        throw new NotFoundException('Comment not found');
+        throw new UnauthorizedException('Unauthorized to delete this comment');
     }
 
     @Post(':id/vote')

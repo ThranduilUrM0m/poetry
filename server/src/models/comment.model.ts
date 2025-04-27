@@ -8,10 +8,10 @@ export class Comment {
     @Prop({ type: Types.ObjectId, ref: 'Comment', default: null })
     Parent?: Types.ObjectId | null;
 
-    @Prop({ required: true, default: false })
+    @Prop({ required: true, default: true })
     _comment_isOK: boolean;
 
-    @Prop({ default: false })
+    @Prop({ default: true })
     isFeatured: boolean;
 
     @Prop({ required: true, trim: true })
@@ -21,10 +21,7 @@ export class Comment {
     _comment_email: string;
 
     @Prop({ required: true })
-    _comment_body: string;
-
-    @Prop({ default: false })
-    _comment_isPrivate: boolean;
+    _comment_body: string; 
 
     @Prop({ required: true })
     _comment_fingerprint: string;

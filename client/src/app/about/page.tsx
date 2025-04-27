@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
 import { fetchArticles, selectArticles, selectIsLoading, selectError } from '@/slices/articleSlice';
-import { fetchComments, selectComments } from '@/slices/commentSlice';
+import { fetchComments, selectComments, selectFeaturedComments } from '@/slices/commentSlice';
 import Slider from 'react-slick';
 import { formatDistanceToNow } from 'date-fns';
 import { Squircle } from 'lucide-react';
@@ -58,6 +58,7 @@ export default function AboutPage() {
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles);
     const comments = useSelector(selectComments);
+    const featuredComments = useSelector(selectFeaturedComments);
     const isLoading = useSelector(selectIsLoading);
     const error = useSelector(selectError);
 
@@ -79,21 +80,14 @@ export default function AboutPage() {
     useEffect(() => {
         if (isLoaded && !isLoading && (articles.length > 0 || comments.length > 0)) {
             const timer = setTimeout(() => setIsReady(true), 100);
-            console.log('Comments:', displayCommentsUpdated);
             return () => clearTimeout(timer);
         }
     }, [isLoaded, isLoading, articles, comments]);
 
     // STEP 1: Filter out only approved comments with detailed logging
-    const validComments = comments.filter((comment: Comment) => {
-        console.log('Checking comment:', {
-            id: comment._id,
-            isOK: comment._comment_isOK,
-            createdAt: comment.createdAt,
-            hasVotes: Boolean(comment._comment_votes)
-        });
+    const validComments = featuredComments.filter((comment: Comment) => {
         // Accept comments that are either explicitly approved or don't have the field
-        return comment._comment_isOK !== false;
+        return comment._comment_isOK;
     });
 
     // STEP 2: Time range filtering with detailed logging
@@ -103,50 +97,32 @@ export default function AboutPage() {
 
     const filteredCommentsByTime = _.chain(validComments)
         .thru((comms: Comment[]) => {
-            console.log('Starting time range filtering with comments:', comms);
             for (const range of timeRangesComments) {
                 const filtered = comms.filter((comment) => {
                     if (!comment.createdAt) {
-                        console.log('Comment missing createdAt:', comment._id);
                         return true; // Include comments without dates
                     }
                     
                     const createdAt = new Date(comment.createdAt);
                     if (isNaN(createdAt.getTime())) {
-                        console.log('Invalid date for comment:', comment._id, comment.createdAt);
                         return true; // Include comments with invalid dates
                     }
 
                     const diffDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-                    console.log('Comment date check:', {
-                        id: comment._id,
-                        createdAt,
-                        diffDays,
-                        range,
-                        passes: diffDays <= range
-                    });
                     return diffDays <= range;
                 });
 
                 if (filtered.length > 0) {
-                    console.log(`Found ${filtered.length} comments within ${range} days`);
                     return filtered;
                 }
             }
-            console.log('Falling back to all comments');
             return comms;
         })
         .map((comment: Comment) => {
             const votes = comment._comment_votes || [];
-            console.log('Processing votes for comment:', {
-                id: comment._id,
-                totalVotes: votes.length,
-                voteStructure: votes[0] // Log structure of first vote if exists
-            });
             
             const upvotes = votes.filter((vote) => vote.direction === 'up').length;
             const downvotes = votes.filter((vote) => vote.direction === 'down').length;
-            console.log('Vote counts:', { id: comment._id, upvotes, downvotes });
             
             return { ...comment, score: 3 * upvotes - 2 * downvotes };
         })
