@@ -107,4 +107,44 @@ export class OpenAIController {
             );
         }
     }
+
+    @Post('suggest-tags')
+    async suggestTags(@Body() data: { input: string; content: string }): Promise<string[]> {
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        role: 'system',
+                        content:
+                            'You are a helpful assistant that suggests relevant tags for technical and creative articles. ' +
+                            'Return only a JSON array of lowercase, hyphenated tag strings.',
+                    },
+                    {
+                        role: 'user',
+                        content:
+                            `Based on the title "${data.input}" and body of length ${data.content.length}, ` +
+                            'suggest 5–10 concise, hyphenated tags for a poetry blog.',
+                    },
+                ],
+                temperature: 0.6,
+                max_tokens: 100,
+                response_format: { type: 'json_object' },
+            });
+
+            // AI returns JSON array; we parse and coerce to array
+            const payload = JSON.parse(response.choices[0]?.message?.content || '[]');
+            // If the model responded with { tags: [...] }, unwrap:
+            const suggestions = Array.isArray(payload)
+                ? payload
+                : Array.isArray((payload as any).tags)
+                  ? (payload as any).tags
+                  : [];
+            return suggestions;
+        } catch (error) {
+            // Fallback on error
+            console.error('OpenAI tag suggestion error:', error);
+            throw new HttpException('Tag suggestion failed', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

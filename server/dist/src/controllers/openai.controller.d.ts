@@ -11,4 +11,8 @@ export declare class OpenAIController {
         reasons: string[];
         severity: 'low' | 'medium' | 'high';
     }>;
+    suggestTags(data: {
+        input: string;
+        content: string;
+    }): Promise<string[]>;
 }

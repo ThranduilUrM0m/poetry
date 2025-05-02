@@ -358,7 +358,7 @@
                 }
             }
 
-            .__searchClose {
+            .__commentClose {
                 @apply flex flex-col text-[rgb(var(--text)/.5)];
 
                 svg {
@@ -418,6 +418,7 @@
                         tr {
                             td {
                                 &:nth-child(4) {
+
                                     // Body column
                                     .__flagged-content {
                                         @apply relative flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh];
@@ -430,6 +431,7 @@
                                 }
 
                                 &:nth-child(6) {
+
                                     // Flag column
                                     .__flag-indicator {
                                         .__analysis-tooltip {
@@ -441,6 +443,7 @@
                                 }
 
                                 &:nth-child(8) {
+
                                     // Votes column
                                     .__votes-container {
                                         @apply flex gap-[1.5vh];
@@ -464,8 +467,11 @@
                         }
                     }
 
-                    thead, tbody {
-                        th, td {
+                    thead,
+                    tbody {
+
+                        th,
+                        td {
                             @apply text-left px-[1.25vh] text-[2vh] h-[7vh];
 
                             // Special width for specific columns
@@ -545,6 +551,155 @@
                         }
                     }
                 }
+            }
+        }
+    }
+
+    &__article {
+        @apply fixed z-[100] top-[5vh] left-1/2 w-[90vw] h-[90vh] bg-[rgb(var(--white)/1)] p-[2.5vh] leading-normal;
+        box-shadow: 0 1vh 2.5vh 1vh rgb(var(--text)/.1);
+
+        &::before {
+            @apply absolute content-[''] w-full h-[1.5vh] top-0 left-0 -translate-y-full bg-[rgb(var(--primary-light)/1)] z-10;
+        }
+
+        ._header {
+            @apply flex justify-end h-[10vh] overflow-visible px-[2.5vh];
+
+            .__articleClose {
+                @apply flex flex-col text-[rgb(var(--text)/.5)];
+
+                svg {
+                    @apply relative w-full h-full;
+
+                    g {
+                        line {
+                            @apply stroke-[3] fill-[rgb(var(--text)/.5)] stroke-[rgb(var(--text)/.5)] origin-center;
+
+                            &.one {
+                                @apply rotate-45;
+                            }
+
+                            &.two {
+                                @apply -rotate-45;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ._body {
+            @apply px-[2.5vh] pt-[2.5vh] h-[75vh] w-full;
+
+            form {
+                ._row {
+                    &:nth-child(2) {
+
+                        ._formGroup {
+                            ._formControl {
+                                ._input {
+                                    @apply pb-[var(--input-height)];
+                                }
+                            }
+                        }
+                    }
+
+                    &:nth-child(3) {
+                        @apply z-[50];
+                        @apply relative gap-0 -translate-y-[calc(var(--input-height)+1vh)];
+
+                        ._formGroup {
+                            @apply flex-1 px-[1.25vh] bg-transparent;
+
+                            ._formControl {
+                                ._input {
+                                    @apply border-0;
+
+                                    &._focused {
+                                        @apply border-t-[rgb(var(--hoverGray)/1)];
+                                    }
+
+                                    &.__error {
+                                        @apply border-t-[rgb(var(--red)/1)];
+                                    }
+                                }
+                            }
+                        }
+
+                        .__container {
+                            @apply relative h-[var(--input-height)] flex-1;
+
+                            .__tagsGrid {
+                                @apply w-full h-full;
+
+                                ._SimpleBar {
+                                    @apply h-full max-w-[calc(calc(90vw-10vh)/2)];
+
+                                    // Scrollbar styling
+                                    .simplebar-scrollbar {
+                                        height: 1.5vh !important;
+                                        @apply bg-transparent;
+
+                                        &::before {
+                                            @apply w-full top-0 left-0 bg-[rgb(var(--text)/.25)] opacity-100 rounded-full;
+                                        }
+
+                                        &.simplebar-visible::before {
+                                            @apply opacity-100;
+                                        }
+                                    }
+
+                                    .simplebar-track {
+                                        &.simplebar-vertical {
+                                            @apply hidden;
+                                        }
+
+                                        &.simplebar-horizontal {
+                                            height: 1.5vh !important;
+                                            @apply bottom-[.25vh] bg-[rgb(var(--hoverGray)/.25)];
+                                        }
+                                    }
+
+                                    .__tagsGrid-content {
+                                        @apply flex flex-nowrap gap-[1vh] h-full w-full place-self-center;
+
+                                        .__tagCard {
+                                            @apply flex items-center gap-[.5vh] px-[1vh] py-[.5vh] rounded-[.5vh] text-[1.5vh];
+                                            @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+
+                                            svg {
+                                                @apply w-[2vh] h-[2vh];
+                                            }
+
+                                            span {
+                                                white-space: nowrap;
+                                                word-break: keep-all;
+                                                overflow-wrap: normal;
+                                            }
+
+                                            .remove-tag {
+                                                @apply ml-[.5vh] opacity-50 transition-opacity;
+
+                                                &:hover {
+                                                    @apply opacity-100;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    &:nth-child(4) {
+                        @apply -translate-y-[calc(var(--input-height)/2+1vh)];
+                    }
+                }
+            }
+
+            ._button {
+                @apply ml-auto w-1/4;
             }
         }
     }

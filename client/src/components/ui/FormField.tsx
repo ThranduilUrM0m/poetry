@@ -860,8 +860,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                                             <span
                                                                                                                 lang={
                                                                                                                     containsArabic(
-                                                                                                                        typedItem
-                                                                                                                            .source!
+                                                                                                                        typedItem.source!
                                                                                                                             ._comment_email
                                                                                                                     )
                                                                                                                         ? 'ar'
@@ -870,8 +869,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                                                                                 className="username"
                                                                                                             >
                                                                                                                 {
-                                                                                                                    typedItem
-                                                                                                                        .source!
+                                                                                                                    typedItem.source!
                                                                                                                         ._comment_email
                                                                                                                 }
                                                                                                             </span>

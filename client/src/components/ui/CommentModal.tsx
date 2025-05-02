@@ -769,7 +769,7 @@ export default function CommentManagementModal({
                         as="button"
                         onClick={onClose}
                         aria-label="Close"
-                        className="__searchClose"
+                        className="__commentClose"
                         hover={{
                             from: { transform: 'translateX(-1%)', opacity: 0.5 },
                             to: { transform: 'translateX(0)', opacity: 1 },
@@ -787,7 +787,7 @@ export default function CommentManagementModal({
                     </AnimatedWrapper>
                 </div>
 
-                {/* Table */}
+                {/* Body */}
                 <div className="_body">
                     <div className="__table">
                         <table>

@@ -113,6 +113,42 @@ export const trackView = createAsyncThunk(
     }
 );
 
+export const updateArticle = createAsyncThunk(
+    'articles/updateArticle',
+    async ({ id, data }: { id: string; data: Partial<Article> }, { rejectWithValue }) => {
+        try {
+            const response = await axios.patch(`/api/articles/${id}`, data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue((error as Error).message);
+        }
+    }
+);
+
+export const deleteArticle = createAsyncThunk(
+    'articles/deleteArticle',
+    async (id: string, { rejectWithValue }) => {
+        try {
+            await axios.delete(`/api/articles/${id}`);
+            return id;
+        } catch (error) {
+            return rejectWithValue((error as Error).message);
+        }
+    }
+);
+
+export const createArticle = createAsyncThunk(
+    'articles/createArticle',
+    async (data: Partial<Article>, { rejectWithValue }) => {
+        try {
+            const response = await axios.post('/api/articles', data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue((error as Error).message);
+        }
+    }
+);
+
 // Create the article slice
 const articleSlice = createSlice({
     name: 'article',
@@ -212,6 +248,28 @@ const articleSlice = createSlice({
             .addCase(voteArticle.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
+            })
+            .addCase(updateArticle.fulfilled, (state, action) => {
+                const index = state.articles.findIndex(
+                    (article) => article._id === action.payload._id
+                );
+                if (index !== -1) {
+                    state.articles[index] = action.payload;
+                }
+                if (state.currentArticle?._id === action.payload._id) {
+                    state.currentArticle = action.payload;
+                }
+            })
+            // Delete Article
+            .addCase(deleteArticle.fulfilled, (state, action) => {
+                state.articles = state.articles.filter((article) => article._id !== action.payload);
+                if (state.currentArticle?._id === action.payload) {
+                    state.currentArticle = null;
+                }
+            })
+            // Create Article
+            .addCase(createArticle.fulfilled, (state, action) => {
+                state.articles.push(action.payload);
             });
     },
 });
@@ -220,8 +278,6 @@ const articleSlice = createSlice({
 export const {
     setArticles,
     addArticle,
-    updateArticle,
-    deleteArticle,
     setCurrentArticle,
     clearCurrentArticle,
     setCachedArticle,

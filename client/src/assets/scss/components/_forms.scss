@@ -65,6 +65,63 @@ form {
                         @apply text-[rgb(var(--text)/1)];
                     }
 
+                    &.__quill {
+                        @apply h-auto min-h-[20vh] overflow-visible;
+                        
+                        .ql-toolbar.ql-snow {
+                            @apply border-0 border-b border-[rgb(var(--hoverGray)/.75)] px-[2vh];
+                            
+                            .ql-formats {
+                                @apply mr-[2vh];
+                            }
+        
+                            button {
+                                @apply w-[3vh] h-[3vh];
+                                
+                                &:hover {
+                                    @apply text-[rgb(var(--accent)/1)];
+                                }
+                                
+                                &.ql-active {
+                                    @apply text-[rgb(var(--accent)/1)];
+                                }
+                            }
+                        }
+        
+                        .ql-container.ql-snow {
+                            @apply border-0 min-h-[15vh] px-[2vh] font-sans;
+                            
+                            .ql-editor {
+                                @apply p-0 text-[1.75vh] leading-[1.75];
+                                
+                                &.ql-blank::before {
+                                    @apply text-[rgb(var(--text)/.5)] font-normal;
+                                    font-style: normal;
+                                }
+        
+                                p {
+                                    @apply mb-[1vh];
+                                }
+        
+                                h1, h2, h3 {
+                                    @apply mb-[2vh] font-semibold;
+                                }
+        
+                                h1 { @apply text-[3vh]; }
+                                h2 { @apply text-[2.5vh]; }
+                                h3 { @apply text-[2vh]; }
+        
+                                ul, ol {
+                                    @apply pl-[2vh] mb-[1vh];
+                                }
+        
+                                blockquote {
+                                    @apply border-l-4 border-[rgb(var(--accent)/1)] pl-[2vh] italic;
+                                }
+                            }
+                        }
+                    }
+                    
                     &.__textarea {
                         @apply resize-none;
                     }

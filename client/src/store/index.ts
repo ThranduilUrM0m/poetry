@@ -9,6 +9,7 @@ import viewReducer from '@/slices/viewSlice';
 import analyticsReducer from '@/slices/analyticsSlice';
 import userReducer from '@/slices/userSlice';
 import notificationReducer from '@/slices/notificationSlice';
+import tagReducer from '@/slices/tagSlice';
 
 export const store = configureStore({
     reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
         analytics: analyticsReducer,
         user: userReducer,
         notifications: notificationReducer,
+        tags: tagReducer,
     },
 });
 

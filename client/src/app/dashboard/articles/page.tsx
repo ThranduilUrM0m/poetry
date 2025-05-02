@@ -33,13 +33,14 @@ import {
     SortingState,
     getFilteredRowModel,
     getSortedRowModel,
+    Row,
 } from '@tanstack/react-table';
 
 // Redux and store-related imports
 import { AppDispatch } from '@/store';
 import { useDashboard } from '@/context/DashboardContext';
 import { selectAnalyticsCalculating } from '@/slices/analyticsSlice';
-import { selectArticles } from '@/slices/articleSlice';
+import { clearCurrentArticle, deleteArticle, fetchArticles, selectArticles, setCurrentArticle, updateArticle } from '@/slices/articleSlice';
 import { selectComments, fetchComments } from '@/slices/commentSlice';
 
 // Component imports
@@ -47,6 +48,7 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import { Comments } from '@/components/ui/HeroImage';
 import FormField from '@/components/ui/FormField';
 import CommentManagementModal from '@/components/ui/CommentModal';
+import ArticleManagementModal from '@/components/ui/ArticleModal';
 
 // Type and interface imports
 import type { Article, Comment } from '@/types/article';
@@ -67,6 +69,8 @@ import {
     Star,
     StarOff,
     Timer,
+    ChevronUp,
+    ChevronDown,
 } from 'lucide-react';
 
 // Chart imports
@@ -226,6 +230,65 @@ export const usePopularCategories = () => {
     return getPopularCategories;
 };
 
+// Cell Components
+const FeaturedCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
+    const [isFeatured, setIsFeatured] = useState(row.original.isFeatured);
+    const dispatch = useDispatch<AppDispatch>();
+
+    const toggleFeatured = async () => {
+        try {
+            await dispatch(
+                updateArticle({
+                    id: row.original._id!,
+                    data: { isFeatured: !isFeatured },
+                })
+            ).unwrap();
+            setIsFeatured(!isFeatured);
+            onUpdate();
+        } catch (error) {
+            console.error('Failed to update featured status:', error);
+        }
+    };
+
+    return (
+        <button
+            className={`__featured-toggle ${isFeatured ? '__featured' : '__not-featured'}`}
+            onClick={toggleFeatured}
+        >
+            {isFeatured ? <Star /> : <StarOff />}
+        </button>
+    );
+};
+
+const StatusCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
+    const [isPrivate, setIsPrivate] = useState(row.original.isPrivate);
+    const dispatch = useDispatch<AppDispatch>();
+
+    const toggleStatus = async () => {
+        try {
+            await dispatch(
+                updateArticle({
+                    id: row.original._id!,
+                    data: { isPrivate: !isPrivate },
+                })
+            ).unwrap();
+            setIsPrivate(!isPrivate);
+            onUpdate();
+        } catch (error) {
+            console.error('Failed to update status:', error);
+        }
+    };
+
+    return (
+        <button
+            className={`__status-toggle ${isPrivate ? '__private' : '__public'}`}
+            onClick={toggleStatus}
+        >
+            {isPrivate ? 'Private' : 'Public'}
+        </button>
+    );
+};
+
 // Main component
 export default function DashboardPage() {
     // Redux hooks
@@ -243,6 +306,7 @@ export default function DashboardPage() {
     const [selectedSuggestions, setSelectedSuggestions] = useState<SearchSuggestion[]>([]);
     const [transformedSuggestions, setTransformedSuggestions] = useState<SearchSuggestion[]>([]);
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+    const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
 
     // Form handling
     const {
@@ -312,9 +376,10 @@ export default function DashboardPage() {
             accessorKey: 'title',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    Title {column.getIsSorted() === 'asc' ? ' ↑' : ' ↓'}
+                    Title {column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />}
                 </button>
             ),
+            sortingFn: 'alphanumeric',
             cell: (info) => (
                 <span
                     className="__title"
@@ -329,9 +394,10 @@ export default function DashboardPage() {
             accessorKey: 'category',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    Category {column.getIsSorted() === 'asc' ? ' ↑' : ' ↓'}
+                    Category {column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />}
                 </button>
             ),
+            sortingFn: 'alphanumeric',
             cell: (info) => (
                 <span
                     className="__category"
@@ -364,17 +430,11 @@ export default function DashboardPage() {
             accessorKey: 'isFeatured',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    Featured
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    Featured {column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />}
                 </button>
             ),
-            cell: (info) => (
-                <span
-                    className={`__status-indicator ${info.getValue() ? '__active' : '__inactive'}`}
-                >
-                    {info.getValue() ? <Star /> : <StarOff />}
-                </span>
-            ),
+            cell: ({ row }) => <FeaturedCell row={row} onUpdate={handleRefreshArticles} />,
+            sortingFn: 'basic',
             enableSorting: true,
             meta: {
                 tdClassName: 'isCentered', // Custom class for this column's cells
@@ -458,19 +518,14 @@ export default function DashboardPage() {
         },
         {
             id: 'status',
-            accessorKey: 'status',
+            accessorKey: 'isPrivate',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    Status
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    Status {column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />}
                 </button>
             ),
-            cell: (info) => (
-                <span className={`__status __${info.getValue()}`}>
-                    {String(info.getValue()).charAt(0).toUpperCase() +
-                        String(info.getValue()).slice(1)}
-                </span>
-            ),
+            cell: ({ row }) => <StatusCell row={row} onUpdate={handleRefreshArticles} />,
+            sortingFn: 'basic',
             enableSorting: true,
         },
         {
@@ -497,13 +552,20 @@ export default function DashboardPage() {
                 <div className="__action-buttons">
                     <button
                         className="__edit-button"
-                        onClick={() => console.log('Edit', row.original._id)}
+                        onClick={() => handleEditArticle(row.original)}
                     >
                         <FilePenLine />
                     </button>
                     <button
                         className="__delete-button"
-                        onClick={() => console.log('Delete', row.original._id)}
+                        onClick={async () => {
+                            try {
+                                await dispatch(deleteArticle(row.original._id!)).unwrap();
+                                await handleRefreshArticles();
+                            } catch (error) {
+                                console.error('Failed to delete article:', error);
+                            }
+                        }}
                     >
                         <Trash2 />
                     </button>
@@ -523,7 +585,7 @@ export default function DashboardPage() {
         },
         filterFns: {
             fuzzy: fuzzyFilter as FilterFn<unknown>,
-            commentFuzzy: () => true
+            commentFuzzy: () => true,
         },
         onGlobalFilterChange: setGlobalFilter,
         onSortingChange: setSorting,
@@ -580,6 +642,25 @@ export default function DashboardPage() {
             // You could also add error handling UI here if needed
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleAddArticle = () => {
+        dispatch(clearCurrentArticle());
+        setIsArticleModalOpen(true);
+    };
+
+    const handleEditArticle = (article: Article) => {
+        dispatch(setCurrentArticle(article));
+        setIsArticleModalOpen(true);
+    };
+
+    // Add handleRefreshArticles function
+    const handleRefreshArticles = async () => {
+        try {
+            await dispatch(fetchArticles()).unwrap();
+        } catch (error) {
+            console.error('Failed to refresh articles:', error);
         }
     };
 
@@ -699,7 +780,7 @@ export default function DashboardPage() {
                         type="button"
                         className="_button"
                         id="_buttonCreate"
-                        /* onClick={() => _handleCreate()} */
+                        onClick={() => handleAddArticle()}
                         disabled={isLoading}
                     >
                         {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
@@ -1037,6 +1118,13 @@ export default function DashboardPage() {
                             onClose={() => setIsCommentModalOpen(false)}
                             comments={comments}
                             refreshComments={handleRefreshComments}
+                        />
+                    )}
+                    {isArticleModalOpen && (
+                        <ArticleManagementModal
+                            isOpen={isArticleModalOpen}
+                            onClose={() => setIsArticleModalOpen(false)}
+                            refreshArticles={handleRefreshArticles}
                         />
                     )}
                 </div>

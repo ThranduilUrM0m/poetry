@@ -95,6 +95,39 @@ let OpenAIController = class OpenAIController {
             throw new common_1.HttpException(`Failed to analyze comment: ${error.message}`, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async suggestTags(data) {
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a helpful assistant that suggests relevant tags for technical and creative articles. ' +
+                            'Return only a JSON array of lowercase, hyphenated tag strings.',
+                    },
+                    {
+                        role: 'user',
+                        content: `Based on the title "${data.input}" and body of length ${data.content.length}, ` +
+                            'suggest 5–10 concise, hyphenated tags for a poetry blog.',
+                    },
+                ],
+                temperature: 0.6,
+                max_tokens: 100,
+                response_format: { type: 'json_object' },
+            });
+            const payload = JSON.parse(response.choices[0]?.message?.content || '[]');
+            const suggestions = Array.isArray(payload)
+                ? payload
+                : Array.isArray(payload.tags)
+                    ? payload.tags
+                    : [];
+            return suggestions;
+        }
+        catch (error) {
+            console.error('OpenAI tag suggestion error:', error);
+            throw new common_1.HttpException('Tag suggestion failed', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 };
 exports.OpenAIController = OpenAIController;
 __decorate([
@@ -104,6 +137,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], OpenAIController.prototype, "analyzeComment", null);
+__decorate([
+    (0, common_1.Post)('suggest-tags'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], OpenAIController.prototype, "suggestTags", null);
 exports.OpenAIController = OpenAIController = __decorate([
     (0, common_1.Controller)('api/analyze-comment'),
     __metadata("design:paramtypes", [])
