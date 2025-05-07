@@ -1,0 +1,19 @@
+@use 'sass:string';
+
+@function str-to-lower-case($string) {
+    @return string.to-lower-case($string);
+}
+
+@function str-replace($string, $search, $replace: "") {
+    $index: string.index($string, $search);
+
+    @if $index {
+        @return string.slice($string, 1, $index - 1)+$replace+str-replace(string.slice($string,
+                $index + string.length($search),
+                string.length($string)),
+            $search,
+            $replace);
+    }
+
+    @return $string;
+}

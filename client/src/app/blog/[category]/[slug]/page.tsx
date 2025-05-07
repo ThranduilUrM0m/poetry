@@ -54,6 +54,8 @@ import {
     selectApprovedComments,
 } from '@/slices/commentSlice';
 
+import 'quill/dist/quill.snow.css';
+
 interface FormData {
     Parent: string | null;
     _comment_author: string;
@@ -720,7 +722,7 @@ export default function ArticlePage() {
                                                     lang={
                                                         containsArabic(article.body) ? 'ar' : 'en'
                                                     }
-                                                    className="articleBody"
+                                                    className="articleBody ql-snow"
                                                     dangerouslySetInnerHTML={{
                                                         __html: extractHTMLContent(article.body),
                                                     }}

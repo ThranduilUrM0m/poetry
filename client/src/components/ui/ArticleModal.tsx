@@ -24,7 +24,7 @@ import {
 } from '@/slices/articleSlice';
 
 // Icons
-import { Hash, Type, FileText, AlignLeft, X } from 'lucide-react';
+import { Hash, Type, AlignLeft, X } from 'lucide-react';
 import SimpleBar from 'simplebar-react';
 
 // Form validation schema
@@ -188,12 +188,10 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
 
                         <div className="_row __textarea">
                             <FormField
-                                label="Content"
                                 name="body"
-                                type="textarea"
+                                type="quill"
                                 control={control}
                                 error={errors.body?.message}
-                                icon={<FileText />}
                                 rules={{ required: 'Content is required' }}
                             />
                         </div>

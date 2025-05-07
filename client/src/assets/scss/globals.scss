@@ -1,3 +1,7 @@
+/* @use doesn't work as expected, like functions wouldn't work if you just @use them in globals,
+if you need to use a function from _functions.scss you will need to @use it in the file where you need the functions,
+otherwise it wouldn't know em, cause they aren't global, @import used to do that but it's deprecated */
+
 // Abstracts: variables, mixins, functions
 @use 'abstracts/variables';
 @use 'abstracts/mixins';

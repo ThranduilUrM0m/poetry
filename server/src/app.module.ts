@@ -12,6 +12,7 @@ import { VoteModule } from './modules/vote.module';
 import { UserModule } from './modules/user.module';
 import { OpenAIModule } from './modules/openai.module';
 import { AuthModule } from './auth/auth.module';
+import { FontsModule } from './fonts/fonts.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
         ContactModule,
         UserModule,
         AuthModule,
+        FontsModule,
         OpenAIModule
     ],
     controllers: [AppController],

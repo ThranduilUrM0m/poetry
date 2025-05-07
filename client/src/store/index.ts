@@ -10,6 +10,7 @@ import analyticsReducer from '@/slices/analyticsSlice';
 import userReducer from '@/slices/userSlice';
 import notificationReducer from '@/slices/notificationSlice';
 import tagReducer from '@/slices/tagSlice';
+import fontsReducer from '@/slices/fontsSlice';
 
 export const store = configureStore({
     reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
         user: userReducer,
         notifications: notificationReducer,
         tags: tagReducer,
+        fonts: fontsReducer
     },
 });
 

@@ -595,10 +595,9 @@
             form {
                 ._row {
                     &:nth-child(2) {
-
                         ._formGroup {
                             ._formControl {
-                                ._input {
+                                &>._input {
                                     @apply pb-[var(--input-height)];
                                 }
                             }

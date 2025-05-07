@@ -8,10 +8,16 @@ import { SearchSuggestion, SuggestionType } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';
 
+// Quill
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
+    ssr: false,
+});
+
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion, V = string | boolean> {
     label?: string;
     name: Path<T>;
-    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select';
+    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select' | 'quill';
     options?: Array<{ value: string; label: string }>;
     icon?: React.ReactNode;
     error?: string;
@@ -548,11 +554,19 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                     >
                         {/* _formControl */}
                         <div
-                            className={`_formControl ${type === 'select' && '_selectFormControl'}`}
+                            className={`_formControl ${type === 'select' && '_selectFormControl'} ${type === 'quill' && '_quillFormControl'}`}
                         >
                             {icon && <div className="_icon">{icon}</div>}
 
-                            {type === 'textarea' ? (
+                            {type === 'quill' ? (
+                                <RichTextEditor
+                                    ref={ref}
+                                    onChange={(content: string) => {
+                                        onChange(content);
+                                        if (onInputChange) onInputChange(content as V);
+                                    }}
+                                />
+                            ) : type === 'textarea' ? (
                                 <textarea
                                     className={`_input __textarea ${
                                         hasValue || isFocused ? '_focused' : ''
