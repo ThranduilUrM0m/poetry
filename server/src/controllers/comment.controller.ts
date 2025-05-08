@@ -4,7 +4,7 @@ import {
     Controller,
     Get,
     Post,
-    Put,
+    Patch,
     Delete,
     Param,
     Headers,
@@ -332,7 +332,7 @@ export class CommentController {
         return Promise.all(commentsFromDb.map((comment) => this.populateComment(comment)));
     }
 
-    @Put(':id')
+    @Patch(':id')
     async updateComment(
         @Param('id') id: string,
         @Body() data: Partial<Comment>

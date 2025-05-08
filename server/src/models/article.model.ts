@@ -18,7 +18,7 @@ export class Article {
     @Prop({ required: true })
     category: string;
 
-    @Prop({ required: true, unique: true })
+    @Prop({ default: '' })
     slug: string;
 
     @Prop({ default: false })

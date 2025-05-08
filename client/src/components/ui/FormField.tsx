@@ -554,13 +554,17 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                     >
                         {/* _formControl */}
                         <div
-                            className={`_formControl ${type === 'select' && '_selectFormControl'} ${type === 'quill' && '_quillFormControl'}`}
+                            className={`_formControl ${type === 'select' && '_selectFormControl'} ${
+                                type === 'quill' && '_quillFormControl'
+                            }`}
                         >
                             {icon && <div className="_icon">{icon}</div>}
 
                             {type === 'quill' ? (
                                 <RichTextEditor
                                     ref={ref}
+                                    value={value as string}
+                                    forceReset={forceReset}
                                     onChange={(content: string) => {
                                         onChange(content);
                                         if (onInputChange) onInputChange(content as V);

@@ -113,11 +113,17 @@ export const trackView = createAsyncThunk(
     }
 );
 
-export const updateArticle = createAsyncThunk(
-    'articles/updateArticle',
+export const updateArticleById = createAsyncThunk(
+    'articles/updateArticleById',
     async ({ id, data }: { id: string; data: Partial<Article> }, { rejectWithValue }) => {
         try {
-            const response = await axios.patch(`/api/articles/${id}`, data);
+            // Add ID validation
+            if (!id || typeof id !== 'string') {
+                throw new Error('Invalid comment ID');
+            }
+            
+            console.log('Pute Chienne : ', id);
+            const response = await axios.patch(`${API_BASE_URL}/api/articles/${id}`, data);
             return response.data;
         } catch (error) {
             return rejectWithValue((error as Error).message);
@@ -129,7 +135,7 @@ export const deleteArticle = createAsyncThunk(
     'articles/deleteArticle',
     async (id: string, { rejectWithValue }) => {
         try {
-            await axios.delete(`/api/articles/${id}`);
+            await axios.delete(`${API_BASE_URL}/api/articles/${id}`);
             return id;
         } catch (error) {
             return rejectWithValue((error as Error).message);
@@ -141,7 +147,7 @@ export const createArticle = createAsyncThunk(
     'articles/createArticle',
     async (data: Partial<Article>, { rejectWithValue }) => {
         try {
-            const response = await axios.post('/api/articles', data);
+            const response = await axios.post(`${API_BASE_URL}/api/articles`, data);
             return response.data;
         } catch (error) {
             return rejectWithValue((error as Error).message);
@@ -160,7 +166,7 @@ const articleSlice = createSlice({
         addArticle(state, action: PayloadAction<Article>) {
             state.articles.push(action.payload);
         },
-        updateArticle(state, action: PayloadAction<Article>) {
+        updateArticleById(state, action: PayloadAction<Article>) {
             const index = state.articles.findIndex((article) => article._id === action.payload._id);
             if (index !== -1) {
                 state.articles[index] = action.payload;
@@ -249,7 +255,7 @@ const articleSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload as string;
             })
-            .addCase(updateArticle.fulfilled, (state, action) => {
+            .addCase(updateArticleById.fulfilled, (state, action) => {
                 const index = state.articles.findIndex(
                     (article) => article._id === action.payload._id
                 );

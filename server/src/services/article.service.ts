@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Article, ArticleDocument } from '../models/article.model';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ArticleService {
@@ -340,16 +341,21 @@ export class ArticleService {
         return article;
     }
 
-    async deleteArticle(slug: string): Promise<{ message: string }> {
-        const article = await this.articleModel.findOneAndDelete({ slug });
-        if (!article) throw new NotFoundException('Article not found');
-        return { message: 'Article deleted successfully' };
+    async updateArticleById(id: string, data: Partial<Article>): Promise<Article> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid article ID');
+        }
+        const updated = await this.articleModel.findByIdAndUpdate(id, data, { new: true }).exec();
+        if (!updated) throw new NotFoundException('Article not found by ID');
+        return updated;
     }
 
-    async updateArticle(slug: string, data: Partial<Article>): Promise<Article> {
-        const article = await this.articleModel.findOneAndUpdate({ slug }, data, { new: true });
-        if (!article) throw new NotFoundException('Article not found');
-        return article;
+    async updateArticleBySlug(slug: string, data: Partial<Article>): Promise<Article> {
+        const updated = await this.articleModel
+            .findOneAndUpdate({ slug }, data, { new: true })
+            .exec();
+        if (!updated) throw new NotFoundException('Article not found by slug');
+        return updated;
     }
 
     async updateArticles(data: Partial<Article>[]): Promise<Article[]> {
@@ -363,5 +369,22 @@ export class ArticleService {
             if (article) updatedArticles.push(article);
         }
         return updatedArticles;
+    }
+
+    async deleteArticleById(id: string): Promise<void> {
+        if (!Types.ObjectId.isValid(id)) {
+            throw new BadRequestException('Invalid article ID');
+        }
+        const result = await this.articleModel.findByIdAndDelete(id).exec();
+        if (!result) {
+            throw new NotFoundException('Article not found by ID');
+        }
+    }
+
+    async deleteArticleBySlug(slug: string): Promise<void> {
+        const result = await this.articleModel.findOneAndDelete({ slug }).exec();
+        if (!result) {
+            throw new NotFoundException('Article not found by slug');
+        }
     }
 }

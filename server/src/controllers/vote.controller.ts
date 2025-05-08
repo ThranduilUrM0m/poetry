@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Vote } from '../models/vote.model';
@@ -99,7 +99,7 @@ export class VoteController {
         return this.populateVote(dummyVote as Vote);
     }
 
-    @Put(':id')
+    @Patch(':id')
     async updateVote(@Param('id') id: string, @Body() data: Partial<Vote>): Promise<PopulatedVote> {
         const updatedVote = await this.voteService.updateVote(id, data);
         return this.populateVote(updatedVote);

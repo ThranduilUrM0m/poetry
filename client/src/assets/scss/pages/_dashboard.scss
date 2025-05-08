@@ -281,12 +281,12 @@
 
                                             .__count {
                                                 @apply flex items-end font-semibold text-[3.5vh] leading-[3vh];
-                                                
+
                                                 svg {
                                                     @apply w-[4vh] h-[4vh] mr-[2vh] stroke-[2px] stroke-[rgb(var(--text)/.5)];
                                                 }
-                                            }                                            
-                                                
+                                            }
+
                                             &>svg {
                                                 @apply mt-auto w-[20vh] h-[20vh] stroke-[.25vh] stroke-[rgb(var(--text)/1)] opacity-[.1] blur-[.25vh] -rotate-[15deg];
                                             }
@@ -530,7 +530,7 @@
                                     .__viewMore {
                                         @apply flex-1 mx-[2.75vh];
                                         @apply w-fit h-[6vh] flex items-center justify-end text-[rgb(var(--text)/1)] text-sm font-medium;
-                
+
                                         span {
                                             @apply flex items-center;
                                         }
@@ -617,7 +617,17 @@
                                                     @apply text-left px-[1.25vh] py-[1.25vh] text-[2.5vh] font-semibold text-[rgb(var(--text)/.25)] leading-[1];
 
                                                     button {
-                                                        @apply flex items-center;
+                                                        @apply flex items-center w-full;
+                                                    }
+
+                                                    svg {
+                                                        @apply w-[3.5vh] h-[3.5vh] stroke-[2px] stroke-[rgb(var(--text)/.25)];
+                                                    }
+
+                                                    &:not(&:nth-child(2), &:nth-child(3)) {
+                                                        button {
+                                                            @apply justify-around;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -629,22 +639,89 @@
                                                     @apply text-left px-[1.25vh] py-[1.25vh] text-[2.5vh] text-[rgb(var(--text)/.9)] leading-[1];
 
                                                     svg {
-                                                        @apply w-[2.75vh] h-[2.75vh] stroke-[2px] stroke-[rgb(var(--text)/.75)];
+                                                        @apply w-[3.5vh] h-[3.5vh] stroke-[2px] stroke-[rgb(var(--text)/.75)];
                                                     }
 
                                                     &.isCentered {
                                                         @apply text-center text-[rgb(var(--text)/.25)];
-                                                    
+
                                                         span {
                                                             @apply flex justify-center;
+                                                        }
 
-                                                            svg {
-                                                                @apply stroke-[rgb(var(--text)/.25)];
-                                                            }
+                                                        .__action-buttons {
+                                                            @apply flex justify-between;
                                                         }
                                                     }
                                                 }
                                             }
+                                        }
+                                    }
+
+                                    .__table {
+
+                                        thead tr th,
+                                        tbody tr td {
+                                            // Select column
+                                            &:nth-child(1) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Title
+                                            &:nth-child(2) {
+                                                @apply w-[20%];
+                                            }
+
+                                            // Category
+                                            &:nth-child(3) {
+                                                @apply w-[15%];
+                                            }
+
+                                            // Private
+                                            &:nth-child(4) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Featured
+                                            &:nth-child(5) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Comments
+                                            &:nth-child(6) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Views
+                                            &:nth-child(7) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Upvotes
+                                            &:nth-child(8) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Downvotes
+                                            &:nth-child(9) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Status
+                                            &:nth-child(10) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Bio
+                                            &:nth-child(11) {
+                                                @apply w-fit;
+                                            }
+
+                                            // Actions
+                                            &:nth-child(12) {
+                                                @apply w-[10%];
+                                            }
+
                                         }
                                     }
 

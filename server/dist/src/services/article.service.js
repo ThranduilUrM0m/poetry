@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const article_model_1 = require("../models/article.model");
+const mongoose_3 = require("mongoose");
 let ArticleService = class ArticleService {
     constructor(articleModel) {
         this.articleModel = articleModel;
@@ -340,17 +341,22 @@ let ArticleService = class ArticleService {
             throw new common_1.NotFoundException('Article not found');
         return article;
     }
-    async deleteArticle(slug) {
-        const article = await this.articleModel.findOneAndDelete({ slug });
-        if (!article)
-            throw new common_1.NotFoundException('Article not found');
-        return { message: 'Article deleted successfully' };
+    async updateArticleById(id, data) {
+        if (!mongoose_3.Types.ObjectId.isValid(id)) {
+            throw new common_1.BadRequestException('Invalid article ID');
+        }
+        const updated = await this.articleModel.findByIdAndUpdate(id, data, { new: true }).exec();
+        if (!updated)
+            throw new common_1.NotFoundException('Article not found by ID');
+        return updated;
     }
-    async updateArticle(slug, data) {
-        const article = await this.articleModel.findOneAndUpdate({ slug }, data, { new: true });
-        if (!article)
-            throw new common_1.NotFoundException('Article not found');
-        return article;
+    async updateArticleBySlug(slug, data) {
+        const updated = await this.articleModel
+            .findOneAndUpdate({ slug }, data, { new: true })
+            .exec();
+        if (!updated)
+            throw new common_1.NotFoundException('Article not found by slug');
+        return updated;
     }
     async updateArticles(data) {
         const updatedArticles = [];
@@ -360,6 +366,21 @@ let ArticleService = class ArticleService {
                 updatedArticles.push(article);
         }
         return updatedArticles;
+    }
+    async deleteArticleById(id) {
+        if (!mongoose_3.Types.ObjectId.isValid(id)) {
+            throw new common_1.BadRequestException('Invalid article ID');
+        }
+        const result = await this.articleModel.findByIdAndDelete(id).exec();
+        if (!result) {
+            throw new common_1.NotFoundException('Article not found by ID');
+        }
+    }
+    async deleteArticleBySlug(slug) {
+        const result = await this.articleModel.findOneAndDelete({ slug }).exec();
+        if (!result) {
+            throw new common_1.NotFoundException('Article not found by slug');
+        }
     }
 };
 exports.ArticleService = ArticleService;

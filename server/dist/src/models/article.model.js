@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "category", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, unique: true }),
+    (0, mongoose_1.Prop)({ default: '' }),
     __metadata("design:type", String)
 ], Article.prototype, "slug", void 0);
 __decorate([

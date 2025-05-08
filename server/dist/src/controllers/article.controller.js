@@ -115,16 +115,50 @@ let ArticleController = class ArticleController {
         }
         return this.populateArticle(dummyArticle);
     }
-    async updateArticle(slug, data) {
-        const updated = await this.articleService.updateArticle(slug, data);
-        return this.populateArticle(updated);
+    async updateArticle(identifier, data) {
+        if (mongoose_2.Types.ObjectId.isValid(identifier)) {
+            try {
+                const updated = await this.articleService.updateArticleById(identifier, data);
+                return this.populateArticle(updated);
+            }
+            catch (error) {
+                throw new common_1.NotFoundException('Article not found by ID');
+            }
+        }
+        else {
+            const updated = await this.articleService.updateArticleBySlug(identifier, data);
+            return this.populateArticle(updated);
+        }
     }
     async updateArticles(data) {
         const updatedArticles = await this.articleService.updateArticles(data);
         return Promise.all(updatedArticles.map((article) => this.populateArticle(article)));
     }
-    async deleteArticle(slug) {
-        return this.articleService.deleteArticle(slug);
+    async deleteArticle(identifier) {
+        if (mongoose_2.Types.ObjectId.isValid(identifier)) {
+            try {
+                await this.articleService.deleteArticleById(identifier);
+                return { message: `Deleted article ${identifier}` };
+            }
+            catch (err) {
+                if (err instanceof common_1.NotFoundException) {
+                    throw err;
+                }
+                throw new common_1.BadRequestException('Invalid article ID');
+            }
+        }
+        else {
+            try {
+                await this.articleService.deleteArticleBySlug(identifier);
+                return { message: `Deleted article "${identifier}"` };
+            }
+            catch (err) {
+                if (err instanceof common_1.NotFoundException) {
+                    throw err;
+                }
+                throw new common_1.BadRequestException('Invalid slug');
+            }
+        }
     }
     async trackView(id, body) {
         try {
@@ -262,23 +296,23 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "getArticleBySlug", null);
 __decorate([
-    (0, common_1.Put)(':slug'),
-    __param(0, (0, common_1.Param)('slug')),
+    (0, common_1.Patch)(':identifier'),
+    __param(0, (0, common_1.Param)('identifier')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "updateArticle", null);
 __decorate([
-    (0, common_1.Put)(),
+    (0, common_1.Patch)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "updateArticles", null);
 __decorate([
-    (0, common_1.Delete)(':slug'),
-    __param(0, (0, common_1.Param)('slug')),
+    (0, common_1.Delete)(':identifier'),
+    __param(0, (0, common_1.Param)('identifier')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)

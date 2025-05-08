@@ -26,9 +26,9 @@ export declare class ArticleController {
     getAllArticles(): Promise<PopulatedArticle[]>;
     getArticlesByCategory(category: string): Promise<PopulatedArticle[]>;
     getArticleBySlug(category: string, slug: string): Promise<PopulatedArticle>;
-    updateArticle(slug: string, data: Partial<Article>): Promise<PopulatedArticle>;
+    updateArticle(identifier: string, data: Partial<Article>): Promise<PopulatedArticle>;
     updateArticles(data: Partial<Article>[]): Promise<PopulatedArticle[]>;
-    deleteArticle(slug: string): Promise<{
+    deleteArticle(identifier: string): Promise<{
         message: string;
     }>;
     trackView(id: string, body: {

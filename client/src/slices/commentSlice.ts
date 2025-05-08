@@ -163,7 +163,7 @@ export const updateComment = createAsyncThunk(
                 throw new Error('Invalid comment ID');
             }
 
-            const response = await axios.put(`${API_BASE_URL}/api/comments/${id}`, data);
+            const response = await axios.patch(`${API_BASE_URL}/api/comments/${id}`, data);
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));

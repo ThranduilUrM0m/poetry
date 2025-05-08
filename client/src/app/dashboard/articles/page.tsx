@@ -40,7 +40,14 @@ import {
 import { AppDispatch } from '@/store';
 import { useDashboard } from '@/context/DashboardContext';
 import { selectAnalyticsCalculating } from '@/slices/analyticsSlice';
-import { clearCurrentArticle, deleteArticle, fetchArticles, selectArticles, setCurrentArticle, updateArticle } from '@/slices/articleSlice';
+import {
+    clearCurrentArticle,
+    deleteArticle,
+    fetchArticles,
+    selectArticles,
+    setCurrentArticle,
+    updateArticleById,
+} from '@/slices/articleSlice';
 import { selectComments, fetchComments } from '@/slices/commentSlice';
 
 // Component imports
@@ -64,13 +71,13 @@ import {
     Search,
     ThumbsDown,
     ThumbsUp,
-    FileKey,
     BookUser,
     Star,
     StarOff,
     Timer,
     ChevronUp,
     ChevronDown,
+    EyeOff,
 } from 'lucide-react';
 
 // Chart imports
@@ -231,6 +238,38 @@ export const usePopularCategories = () => {
 };
 
 // Cell Components
+
+const PrivateCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const [isPrivate, setIsPrivate] = useState(row.original.isPrivate);
+
+    const togglePrivate = async () => {
+        try {
+            await dispatch(
+                updateArticleById({
+                    id: row.original._id!,
+                    data: { isPrivate: !isPrivate },
+                })
+            ).unwrap();
+
+            setIsPrivate((prev) => !prev);
+            onUpdate();
+        } catch (err) {
+            console.error('Failed to toggle private:', err);
+        }
+    };
+
+    return (
+        <button
+            className={`__private-toggle ${isPrivate ? '__private' : '__public'}`}
+            onClick={togglePrivate}
+            aria-label={isPrivate ? 'Make Public' : 'Make Private'}
+        >
+            {isPrivate ? <EyeOff /> : <Eye />}
+        </button>
+    );
+};
+
 const FeaturedCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
     const [isFeatured, setIsFeatured] = useState(row.original.isFeatured);
     const dispatch = useDispatch<AppDispatch>();
@@ -238,7 +277,7 @@ const FeaturedCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ r
     const toggleFeatured = async () => {
         try {
             await dispatch(
-                updateArticle({
+                updateArticleById({
                     id: row.original._id!,
                     data: { isFeatured: !isFeatured },
                 })
@@ -260,19 +299,27 @@ const FeaturedCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ r
     );
 };
 
+const STATUS_CYCLE = ['pending', 'approved', 'rejected'] as const;
+type StatusType = (typeof STATUS_CYCLE)[number];
 const StatusCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
-    const [isPrivate, setIsPrivate] = useState(row.original.isPrivate);
     const dispatch = useDispatch<AppDispatch>();
+    const [status, setStatus] = useState<StatusType>(
+        STATUS_CYCLE.includes(row.original.status) ? row.original.status : 'pending'
+    );
 
     const toggleStatus = async () => {
+        const currentIndex = STATUS_CYCLE.indexOf(status);
+        const next = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length];
+
         try {
             await dispatch(
-                updateArticle({
+                updateArticleById({
                     id: row.original._id!,
-                    data: { isPrivate: !isPrivate },
+                    data: { status: next },
                 })
             ).unwrap();
-            setIsPrivate(!isPrivate);
+
+            setStatus(next);
             onUpdate();
         } catch (error) {
             console.error('Failed to update status:', error);
@@ -281,10 +328,11 @@ const StatusCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row
 
     return (
         <button
-            className={`__status-toggle ${isPrivate ? '__private' : '__public'}`}
+            className={`__status-toggle ${status}`}
             onClick={toggleStatus}
+            title={`Status: ${status}. Click to cycle.`}
         >
-            {isPrivate ? 'Private' : 'Public'}
+            {status}
         </button>
     );
 };
@@ -416,14 +464,11 @@ export default function DashboardPage() {
                     {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
                 </button>
             ),
-            cell: (info) => (
-                <span
-                    className={`__status-indicator ${info.getValue() ? '__active' : '__inactive'}`}
-                >
-                    {info.getValue() ? <FileKey /> : null}
-                </span>
-            ),
+            cell: ({ row }) => <PrivateCell row={row} onUpdate={handleRefreshArticles} />,
             enableSorting: true,
+            meta: {
+                tdClassName: 'isCentered', // Custom class for this column's cells
+            },
         },
         {
             id: 'isFeatured',
@@ -444,7 +489,7 @@ export default function DashboardPage() {
             id: 'comments',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    <MessageSquare size={18} className="__icon-header" />
+                    <MessageSquare className="__icon-header" />
                     {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
                 </button>
             ),
@@ -462,7 +507,7 @@ export default function DashboardPage() {
             id: 'views',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    <Eye size={18} className="__icon-header" />
+                    <Eye className="__icon-header" />
                     {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
                 </button>
             ),
@@ -480,7 +525,7 @@ export default function DashboardPage() {
             id: 'upvotes',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    <ThumbsUp size={18} className="__icon-header" />
+                    <ThumbsUp className="__icon-header" />
                     {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
                 </button>
             ),
@@ -500,7 +545,7 @@ export default function DashboardPage() {
             id: 'downvotes',
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
-                    <ThumbsDown size={18} className="__icon-header" />
+                    <ThumbsDown className="__icon-header" />
                     {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
                 </button>
             ),
@@ -527,6 +572,9 @@ export default function DashboardPage() {
             cell: ({ row }) => <StatusCell row={row} onUpdate={handleRefreshArticles} />,
             sortingFn: 'basic',
             enableSorting: true,
+            meta: {
+                tdClassName: 'isCentered', // Custom class for this column's cells
+            },
         },
         {
             id: 'isBio',
@@ -545,6 +593,9 @@ export default function DashboardPage() {
                 </span>
             ),
             enableSorting: true,
+            meta: {
+                tdClassName: 'isCentered', // Custom class for this column's cells
+            },
         },
         {
             id: 'actions',
@@ -572,6 +623,9 @@ export default function DashboardPage() {
                 </div>
             ),
             enableSorting: false,
+            meta: {
+                tdClassName: 'isCentered', // Custom class for this column's cells
+            },
         },
     ];
 
@@ -1100,10 +1154,10 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="__category-stats">
                                             <span className="__views-count">
-                                                <Eye size={16} /> {category.totalViews}
+                                                <Eye /> {category.totalViews}
                                             </span>
                                             <span className="__comments-count">
-                                                <MessageSquare size={16} /> {category.totalComments}
+                                                <MessageSquare /> {category.totalComments}
                                             </span>
                                         </div>
                                     </div>

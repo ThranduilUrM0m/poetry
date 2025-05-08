@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { View } from '../models/view.model';
@@ -88,7 +88,7 @@ export class ViewController {
         return this.populateView(dummyView as View);
     }
 
-    @Put(':id')
+    @Patch(':id')
     async updateView(@Param('id') id: string, @Body() data: Partial<View>): Promise<PopulatedView> {
         const updatedView = await this.viewService.updateView(id, data);
         return this.populateView(updatedView);

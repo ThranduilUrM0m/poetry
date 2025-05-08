@@ -1,6 +1,6 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 
@@ -17,11 +17,13 @@ import {
     selectTagSuggestions /* , selectTagsLoading */,
 } from '@/slices/tagSlice';
 import {
-    /* createArticle,
-    updateArticle, */
+    createArticle,
+    updateArticleById,
     selectCurrentArticle,
-    /* clearCurrentArticle, */
+    clearCurrentArticle,
 } from '@/slices/articleSlice';
+import { selectUser } from '@/slices/userSlice'
+import SubmitModal from '@/components/ui/SubmitModal';
 
 // Icons
 import { Hash, Type, AlignLeft, X } from 'lucide-react';
@@ -51,7 +53,6 @@ const validationSchema: Yup.ObjectSchema<ArticleFormValues, Yup.AnyObject> = Yup
 
         // tagInput must always be a string (never undefined)
         tagInput: Yup.string()
-            .required() // ensures TS knows it’s always a string
             .default(''), // default into an empty string
 
         // booleans: always defined, never undefined
@@ -64,7 +65,7 @@ const validationSchema: Yup.ObjectSchema<ArticleFormValues, Yup.AnyObject> = Yup
 interface ArticleManagementModalProps {
     isOpen: boolean;
     onClose: () => void;
-    refreshArticles?: () => Promise<void>;
+    refreshArticles: () => Promise<void>;
 }
 
 interface ArticleFormValues {
@@ -79,19 +80,29 @@ interface ArticleFormValues {
 
 const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
-export default function ArticleManagementModal({ isOpen, onClose }: ArticleManagementModalProps) {
+export default function ArticleManagementModal({
+    isOpen,
+    onClose,
+    refreshArticles,
+}: ArticleManagementModalProps) {
     /* Tags */
     const dispatch = useDispatch<AppDispatch>();
+    const currentArticle = useSelector(selectCurrentArticle);
+    const user = useSelector(selectUser)
     const tagSuggestions = useSelector(selectTagSuggestions);
+    const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [formReset, setFormReset] = useState(false);
     /* const isLoadingTags = useSelector(selectTagsLoading); */
 
     const {
         control,
-        /* handleSubmit, */
+        handleSubmit,
         watch,
-        /* reset, */
+        reset,
         formState: { errors, isSubmitting },
         setValue,
+        clearErrors,
     } = useForm<ArticleFormValues>({
         resolver: yupResolver(validationSchema),
         defaultValues: {
@@ -119,7 +130,72 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
 
     // Refs and state management
     const modalRef = useRef<HTMLDivElement>(null);
-    const currentArticle = useSelector(selectCurrentArticle);
+
+    const onSubmit: SubmitHandler<ArticleFormValues> = async (data) => {
+        const payload = {
+            ...data,
+            author: user!, // ← attach the current user
+            // do _not_ send slug!  mongoose pre-save will slugify title
+        };
+
+        try {
+            if (currentArticle) {
+                // EDIT mode → PATCH /api/articles/:slug
+                await dispatch(
+                    updateArticleById({
+                        id: currentArticle._id!,
+                        data: payload,
+                    })
+                ).unwrap();
+            } else {
+                // CREATE mode → POST /api/articles
+                await dispatch(createArticle(payload)).unwrap();
+            }
+
+            // 1) Close modal
+            onClose();
+            // 2) Reset form to defaults
+            reset();
+            // 3) Clear currentArticle in state so next open is CREATE
+            dispatch(clearCurrentArticle());
+            // 4) Refresh articles list
+            if (refreshArticles) await refreshArticles();
+
+            setFormReset(true); // Trigger FormField reset
+            setTimeout(() => setFormReset(false), 100); // Reset trigger
+        } catch (err) {
+            // If you want, pipe error into SubmitModal
+            console.error(err);
+            // Toggling an error-submission modal:
+            setSubmitError('Submission failed');
+            setIsSubmitOpen(true);
+        }
+    };
+
+    useEffect(() => {
+        if (currentArticle) {
+            reset({
+                title: currentArticle.title,
+                body: currentArticle.body,
+                category: currentArticle.category,
+                tags: currentArticle.tags,
+                isPrivate: currentArticle.isPrivate,
+                isFeatured: currentArticle.isFeatured,
+                tagInput:   '',
+            });
+            setSelectedTags(currentArticle.tags!);
+            setValue('tags', currentArticle.tags!);
+        } else {
+            reset();
+            setSelectedTags([]);
+            setValue('tags', []);
+        }
+    }, [reset, currentArticle, setValue]);
+
+    const handleClearField = (fieldName: keyof ArticleFormValues) => {
+        setValue(fieldName, '');
+        clearErrors(fieldName);
+    };
 
     const containsArabic = (text: string): boolean => {
         const arabicRegex = /[\u0600-\u06FF]/;
@@ -163,26 +239,33 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
 
                 {/* Body */}
                 <div className="_body">
-                    <form className="_form" /* onSubmit={handleSubmit(onSubmit)} */>
+                    <form className="_form" onSubmit={handleSubmit(onSubmit)}>
                         <div className="_row">
                             <FormField
                                 label="Title"
                                 name="title"
+                                value={currentArticle?.title || ''}
                                 type="text"
                                 control={control}
                                 error={errors.title?.message}
                                 icon={<Type />}
                                 rules={{ required: 'Title is required' }}
+                                forceReset={formReset}
+                                onClear={() => handleClearField('title')}
                             />
 
+                            {/* Make this FormField a downshift too */}
                             <FormField
                                 label="Category"
                                 name="category"
+                                value={currentArticle?.category || ''}
                                 type="text"
                                 control={control}
                                 error={errors.category?.message}
                                 icon={<AlignLeft />}
                                 rules={{ required: 'Category is required' }}
+                                forceReset={formReset}
+                                onClear={() => handleClearField('category')}
                             />
                         </div>
 
@@ -190,9 +273,12 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                             <FormField
                                 name="body"
                                 type="quill"
+                                value={currentArticle?.body || ''}
                                 control={control}
                                 error={errors.body?.message}
                                 rules={{ required: 'Content is required' }}
+                                forceReset={formReset}
+                                onClear={() => handleClearField('body')}
                             />
                         </div>
 
@@ -214,7 +300,6 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                                     sourceType: 'Article',
                                 }))}
                                 control={control}
-                                onClear={() => setValue('tagInput', '')}
                                 onInputChange={(val: string) => {
                                     setValue('tagInput', val);
                                     dispatch(
@@ -234,6 +319,12 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                                     type: 'tag',
                                     sourceType: 'Article',
                                 }))}
+                                forceReset={formReset}
+                                onClear={() => {
+                                    setValue('tagInput', '');
+                                    /* Gotta refresh the suggestions too */
+                                    clearErrors('tagInput');
+                                }}
                             />
 
                             <AnimatedWrapper
@@ -286,8 +377,10 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                             <FormField
                                 label="Private"
                                 name="isPrivate"
+                                value={currentArticle?.isPrivate || ''}
                                 type="checkbox"
                                 control={control}
+                                forceReset={formReset}
                             />
 
                             <button
@@ -390,10 +483,12 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                                     parentHoverSelector="#_buttonArticle"
                                 >
                                     {isSubmitting
-                                        ? 'Saving...'
+                                        ? currentArticle
+                                            ? 'Updating…'
+                                            : 'Creating…'
                                         : currentArticle
-                                        ? 'Update'
-                                        : 'Create'}
+                                        ? 'Update Article'
+                                        : 'Create Article'}
                                     <b className="__dot">.</b>
                                 </AnimatedWrapper>
                             </button>
@@ -401,6 +496,13 @@ export default function ArticleManagementModal({ isOpen, onClose }: ArticleManag
                     </form>
                 </div>
             </AnimatedWrapper>
+            <SubmitModal
+                isSubmitOpen={isSubmitOpen}
+                onSubmitClose={() => setIsSubmitOpen(false)}
+                header={currentArticle ? 'Update Failed' : 'Creation Failed'}
+                message={submitError || ''}
+                isSuccess={false}
+            />
         </>
     );
 }

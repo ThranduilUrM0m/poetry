@@ -34,12 +34,14 @@ Quill.register('formats/font', FontAttributor, true);
 Quill.register('formats/size', SizeAttributor, true);
 
 interface RichTextEditorProps {
+    value?: string;
+    forceReset?: boolean;
     onChange?: (content: string) => void;
 }
 export type RichTextEditorHandle = { getContent: () => string };
 
 const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
-    ({ onChange }, ref) => {
+    ({ value = '', forceReset = false, onChange }, ref) => {
         const [currentHeader, setCurrentHeader] = useState<string>('false');
         const [currentFont, setCurrentFont] = useState<string>('');
         const [currentSize, setCurrentSize] = useState<string>('');
@@ -96,7 +98,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
 
         // 2️⃣ Then initialize Quill once
         useEffect(() => {
-            if (editorRef.current && !quillRef.current && fonts.length) {
+            if (editorRef.current && !quillRef.current) {
                 const quill = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
@@ -166,6 +168,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 });
             }
         }, [onChange, fonts, currentFont, currentSize]);
+
+        useEffect(() => {
+            if (quillRef.current) {
+                // skip if it's already equal
+                if (quillRef.current.root.innerHTML !== value) {
+                    quillRef.current.root.innerHTML = value;
+                }
+            }
+        }, [value, forceReset]);
 
         // ➋ Whenever state updates, mirror it in the refs
         useEffect(() => {

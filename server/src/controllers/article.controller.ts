@@ -2,13 +2,14 @@ import {
     Controller,
     Get,
     Post,
-    Put,
+    Patch,
     Delete,
     Param,
     Body,
     NotFoundException,
     HttpException,
     HttpStatus,
+    BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -194,24 +195,59 @@ export class ArticleController {
         return this.populateArticle(dummyArticle as Article);
     }
 
-    @Put(':slug')
+    @Patch(':identifier')
     async updateArticle(
-        @Param('slug') slug: string,
+        @Param('identifier') identifier: string,
         @Body() data: Partial<Article>
     ): Promise<PopulatedArticle> {
-        const updated = await this.articleService.updateArticle(slug, data);
-        return this.populateArticle(updated);
+        // Check if the identifier is a valid MongoDB ObjectId
+        if (Types.ObjectId.isValid(identifier)) {
+            try {
+                // Attempt to update by ID
+                const updated = await this.articleService.updateArticleById(identifier, data);
+                return this.populateArticle(updated);
+            } catch (error) {
+                // If ID is valid but not found, throw error (don't fallback to slug)
+                throw new NotFoundException('Article not found by ID');
+            }
+        } else {
+            // Treat as slug and update by slug
+            const updated = await this.articleService.updateArticleBySlug(identifier, data);
+            return this.populateArticle(updated);
+        }
     }
 
-    @Put()
+    @Patch()
     async updateArticles(@Body() data: Partial<Article>[]): Promise<PopulatedArticle[]> {
         const updatedArticles = await this.articleService.updateArticles(data);
         return Promise.all(updatedArticles.map((article) => this.populateArticle(article)));
     }
 
-    @Delete(':slug')
-    async deleteArticle(@Param('slug') slug: string): Promise<{ message: string }> {
-        return this.articleService.deleteArticle(slug);
+    @Delete(':identifier')
+    async deleteArticle(@Param('identifier') identifier: string): Promise<{ message: string }> {
+        if (Types.ObjectId.isValid(identifier)) {
+            // Identifier looks like an ObjectId → delete by ID
+            try {
+                await this.articleService.deleteArticleById(identifier);
+                return { message: `Deleted article ${identifier}` };
+            } catch (err) {
+                if (err instanceof NotFoundException) {
+                    throw err;
+                }
+                throw new BadRequestException('Invalid article ID');
+            }
+        } else {
+            // Otherwise treat as slug
+            try {
+                await this.articleService.deleteArticleBySlug(identifier);
+                return { message: `Deleted article "${identifier}"` };
+            } catch (err) {
+                if (err instanceof NotFoundException) {
+                    throw err;
+                }
+                throw new BadRequestException('Invalid slug');
+            }
+        }
     }
 
     @Post(':id/views')
