@@ -78,6 +78,7 @@ import {
     ChevronUp,
     ChevronDown,
     EyeOff,
+    Hash,
 } from 'lucide-react';
 
 // Chart imports
@@ -230,8 +231,8 @@ export const usePopularCategories = () => {
             }
         );
 
-        // Sort by score and take top 3
-        return _.orderBy(categoriesWithScores, ['score'], ['desc']).slice(0, 3);
+        // Sort by score and take top 4
+        return _.orderBy(categoriesWithScores, ['score'], ['desc']).slice(0, 4);
     }, [articles]);
 
     return getPopularCategories;
@@ -356,6 +357,8 @@ export default function DashboardPage() {
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
     const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
 
+    const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+
     // Form handling
     const {
         control,
@@ -428,14 +431,26 @@ export default function DashboardPage() {
                 </button>
             ),
             sortingFn: 'alphanumeric',
-            cell: (info) => (
-                <span
-                    className="__title"
-                    lang={containsArabic(info.getValue() as string) ? 'ar' : 'en'}
-                >
-                    {info.getValue() as string}
-                </span>
-            ),
+            cell: (info) => {
+                const article = info.row.original;
+                return (
+                    <div className="__title-cell">
+                        <span
+                            className="__title"
+                            lang={containsArabic(article.title) ? 'ar' : 'en'}
+                        >
+                            {article.title}
+                        </span>
+                        <div className="__title-meta">
+                            <span className="__author">by {article.author?.username}</span>
+                            <span className="__update-date">
+                                <span>{format(new Date(article.updatedAt!), 'EEE')},</span>
+                                <span>{format(new Date(article.updatedAt!), 'LLL do yyyy')}.</span>
+                            </span>
+                        </div>
+                    </div>
+                );
+            },
         },
         {
             id: 'category',
@@ -446,14 +461,32 @@ export default function DashboardPage() {
                 </button>
             ),
             sortingFn: 'alphanumeric',
-            cell: (info) => (
-                <span
-                    className="__category"
-                    lang={containsArabic(info.getValue() as string) ? 'ar' : 'en'}
-                >
-                    {info.getValue() as string}
-                </span>
-            ),
+            cell: (info) => {
+                const category = info.getValue() as string;
+                const tags = info.row.original.tags || [];
+
+                return (
+                    <div className="__category-container">
+                        <span className="__category" lang={containsArabic(category) ? 'ar' : 'en'}>
+                            {category}
+                        </span>
+                        <div className="__tags-wrapper">
+                            <AnimatedWrapper
+                                key={_.head(tags)}
+                                className="__tagCard"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: 0.8 }}
+                                config={smoothConfig}
+                            >
+                                <Hash />
+                                <span lang={containsArabic(_.head(tags)!) ? 'ar' : 'en'}>
+                                    {_.head(tags)}
+                                </span>
+                            </AnimatedWrapper>
+                        </div>
+                    </div>
+                );
+            },
         },
         {
             id: 'isPrivate',

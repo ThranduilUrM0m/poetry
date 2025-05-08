@@ -49,11 +49,11 @@ __decorate([
     __metadata("design:type", Array)
 ], Article.prototype, "tags", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Comment' }] }),
     __metadata("design:type", Array)
 ], Article.prototype, "comments", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'Vote' }] }),
+    (0, mongoose_1.Prop)({ type: [{ type: mongoose_2.Types.ObjectId, ref: 'View' }] }),
     __metadata("design:type", Array)
 ], Article.prototype, "views", void 0);
 __decorate([

@@ -21,8 +21,10 @@ import {
     updateArticleById,
     selectCurrentArticle,
     clearCurrentArticle,
+    selectArticles,
+    fetchArticles,
 } from '@/slices/articleSlice';
-import { selectUser } from '@/slices/userSlice'
+import { selectUser } from '@/slices/userSlice';
 import SubmitModal from '@/components/ui/SubmitModal';
 
 // Icons
@@ -52,8 +54,7 @@ const validationSchema: Yup.ObjectSchema<ArticleFormValues, Yup.AnyObject> = Yup
             .default([]),
 
         // tagInput must always be a string (never undefined)
-        tagInput: Yup.string()
-            .default(''), // default into an empty string
+        tagInput: Yup.string().default(''), // default into an empty string
 
         // booleans: always defined, never undefined
         isPrivate: Yup.boolean().required().default(false),
@@ -87,8 +88,9 @@ export default function ArticleManagementModal({
 }: ArticleManagementModalProps) {
     /* Tags */
     const dispatch = useDispatch<AppDispatch>();
+    const articles = useSelector(selectArticles);
     const currentArticle = useSelector(selectCurrentArticle);
-    const user = useSelector(selectUser)
+    const user = useSelector(selectUser);
     const tagSuggestions = useSelector(selectTagSuggestions);
     const [isSubmitOpen, setIsSubmitOpen] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -121,6 +123,7 @@ export default function ArticleManagementModal({
 
     // Fetch suggestions whenever title or body changes
     useEffect(() => {
+        dispatch(fetchArticles());
         if (title || body) {
             dispatch(fetchTagSuggestions({ input: title, content: body }));
         }
@@ -181,7 +184,7 @@ export default function ArticleManagementModal({
                 tags: currentArticle.tags,
                 isPrivate: currentArticle.isPrivate,
                 isFeatured: currentArticle.isFeatured,
-                tagInput:   '',
+                tagInput: '',
             });
             setSelectedTags(currentArticle.tags!);
             setValue('tags', currentArticle.tags!);
@@ -191,6 +194,24 @@ export default function ArticleManagementModal({
             setValue('tags', []);
         }
     }, [reset, currentArticle, setValue]);
+
+    const categorySuggestions = React.useMemo(() => {
+        const seen = new Set<string>();
+        return articles
+            .map((a) => a.category.trim().toLowerCase())
+            .filter((cat) => {
+                if (seen.has(cat)) return false;
+                seen.add(cat);
+                return true;
+            })
+            .map((cat) => ({
+                _id: cat,
+                // capitalize first letter:
+                title: cat[0].toUpperCase() + cat.slice(1),
+                type: 'category' as const,
+                sourceType: 'Article' as const,
+            }));
+    }, [articles]);
 
     const handleClearField = (fieldName: keyof ArticleFormValues) => {
         setValue(fieldName, '');
@@ -266,6 +287,15 @@ export default function ArticleManagementModal({
                                 rules={{ required: 'Category is required' }}
                                 forceReset={formReset}
                                 onClear={() => handleClearField('category')}
+                                suggestions={categorySuggestions}
+                                selectedSuggestions={[]}
+                                onSuggestionSelect={(s) => {
+                                    setValue('category', s.title);
+                                    clearErrors('category');
+                                }}
+                                onInputChange={(val) => {
+                                    setValue('category', val);
+                                }}
                             />
                         </div>
 

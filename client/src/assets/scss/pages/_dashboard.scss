@@ -410,7 +410,7 @@
             }
 
             &-articles {
-                @apply h-[100vh];
+                @apply h-full;
 
                 &-error {
                     @apply bg-[#fff3cd] text-[#856404] p-[1rem] border border-[#ffeeba] rounded-[0.25rem] mb-[1rem];
@@ -421,10 +421,10 @@
                 }
 
                 &-grid {
-                    @apply w-full h-full p-[2.5vh] gap-[4vh] flex flex-col;
+                    @apply w-full h-full p-[2.5vh] gap-[2.5vh] flex flex-col;
 
                     .__row {
-                        @apply flex gap-[4vh] basis-1/2 h-[45.5vh];
+                        @apply flex gap-[2.5vh] h-[50vh];
 
                         .__card {
                             @apply flex flex-col bg-[rgb(var(--white)/1)] shadow-lg p-[1.25vh] h-full w-full;
@@ -446,7 +446,7 @@
                             }
 
                             .__body {
-                                @apply flex h-[41.75vh] p-[2.5vh];
+                                @apply flex h-full p-[2.5vh];
 
                                 &-chart {
                                     @apply basis-4/5 h-full;
@@ -587,7 +587,7 @@
                             }
 
                             &--articles {
-                                @apply basis-[72.5%];
+                                @apply basis-[72.5%] h-full;
 
                                 .__header {
                                     ._row {
@@ -612,6 +612,8 @@
                                         @apply flex-1;
 
                                         thead {
+                                            @apply h-[6vh];
+
                                             tr {
                                                 th {
                                                     @apply text-left px-[1.25vh] py-[1.25vh] text-[2.5vh] font-semibold text-[rgb(var(--text)/.25)] leading-[1];
@@ -635,6 +637,8 @@
 
                                         tbody {
                                             tr {
+                                                @apply h-[10.33vh];
+
                                                 td {
                                                     @apply text-left px-[1.25vh] py-[1.25vh] text-[2.5vh] text-[rgb(var(--text)/.9)] leading-[1];
 
@@ -653,13 +657,72 @@
                                                             @apply flex justify-between;
                                                         }
                                                     }
+
+                                                    .__title-cell,
+                                                    .__category-container {
+                                                        @apply flex flex-col gap-[.2vh];
+
+                                                        .__title-meta {
+                                                            @apply flex flex-col;
+
+                                                            .__author {
+                                                                @apply text-nowrap relative text-[1.75vh] text-[rgb(var(--text)/.5)] w-full h-fit;
+                                                            }
+
+                                                            .__update-date {
+                                                                @apply relative flex text-[1.75vh] w-full h-fit;
+                        
+                                                                span {
+                                                                    @apply text-nowrap;
+
+                                                                    &:first-of-type {
+                                                                        @apply mr-[.5vh] text-[rgb(var(--text)/.5)];
+                                                                    }
+                        
+                                                                    &:last-of-type {
+                                                                        @apply text-[rgb(var(--text)/.5)] font-semibold;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        .__tags-wrapper {
+                                                            @apply flex flex-nowrap gap-[1vh] h-full w-full place-self-center;
+
+                                                            .__tagCard {
+                                                                @apply flex items-center gap-[.5vh] px-[1vh] py-[.5vh] rounded-[.5vh] text-[1.5vh];
+                                                                @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
+
+                                                                svg {
+                                                                    @apply w-[2vh] h-[2vh];
+                                                                }
+
+                                                                span {
+                                                                    white-space: nowrap;
+                                                                    word-break: keep-all;
+                                                                    overflow-wrap: normal;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    .__status-toggle {
+                                                        @apply flex items-center px-[1vh] py-[.5vh] rounded-[.5vh] text-[1.75vh] text-[rgb(var(--white)/1)];
+
+                                                        &.approved {
+                                                            @apply bg-[rgb(var(--greenYes)/.25)] border border-[rgb(var(--greenYes)/.75)];
+                                                        }
+
+                                                        &.rejected {
+                                                            @apply bg-[rgb(var(--redNoBG)/.25)] border border-[rgb(var(--redNoBG)/.75)];
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
 
                                     .__table {
-
                                         thead tr th,
                                         tbody tr td {
                                             // Select column
@@ -669,12 +732,12 @@
 
                                             // Title
                                             &:nth-child(2) {
-                                                @apply w-[20%];
+                                                @apply w-[20%] flex-1;
                                             }
 
                                             // Category
                                             &:nth-child(3) {
-                                                @apply w-[15%];
+                                                @apply w-fit max-w-[15vh];
                                             }
 
                                             // Private
@@ -759,6 +822,10 @@
                                     }
                                 }
                             }
+                        }
+
+                        &:nth-of-type(2) {
+                            @apply flex-auto;
                         }
                     }
                 }

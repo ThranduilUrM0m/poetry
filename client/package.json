@@ -54,6 +54,7 @@
     "react-peeps": "^0.1.10",
     "react-redux": "^9.2.0",
     "react-slick": "^0.30.3",
+    "react-tag-input": "^6.10.6",
     "react-use": "^17.6.0",
     "recharts": "^2.15.2",
     "sass": "^1.84.0",

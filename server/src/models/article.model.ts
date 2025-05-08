@@ -30,10 +30,10 @@ export class Article {
     @Prop([String])
     tags: string[];
 
-    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Comment' }] })
     comments: Types.ObjectId[];
 
-    @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'View' }] })
     views: Types.ObjectId[];
 
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
