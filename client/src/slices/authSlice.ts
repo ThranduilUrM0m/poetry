@@ -3,8 +3,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000';
-
 interface AuthState {
     token: string | null;
     isLoading: boolean;
@@ -39,7 +37,7 @@ export const loginUser = createAsyncThunk(
     'auth/loginUser',
     async (credentials: { login: string; password: string }, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, credentials);
             // Expecting response.data.access_token only.
             return response.data;
         } catch (error: unknown) {

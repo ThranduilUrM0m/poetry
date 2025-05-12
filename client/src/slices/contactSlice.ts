@@ -2,8 +2,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { RootState } from '@/store';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 interface ContactState {
     isLoading: boolean;
     error: string | null;
@@ -20,7 +18,7 @@ export const sendContactEmail = createAsyncThunk(
     'contact/sendContactEmail',
     async (formData: { email: string; phone: string; firstname: string; lastname: string; message: string }, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/contact`, formData);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/contact`, formData);
             return response.data.message;
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {

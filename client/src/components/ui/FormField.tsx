@@ -3,7 +3,7 @@ import { useCombobox, UseComboboxGetInputPropsOptions } from 'downshift';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import SimpleBar from 'simplebar-react';
 import { useTransition, useSpring } from '@react-spring/web';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { SearchSuggestion, SuggestionType } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';

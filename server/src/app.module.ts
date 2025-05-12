@@ -11,6 +11,7 @@ import { ViewModule } from './modules/view.module';
 import { VoteModule } from './modules/vote.module';
 import { UserModule } from './modules/user.module';
 import { OpenAIModule } from './modules/openai.module';
+import { NotificationModule } from './modules/notification.module';
 import { AuthModule } from './auth/auth.module';
 import { FontsModule } from './fonts/fonts.module';
 
@@ -35,7 +36,8 @@ import { FontsModule } from './fonts/fonts.module';
         UserModule,
         AuthModule,
         FontsModule,
-        OpenAIModule
+        OpenAIModule,
+        NotificationModule
     ],
     controllers: [AppController],
     providers: [AppService],

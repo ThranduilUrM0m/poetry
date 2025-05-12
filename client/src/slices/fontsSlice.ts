@@ -4,8 +4,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // adjust port if needed
-
 // 1. Define the slice state
 interface FontState {
     list: string[];
@@ -27,7 +25,7 @@ export const fetchFontList = createAsyncThunk<
     { rejectValue: string }
 >('fonts/fetchList', async (_args, { rejectWithValue }) => {
     try {
-        const { data } = await axios.get<string[]>(`${API_BASE_URL}/fonts`);
+        const { data } = await axios.get<string[]>(`${process.env.NEXT_PUBLIC_API_URL}/fonts`);
         return data;
     } catch (err) {
         console.warn('Failed to fetch font list:', err);

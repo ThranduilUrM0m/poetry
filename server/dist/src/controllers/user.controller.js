@@ -14,46 +14,58 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserController = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
 const passport_1 = require("@nestjs/passport");
-const user_model_1 = require("../models/user.model");
 const user_service_1 = require("../services/user.service");
 const dummyData_1 = require("../data/dummyData");
 let UserController = class UserController {
-    constructor(userService, userModel) {
+    constructor(userService) {
         this.userService = userService;
-        this.userModel = userModel;
     }
     async getProfile(req) {
-        if (!req.user || !req.user.userId) {
-            throw new common_1.BadRequestException('Invalid user ID from token');
+        const userId = req.user?.userId;
+        if (!userId || typeof userId !== 'string') {
+            throw new common_1.BadRequestException('Invalid user ID in token');
         }
         try {
-            const userFromDb = await this.userService.findById(req.user.userId);
-            return userFromDb;
+            const userDoc = await this.userService.findById(userId);
+            const { passwordHash, ...safe } = userDoc.toObject();
+            return safe;
         }
-        catch (error) {
-            const dummyUser = dummyData_1.dummyUsers.find((a) => a._id?.toString() === req.user.userId);
-            if (!dummyUser) {
-                throw new common_1.NotFoundException('User not found in database or dummy data');
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                const dummy = dummyData_1.dummyUsers.find((u) => u._id.toString() === userId);
+                if (dummy) {
+                    const { passwordHash, ...safeDummy } = dummy;
+                    return safeDummy;
+                }
             }
-            return dummyUser;
+            throw err;
         }
     }
-    async getUserById(id) {
-        if (!(0, mongoose_2.isValidObjectId)(id)) {
-            throw new common_1.BadRequestException('Invalid user ID format');
+    async getById(id) {
+        try {
+            const userDoc = await this.userService.findById(id);
+            const { passwordHash, ...safe } = userDoc.toObject();
+            return safe;
         }
-        const userFromDb = await this.userService.findById(id);
-        if (userFromDb) {
-            return userFromDb;
+        catch (err) {
+            if (err instanceof common_1.NotFoundException ||
+                err instanceof common_1.BadRequestException) {
+                const dummy = dummyData_1.dummyUsers.find((u) => u._id.toString() === id);
+                if (dummy) {
+                    const { passwordHash, ...safeDummy } = dummy;
+                    return safeDummy;
+                }
+            }
+            throw err;
         }
-        const dummyUser = dummyData_1.dummyUsers.find((a) => a._id?.toString() === id);
-        if (!dummyUser) {
-            throw new common_1.NotFoundException('User not found');
-        }
-        return dummyUser;
+    }
+    async getAll(req) {
+        const users = await this.userService.getAll();
+        return users.map((u) => {
+            const { passwordHash, ...safe } = u;
+            return safe;
+        });
     }
 };
 exports.UserController = UserController;
@@ -71,11 +83,17 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], UserController.prototype, "getUserById", null);
+], UserController.prototype, "getById", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getAll", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('api/users'),
-    __param(1, (0, mongoose_1.InjectModel)(user_model_1.User.name)),
-    __metadata("design:paramtypes", [user_service_1.UserService,
-        mongoose_2.Model])
+    __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

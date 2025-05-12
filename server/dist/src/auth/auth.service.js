@@ -15,6 +15,7 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
 const user_service_1 = require("../services/user.service");
 const dummyData_1 = require("../data/dummyData");
+const mongoose_1 = require("mongoose");
 let AuthService = class AuthService {
     constructor(userService, jwtService) {
         this.userService = userService;
@@ -25,25 +26,41 @@ let AuthService = class AuthService {
         if (!user) {
             const dummyUser = dummyData_1.dummyUsers.find((u) => (u.email && u.email.toLowerCase() === login.toLowerCase()) ||
                 (u.username && u.username.toLowerCase() === login.toLowerCase()));
-            if (dummyUser) {
-                if (!dummyUser.passwordHash) {
-                    throw new common_1.UnauthorizedException('Invalid credentials: password hash is missing.');
-                }
-                const matches = await bcrypt.compare(pass, dummyUser.passwordHash);
-                if (matches) {
-                    const safeUser = { ...dummyUser };
-                    delete safeUser.passwordHash;
-                    return safeUser;
-                }
-                else {
-                    throw new common_1.UnauthorizedException('Invalid credentials: password does not match (fallback).');
-                }
+            if (!dummyUser) {
+                throw new common_1.UnauthorizedException('User not found in database or fallback data.');
             }
-            throw new common_1.UnauthorizedException('User not found in database or fallback data.');
+            if (!dummyUser.passwordHash) {
+                throw new common_1.UnauthorizedException('Invalid credentials: password hash is missing.');
+            }
+            const matches = await bcrypt.compare(pass, dummyUser.passwordHash);
+            if (!matches) {
+                throw new common_1.UnauthorizedException('Invalid credentials: password does not match (fallback).');
+            }
+            const safeDummy = { ...dummyUser };
+            delete safeDummy.passwordHash;
+            return safeDummy;
         }
         const matches = await bcrypt.compare(pass, user.passwordHash);
         if (!matches) {
             throw new common_1.UnauthorizedException('Invalid credentials: password does not match.');
+        }
+        const safeUser = user.toObject();
+        delete safeUser.passwordHash;
+        return safeUser;
+    }
+    async validateUserById(id) {
+        if (!mongoose_1.Types.ObjectId.isValid(id)) {
+            throw new common_1.BadRequestException('Invalid user ID');
+        }
+        let user = await this.userService.findById(id);
+        if (!user) {
+            const dummyUser = dummyData_1.dummyUsers.find((u) => u._id.toString() === id);
+            if (!dummyUser) {
+                throw new common_1.NotFoundException('User not found by ID');
+            }
+            const safeDummy = { ...dummyUser };
+            delete safeDummy.passwordHash;
+            return safeDummy;
         }
         const safeUser = user.toObject();
         delete safeUser.passwordHash;

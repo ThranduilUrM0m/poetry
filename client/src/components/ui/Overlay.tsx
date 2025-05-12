@@ -1,6 +1,6 @@
 'use client';
 
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 
 interface OverlayProps {
     isVisible: boolean;

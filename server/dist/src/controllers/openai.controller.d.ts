@@ -1,18 +1,7 @@
+import { OpenAIService, AnalyzeCommentDto, AnalyzeCommentResult, SuggestTagsDto } from '../services/openai.service';
 export declare class OpenAIController {
-    private openai;
-    constructor();
-    analyzeComment(data: {
-        text: string;
-    }): Promise<{
-        toxic: boolean;
-        spam: boolean;
-        sentiment: 'positive' | 'neutral' | 'negative';
-        score: number;
-        reasons: string[];
-        severity: 'low' | 'medium' | 'high';
-    }>;
-    suggestTags(data: {
-        input: string;
-        content: string;
-    }): Promise<string[]>;
+    private readonly openai;
+    constructor(openai: OpenAIService);
+    analyzeComment(dto: AnalyzeCommentDto): Promise<AnalyzeCommentResult>;
+    suggestTags(dto: SuggestTagsDto): Promise<string[]>;
 }

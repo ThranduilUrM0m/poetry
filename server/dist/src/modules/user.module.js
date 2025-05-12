@@ -9,18 +9,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const user_model_1 = require("../models/user.model");
-const user_service_1 = require("../services/user.service");
 const user_controller_1 = require("../controllers/user.controller");
+const user_service_1 = require("../services/user.service");
+const user_model_1 = require("../models/user.model");
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: user_model_1.User.name, schema: user_model_1.UserSchema }])],
-        providers: [user_service_1.UserService],
         controllers: [user_controller_1.UserController],
-        exports: [user_service_1.UserService],
+        providers: [user_service_1.UserService],
+        exports: [mongoose_1.MongooseModule, user_service_1.UserService],
     })
 ], UserModule);
 //# sourceMappingURL=user.module.js.map

@@ -14,70 +14,67 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ViewController = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const view_model_1 = require("../models/view.model");
-const article_model_1 = require("../models/article.model");
+const mongoose_1 = require("mongoose");
 const view_service_1 = require("../services/view.service");
+const article_service_1 = require("../services/article.service");
 const dummyData_1 = require("../data/dummyData");
 let ViewController = class ViewController {
-    constructor(viewService, viewModel, articleModel) {
+    constructor(viewService, articleService) {
         this.viewService = viewService;
-        this.viewModel = viewModel;
-        this.articleModel = articleModel;
-    }
-    async populateField(id, model, dummyData) {
-        const doc = await model.findById(id).lean().exec();
-        if (doc) {
-            return doc;
-        }
-        const fallback = dummyData.find((item) => item._id.toString() === id.toString());
-        if (fallback) {
-            return fallback;
-        }
-        throw new common_1.NotFoundException(`Unable to populate field for id ${id.toString()}`);
-    }
-    async populateView(view) {
-        const populatedView = {
-            ...view,
-            article: {},
-        };
-        if (view.article && view.article instanceof mongoose_2.Types.ObjectId) {
-            populatedView.article = await this.populateField(view.article, this.articleModel, dummyData_1.dummyArticles);
-        }
-        else {
-            populatedView.article = view.article;
-        }
-        return populatedView;
+        this.articleService = articleService;
     }
     async createView(data) {
-        const newView = await this.viewService.createView(data);
-        return this.populateView(newView);
+        const view = await this.viewService.createView(data);
+        return this.populateView(view);
     }
     async getAllViews() {
-        const viewsFromDb = await this.viewService.getAllViews();
-        if (viewsFromDb.length > 0) {
-            return Promise.all(viewsFromDb.map((view) => this.populateView(view)));
-        }
-        return Promise.all(dummyData_1.dummyViews.map(async (view) => this.populateView(view)));
+        const views = await this.viewService.getAllViews();
+        return Promise.all(views.map((v) => this.populateView(v)));
     }
     async getViewById(id) {
-        const viewFromDb = await this.viewService.getViewById(id);
-        if (viewFromDb) {
-            return this.populateView(viewFromDb);
+        let view;
+        try {
+            view = await this.viewService.getViewById(id);
         }
-        const dummyView = dummyData_1.dummyViews.find((a) => a._id?.toString() === id);
-        if (!dummyView) {
-            throw new common_1.NotFoundException('View not found');
+        catch {
+            const dummy = dummyData_1.dummyViews.find((d) => d._id?.toString() === id);
+            if (!dummy) {
+                throw new common_1.NotFoundException('View not found');
+            }
+            view = dummy;
         }
-        return this.populateView(dummyView);
+        return this.populateView(view);
     }
     async updateView(id, data) {
-        const updatedView = await this.viewService.updateView(id, data);
-        return this.populateView(updatedView);
+        const updated = await this.viewService.updateView(id, data);
+        return this.populateView(updated);
     }
     async deleteView(id) {
         return this.viewService.deleteView(id);
+    }
+    async populateView(view) {
+        let article = null;
+        if (view.article instanceof mongoose_1.Types.ObjectId) {
+            try {
+                article = await this.articleService.getById(view.article.toString());
+            }
+            catch {
+                article = null;
+            }
+        }
+        else {
+            article = view.article;
+        }
+        if (!article) {
+            const fallback = dummyData_1.dummyArticles.find((a) => a._id !== undefined && a._id.toString() === view.article.toString());
+            if (fallback && fallback._id) {
+                article = fallback;
+            }
+        }
+        if (!article) {
+            throw new common_1.NotFoundException('Associated article not found');
+        }
+        return { ...view, article };
     }
 };
 exports.ViewController = ViewController;
@@ -118,10 +115,7 @@ __decorate([
 ], ViewController.prototype, "deleteView", null);
 exports.ViewController = ViewController = __decorate([
     (0, common_1.Controller)('api/views'),
-    __param(1, (0, mongoose_1.InjectModel)(view_model_1.View.name)),
-    __param(2, (0, mongoose_1.InjectModel)(article_model_1.Article.name)),
     __metadata("design:paramtypes", [view_service_1.ViewService,
-        mongoose_2.Model,
-        mongoose_2.Model])
+        article_service_1.ArticleService])
 ], ViewController);
 //# sourceMappingURL=view.controller.js.map

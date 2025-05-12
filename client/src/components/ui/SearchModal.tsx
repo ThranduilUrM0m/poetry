@@ -12,7 +12,7 @@ import SimpleBar from 'simplebar-react';
 import FormField from '@/components/ui/FormField';
 import Overlay from '@/components/ui/Overlay';
 import SearchResults from '@/components/ui/SearchResults';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { SearchSuggestion } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';

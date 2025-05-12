@@ -5,7 +5,7 @@ import { loginUser, selectToken, selectAuthIsLoading, setToken } from '@/slices/
 import { AppDispatch } from '@/store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 import { AtSign, RectangleEllipsis } from 'lucide-react';

@@ -10,40 +10,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationGateway = void 0;
+const common_1 = require("@nestjs/common");
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
 let NotificationGateway = class NotificationGateway {
-    constructor() {
-        this.userSockets = new Map();
-    }
     handleConnection(client) {
-        const userId = client.handshake.query.userId;
-        if (userId) {
-            const userSockets = this.userSockets.get(userId) || [];
-            userSockets.push(client.id);
-            this.userSockets.set(userId, userSockets);
-        }
     }
     handleDisconnect(client) {
-        const userId = client.handshake.query.userId;
-        if (userId) {
-            const userSockets = this.userSockets.get(userId) || [];
-            const updatedSockets = userSockets.filter((socketId) => socketId !== client.id);
-            if (updatedSockets.length > 0) {
-                this.userSockets.set(userId, updatedSockets);
-            }
-            else {
-                this.userSockets.delete(userId);
-            }
-        }
     }
-    sendNotification(userId, notification) {
-        const userSockets = this.userSockets.get(userId.toString());
-        if (userSockets) {
-            userSockets.forEach((socketId) => {
-                this.server.to(socketId).emit('notification', notification);
-            });
-        }
+    sendNotification(notification) {
+        this.server.emit('notification', notification);
     }
 };
 exports.NotificationGateway = NotificationGateway;
@@ -52,11 +28,11 @@ __decorate([
     __metadata("design:type", socket_io_1.Server)
 ], NotificationGateway.prototype, "server", void 0);
 exports.NotificationGateway = NotificationGateway = __decorate([
+    (0, common_1.Injectable)(),
     (0, websockets_1.WebSocketGateway)({
-        cors: {
-            origin: process.env.CLIENT_URL,
-            credentials: true,
-        },
+        cors: { origin: '*' },
+        allowEIO3: true,
+        transports: ['websocket', 'polling'],
     })
 ], NotificationGateway);
 //# sourceMappingURL=notification.gateway.js.map

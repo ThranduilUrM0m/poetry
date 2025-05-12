@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { Copyright, Heart, ChevronUp } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6";
 import { config } from '@react-spring/web';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import Newsletter from '@/components/ui/Newsletter';
 import { useLoading } from '@/context/LoadingContext';
 
@@ -151,7 +151,7 @@ export default function Footer() {
                                 {LegalItems.map((item) => (
                                     <AnimatedWrapper
                                         as="li"
-                                        key={item.href}
+                                        key={item.label}
                                         hover={{
                                             from: { transform: 'translateX(0vh)' },
                                             to: { transform: 'translateX(0.5vh)' },

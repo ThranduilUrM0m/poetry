@@ -21,6 +21,19 @@ let UserService = class UserService {
     constructor(userModel) {
         this.userModel = userModel;
     }
+    async getByIdOrThrow(id) {
+        if (!(0, mongoose_2.isObjectIdOrHexString)(id)) {
+            throw new common_1.BadRequestException(`Invalid user ID format: "${id}"`);
+        }
+        const user = await this.userModel.findById(id).exec();
+        if (!user) {
+            throw new common_1.NotFoundException(`User with ID "${id}" not found`);
+        }
+        return user;
+    }
+    async findById(id) {
+        return this.getByIdOrThrow(id);
+    }
     async findByLogin(login) {
         return this.userModel
             .findOne({
@@ -31,20 +44,8 @@ let UserService = class UserService {
     async findByEmail(email) {
         return this.userModel.findOne({ email }).exec();
     }
-    async findById(id) {
-        try {
-            if (!(0, mongoose_2.isValidObjectId)(id)) {
-                throw new common_1.BadRequestException('Invalid user ID format');
-            }
-            const user = await this.userModel.findById(id).exec();
-            if (!user) {
-                throw new common_1.NotFoundException('User not found in database');
-            }
-            return user;
-        }
-        catch (error) {
-            throw error;
-        }
+    async getAll() {
+        return this.userModel.find().lean().exec();
     }
 };
 exports.UserService = UserService;

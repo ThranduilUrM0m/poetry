@@ -25,7 +25,7 @@ import {
 } from '@tanstack/react-table';
 
 // Component imports
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import Overlay from '@/components/ui/Overlay';
 import FormField from '@/components/ui/FormField';
 

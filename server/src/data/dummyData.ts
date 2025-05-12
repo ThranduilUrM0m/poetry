@@ -6,14 +6,32 @@ export const dummyViews: Partial<ViewDocument>[] = [
     {
         _id: new Types.ObjectId('64ebeafd91e1bea198845f89'),
         _viewer: 'de70188181ebae2f3d8b4ef269f6c227',
+        article: new Types.ObjectId('5f2fde4558803f59e4e07cdd'), // Fixed to point to boutaleb. article
         createdAt: new Date('2023-08-26T22:31:57.536Z'),
         updatedAt: new Date('2023-08-26T22:31:57.536Z'),
     },
     {
         _id: new Types.ObjectId('66a8ec668c35b3ebd6c01fd3'),
         _viewer: '502eac3e6a7d71288b56c1ed233afe2b',
+        article: new Types.ObjectId('5f2fde4558803f59e4e07cdd'), // Fixed to point to boutaleb. article
         createdAt: new Date('2024-07-30T14:36:38.817Z'),
         updatedAt: new Date('2024-07-30T14:36:38.817Z'),
+    },
+    // new view on article 5e93853e...
+    {
+        _id: new Types.ObjectId('70b9f123abcd1234ef567890'),
+        _viewer: 'aaaabbbbcccc111122223333',
+        article: new Types.ObjectId('5e93853e0289c153a8737041'),
+        createdAt: new Date('2025-01-01T10:00:00.000Z'),
+        updatedAt: new Date('2025-01-01T10:00:00.000Z'),
+    },
+    // new view on Hello World article
+    {
+        _id: new Types.ObjectId('70b9f123abcd1234ef567891'),
+        _viewer: 'fff0ee0dd0ccbb0aa0998877',
+        article: new Types.ObjectId('671d13b291cf6e74fb8bb9ef'),
+        createdAt: new Date('2025-02-15T12:00:00.000Z'),
+        updatedAt: new Date('2025-02-15T12:00:00.000Z'),
     },
 ];
 
@@ -23,10 +41,30 @@ export const dummyVotes: Partial<VoteDocument>[] = [
         _id: new Types.ObjectId('64ebb261f0c23054c88e4800'),
         voter: 'de70188181ebae2f3d8b4ef269f6c227',
         targetType: 'Article',
-        target: new Types.ObjectId('5e93853e0289c153a8737041'),
+        target: new Types.ObjectId('5f2fde4558803f59e4e07cdd'), // Fixed to point to boutaleb. article
         direction: 'up',
-        createdAt: new Date('2023-08-27T20:30:25.368+00:00'),
-        updatedAt: new Date('2023-08-27T20:30:25.368+00:00'),
+        createdAt: new Date('2023-08-27T20:30:25.368Z'),
+        updatedAt: new Date('2023-08-27T20:30:25.368Z'),
+    },
+    // new vote on second article
+    {
+        _id: new Types.ObjectId('70b9f123abcd1234ef567892'),
+        voter: '11223344556677889900aabb',
+        targetType: 'Article',
+        target: new Types.ObjectId('5e93936d0289c153a8737044'),
+        direction: 'down',
+        createdAt: new Date('2025-03-10T09:30:00.000Z'),
+        updatedAt: new Date('2025-03-10T09:30:00.000Z'),
+    },
+    // new vote on Hello World article
+    {
+        _id: new Types.ObjectId('70b9f123abcd1234ef567893'),
+        voter: 'ffeeddccbbaa998877665544',
+        targetType: 'Article',
+        target: new Types.ObjectId('671d13b291cf6e74fb8bb9ef'),
+        direction: 'up',
+        createdAt: new Date('2025-04-01T08:00:00.000Z'),
+        updatedAt: new Date('2025-04-01T08:00:00.000Z'),
     },
 ];
 
@@ -83,7 +121,7 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
         isFeatured: true,
         tags: ['نظرةالعالمتهم'],
         status: 'approved',
-        views: [],
+        views: [new Types.ObjectId('70b9f123abcd1234ef567890')],
         isBio: false,
     },
     {
@@ -94,7 +132,7 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
         body: '<p><span style="color: rgb(38, 38, 38);"><img src="https://i.ibb.co/VpxBJrH/01e803880a6c31f7493c18ec891a15e7a45dc3ed5b.jpg">Le sadisme c’est l’art de penser que pour éduquer un enfant il est nécessaire ou même pire, vertueux, de lui faire endurer le malheur d’être puni physiquement.</span></p>',
         title: 'Le Sadisme.',
         slug: slugify('Le Sadisme.', { lower: true, strict: true }),
-        votes: [],
+        votes: [new Types.ObjectId('70b9f123abcd1234ef567892')],
         category: 'Education',
         comments: [],
         isPrivate: false,
@@ -170,8 +208,8 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
         tags: ['helloworld'],
         status: 'approved',
         comments: [],
-        views: [],
-        votes: [],
+        views: [new Types.ObjectId('70b9f123abcd1234ef567891')],
+        votes: [new Types.ObjectId('70b9f123abcd1234ef567893')],
         createdAt: new Date('2024-10-26T15:27:14.380Z'),
         updatedAt: new Date('2024-10-26T15:27:14.380Z'),
         isBio: false,

@@ -6,8 +6,9 @@ import {
     useSpringRef,
     SpringConfig,
     SpringValue,
-    useTrail,
+    useTrail
 } from '@react-spring/web';
+import type { CSSProperties } from 'react';
 import { useGesture } from '@use-gesture/react';
 import { useInView } from 'react-intersection-observer';
 
@@ -102,8 +103,25 @@ type Props<T extends HTMLElementTag> = AsProp<T> &
         y2?: string | number;
         // New prop to pass in an external spring ref for chaining.
         // Instead of using any, we use the return type of useSpringRef.
-        chainRef?: ReturnType<typeof useSpringRef>;
+        // chainRef and sequencing removed; handle externally if needed
     };
+
+// Define the shape of styles produced by useSpring()
+type SpringStyles = SpringValue<string> | SpringValue<number> | string | number;
+
+function normalizeKeys(styles: Record<string, SpringStyles>): CSSProperties {
+    // Looser scratchpad
+    const loose: Record<string, string | number> = {};
+
+    for (const rawKey in styles) {
+        const val = styles[rawKey];
+        const camelKey = rawKey.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        loose[camelKey] = val as unknown as string | number;
+    }
+
+    // Final, single assertion
+    return loose as CSSProperties;
+}
 
 const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     {
@@ -130,7 +148,6 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
         type,
         animationStyle,
         parentHoverSelector,
-        chainRef,
         ...rest
     }: Props<T>,
     ref: React.Ref<Element>
@@ -139,11 +156,10 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     const [isClicked, setIsClicked] = useState(false);
     const { ref: inViewRef, inView } = useInView({ triggerOnce: true });
 
-    // If a chainRef is passed, use it; otherwise create an internal one.
-    const internalSpringRef = useSpringRef();
-    const springRef = chainRef ? chainRef : internalSpringRef;
+    // Always create an internal spring ref for this wrapper
+    const springRef = useSpringRef();
 
-    // Create the spring with the (optional) ref for chaining.
+    // Create the spring bound to its own ref (no external chaining here)
     const [springs, api] = useSpring(() => ({
         ref: springRef,
         ...(hover?.from || {}),
@@ -341,6 +357,8 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
 
     const AnimatedComponent =
         (animated[as as keyof typeof animated] as React.ElementType) || animated(as);
+
+    const safeSprings = normalizeKeys(springs as Record<string, SpringStyles>);
     return (
         <AnimatedComponent
             ref={(node: HTMLElement) => {
@@ -357,9 +375,8 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
             {...(touch ? bindTouch() : {})}
             {...rest}
             style={{
-                ...springs,
-                ...(animationStyle as React.CSSProperties),
-                transformBox: 'fill-box',
+                ...safeSprings,
+                ...(animationStyle ?? {}),
             }}
             htmlFor={htmlFor}
             type={type}

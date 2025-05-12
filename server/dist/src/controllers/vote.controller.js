@@ -14,74 +14,64 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VoteController = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const vote_model_1 = require("../models/vote.model");
+const mongoose_1 = require("mongoose");
 const vote_service_1 = require("../services/vote.service");
+const article_service_1 = require("../services/article.service");
+const comment_service_1 = require("../services/comment.service");
 const dummyData_1 = require("../data/dummyData");
-const article_model_1 = require("../models/article.model");
-const comment_model_1 = require("../models/comment.model");
 let VoteController = class VoteController {
-    constructor(voteService, voteModel, articleModel, commentModel) {
+    constructor(voteService, articleService, commentService) {
         this.voteService = voteService;
-        this.voteModel = voteModel;
-        this.articleModel = articleModel;
-        this.commentModel = commentModel;
+        this.articleService = articleService;
+        this.commentService = commentService;
     }
-    async populateField(id, model, dummyData) {
-        const doc = await model.findById(id).lean().exec();
-        if (doc) {
-            return doc;
+    async populateField(id, loaderFn, dummyData) {
+        try {
+            return await loaderFn(id.toString());
         }
-        const fallback = dummyData.find((item) => item._id.toString() === id.toString());
-        if (fallback) {
-            return fallback;
+        catch (err) {
+            if (err instanceof common_1.NotFoundException) {
+                const fallback = dummyData.find((d) => d._id?.toString() === id.toString());
+                if (fallback)
+                    return fallback;
+            }
+            throw err;
         }
-        throw new common_1.NotFoundException(`Unable to populate field for id ${id.toString()}`);
     }
     async populateVote(vote) {
-        const populatedVote = { ...vote, target: {} };
-        if (vote.targetType === 'Article') {
-            const article = await this.populateField(vote.target, this.articleModel, dummyData_1.dummyArticles);
-            populatedVote.target = article;
+        if (!vote.target || !vote.targetType) {
+            throw new common_1.BadRequestException('Missing target info');
         }
-        else if (vote.targetType === 'Comment') {
-            const comment = await this.populateField(vote.target, this.commentModel, dummyData_1.dummyComments);
-            populatedVote.target = comment;
+        const targetId = vote.target instanceof mongoose_1.Types.ObjectId
+            ? vote.target
+            : new mongoose_1.Types.ObjectId(vote.target);
+        let populated;
+        if (vote.targetType === 'Article') {
+            populated = await this.populateField(targetId, this.articleService.getById.bind(this.articleService), dummyData_1.dummyArticles);
         }
         else {
-            throw new common_1.NotFoundException('Invalid target type');
+            populated = await this.populateField(targetId, this.commentService.getCommentById.bind(this.commentService), dummyData_1.dummyComments);
         }
-        return populatedVote;
+        return { ...vote, target: populated };
     }
     async createVote(data) {
-        if (!data.targetType || !data.target) {
-            throw new common_1.NotFoundException('Target type and target ID must be provided');
-        }
         const newVote = await this.voteService.createVote(data);
         return this.populateVote(newVote);
     }
     async getAllVotes() {
-        const votesFromDb = await this.voteService.getAllVotes();
-        if (votesFromDb.length > 0) {
-            return Promise.all(votesFromDb.map((vote) => this.populateVote(vote)));
+        const votes = await this.voteService.getAllVotes();
+        if (votes.length) {
+            return Promise.all(votes.map((v) => this.populateVote(v)));
         }
-        return Promise.all(dummyData_1.dummyVotes.map(async (vote) => this.populateVote(vote)));
+        return Promise.all(dummyData_1.dummyVotes.map((v) => this.populateVote(v)));
     }
     async getVoteById(id) {
-        const voteFromDb = await this.voteService.getVoteById(id);
-        if (voteFromDb) {
-            return this.populateVote(voteFromDb);
-        }
-        const dummyVote = dummyData_1.dummyVotes.find((a) => a._id?.toString() === id);
-        if (!dummyVote) {
-            throw new common_1.NotFoundException('Vote not found');
-        }
-        return this.populateVote(dummyVote);
+        const vote = await this.voteService.getVoteById(id);
+        return this.populateVote(vote);
     }
     async updateVote(id, data) {
-        const updatedVote = await this.voteService.updateVote(id, data);
-        return this.populateVote(updatedVote);
+        const updated = await this.voteService.updateVote(id, data);
+        return this.populateVote(updated);
     }
     async deleteVote(id) {
         return this.voteService.deleteVote(id);
@@ -125,12 +115,8 @@ __decorate([
 ], VoteController.prototype, "deleteVote", null);
 exports.VoteController = VoteController = __decorate([
     (0, common_1.Controller)('api/votes'),
-    __param(1, (0, mongoose_1.InjectModel)(vote_model_1.Vote.name)),
-    __param(2, (0, mongoose_1.InjectModel)(article_model_1.Article.name)),
-    __param(3, (0, mongoose_1.InjectModel)(comment_model_1.Comment.name)),
     __metadata("design:paramtypes", [vote_service_1.VoteService,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model])
+        article_service_1.ArticleService,
+        comment_service_1.CommentService])
 ], VoteController);
 //# sourceMappingURL=vote.controller.js.map

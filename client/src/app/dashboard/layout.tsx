@@ -96,13 +96,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const loadData = async (): Promise<void> => {
                 try {
                     setLoadError(null);
-                    console.log('[Layout] Fetching data...');
                     await dispatch(fetchArticles()).unwrap();
                     await dispatch(fetchViews()).unwrap();
                     await dispatch(fetchSubscribers()).unwrap();
 
                     const aggregated = await dispatch(calculateAnalyticsThunk()).unwrap();
-                    console.log('[Layout] Analytics result:', aggregated);
 
                     setChartData({
                         pageViews: aggregated.pageViews || [],
@@ -113,7 +111,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     });
 
                     setIsReady(true);
-                    console.log('[Layout] isReady set to TRUE');
                 } catch (error) {
                     console.error('[Layout] Data loading error:', error);
                     setLoadError('Failed to load data');

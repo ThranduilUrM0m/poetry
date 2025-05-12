@@ -12,16 +12,21 @@ const mongoose_1 = require("@nestjs/mongoose");
 const subscriber_controller_1 = require("../controllers/subscriber.controller");
 const subscriber_service_1 = require("../services/subscriber.service");
 const subscriber_model_1 = require("../models/subscriber.model");
+const notification_module_1 = require("./notification.module");
 let SubscriberModule = class SubscriberModule {
 };
 exports.SubscriberModule = SubscriberModule;
 exports.SubscriberModule = SubscriberModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([{ name: subscriber_model_1.Subscriber.name, schema: subscriber_model_1.SubscriberSchema }]),
+            mongoose_1.MongooseModule.forFeature([
+                { name: subscriber_model_1.Subscriber.name, schema: subscriber_model_1.SubscriberSchema },
+            ]),
+            notification_module_1.NotificationModule,
         ],
         controllers: [subscriber_controller_1.SubscriberController],
         providers: [subscriber_service_1.SubscriberService],
+        exports: [subscriber_service_1.SubscriberService],
     })
 ], SubscriberModule);
 //# sourceMappingURL=subscriber.module.js.map

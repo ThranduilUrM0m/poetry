@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { useLoading } from '@/context/LoadingContext';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import FormField from '@/components/ui/FormField';
 import SubmitModal from '@/components/ui/SubmitModal';
 import { AtSign, User, Phone, MessageSquare } from 'lucide-react';

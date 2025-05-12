@@ -20,6 +20,7 @@ const view_module_1 = require("./modules/view.module");
 const vote_module_1 = require("./modules/vote.module");
 const user_module_1 = require("./modules/user.module");
 const openai_module_1 = require("./modules/openai.module");
+const notification_module_1 = require("./modules/notification.module");
 const auth_module_1 = require("./auth/auth.module");
 const fonts_module_1 = require("./fonts/fonts.module");
 let AppModule = class AppModule {
@@ -47,7 +48,8 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             fonts_module_1.FontsModule,
-            openai_module_1.OpenAIModule
+            openai_module_1.OpenAIModule,
+            notification_module_1.NotificationModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

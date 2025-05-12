@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import Link from 'next/link';
 import Image from 'next/image';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
-import { LayoutDashboard, Newspaper, UserCog, LogOut } from 'lucide-react';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
+import { LayoutDashboard, Newspaper, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import logo from '@/assets/images/b_white_orange..svg';
 import { clearAuth } from '@/slices/authSlice';
@@ -75,21 +75,6 @@ export default function Sidebar() {
                                 <Newspaper />
                             </span>
                             {isSidebarOpen && <span className="__liText">Articles</span>}
-                        </Link>
-                    </AnimatedWrapper>
-                    <AnimatedWrapper
-                        as="li"
-                        config={smoothConfig}
-                        hover={{ from: { opacity: 0.5 }, to: { opacity: 1 } }}
-                    >
-                        <Link
-                            href="/dashboard/settings"
-                            className={pathname === '/dashboard/settings' ? 'active' : ''}
-                        >
-                            <span>
-                                <UserCog />
-                            </span>
-                            {isSidebarOpen && <span className="__liText">Settings</span>}
                         </Link>
                     </AnimatedWrapper>
                     <AnimatedWrapper

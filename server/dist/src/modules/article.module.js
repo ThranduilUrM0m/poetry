@@ -12,26 +12,27 @@ const mongoose_1 = require("@nestjs/mongoose");
 const article_controller_1 = require("../controllers/article.controller");
 const article_service_1 = require("../services/article.service");
 const article_model_1 = require("../models/article.model");
-const user_model_1 = require("../models/user.model");
-const comment_model_1 = require("../models/comment.model");
-const view_model_1 = require("../models/view.model");
-const vote_model_1 = require("../models/vote.model");
+const user_module_1 = require("./user.module");
+const comment_module_1 = require("./comment.module");
+const vote_module_1 = require("./vote.module");
+const view_module_1 = require("./view.module");
+const notification_module_1 = require("./notification.module");
 let ArticleModule = class ArticleModule {
 };
 exports.ArticleModule = ArticleModule;
 exports.ArticleModule = ArticleModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([
-                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
-                { name: user_model_1.User.name, schema: user_model_1.UserSchema },
-                { name: comment_model_1.Comment.name, schema: comment_model_1.CommentSchema },
-                { name: view_model_1.View.name, schema: view_model_1.ViewSchema },
-                { name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema },
-            ]),
+            mongoose_1.MongooseModule.forFeature([{ name: article_model_1.Article.name, schema: article_model_1.ArticleSchema }]),
+            user_module_1.UserModule,
+            (0, common_1.forwardRef)(() => comment_module_1.CommentModule),
+            (0, common_1.forwardRef)(() => vote_module_1.VoteModule),
+            (0, common_1.forwardRef)(() => view_module_1.ViewModule),
+            notification_module_1.NotificationModule
         ],
         controllers: [article_controller_1.ArticleController],
         providers: [article_service_1.ArticleService],
+        exports: [article_service_1.ArticleService],
     })
 ], ArticleModule);
 //# sourceMappingURL=article.module.js.map

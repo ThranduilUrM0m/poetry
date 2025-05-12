@@ -1,35 +1,25 @@
-import { Model, Types } from 'mongoose';
-import { Comment } from '../models/comment.model';
-import { ArticleDocument } from '../models/article.model';
-import { VoteDocument } from '../models/vote.model';
-import { CommentService } from '../services/comment.service';
 import { JwtService } from '@nestjs/jwt';
-export type PopulatedComment = Omit<Comment, 'article' | '_comment_votes' | 'Parent'> & {
-    article: ArticleDocument;
-    _comment_votes: VoteDocument[];
-    Parent?: Comment | Types.ObjectId | null;
-};
+import { CommentService } from '../services/comment.service';
+import { CommentDocument } from '../models/comment.model';
+import { NotificationService } from 'src/services/notification.service';
+import { NotificationGateway } from 'src/gateways/notification.gateway';
+export type PopulatedComment = ReturnType<CommentService['populateOne']> extends Promise<infer U> ? U : never;
 export declare class CommentController {
     private readonly commentService;
     private readonly jwtService;
-    private readonly commentModel;
-    private readonly articleModel;
-    private readonly voteModel;
-    constructor(commentService: CommentService, jwtService: JwtService, commentModel: Model<Comment>, articleModel: Model<ArticleDocument>, voteModel: Model<VoteDocument>);
-    private populateField;
-    private populateArrayField;
-    private populateComment;
-    createComment(data: Partial<Comment>): Promise<Comment>;
-    getAllComments(): Promise<PopulatedComment[]>;
-    getCommentById(id: string): Promise<PopulatedComment>;
-    fetchCommentsByArticle(id: string): Promise<PopulatedComment[]>;
-    updateComment(id: string, data: Partial<Comment>): Promise<PopulatedComment>;
-    deleteComment(id: string, authHeader?: string, fingerprint?: string): Promise<{
+    private readonly notificationService;
+    private readonly notificationGateway;
+    constructor(commentService: CommentService, jwtService: JwtService, notificationService: NotificationService, notificationGateway: NotificationGateway);
+    create(dto: Partial<CommentDocument>): Promise<CommentDocument>;
+    findAll(): Promise<PopulatedComment[]>;
+    findOne(id: string): Promise<PopulatedComment>;
+    findByArticle(id: string): Promise<PopulatedComment[]>;
+    update(id: string, dto: Partial<CommentDocument>): Promise<CommentDocument>;
+    remove(id: string, auth?: string, fp?: string): Promise<{
         message: string;
     }>;
     vote(id: string, body: {
         fingerprint: string;
         direction: 'up' | 'down';
     }): Promise<PopulatedComment>;
-    private toggleVote;
 }

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Hash } from 'lucide-react';
 import { Article } from '@/types/article';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import _ from 'lodash';
 import Link from 'next/link';
 

@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import { Author } from '@/types/article';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000';
-
 interface UserState {
     user: Author | null;
     currentUser: Author | null;
@@ -38,7 +36,7 @@ export const fetchUserProfile = createAsyncThunk(
             if (!token) throw new Error('No token available');
 
             // Make the request to the new endpoint
-            const response = await axios.get(`${API_BASE_URL}/api/users/profile`, {
+            const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -54,7 +52,7 @@ export const updateUserProfile = createAsyncThunk(
     async (userData: Partial<Author>, { getState, rejectWithValue }) => {
         try {
             const token = (getState() as RootState).auth.token;
-            const response = await axios.patch(`${API_BASE_URL}/api/users/profile`, userData, {
+            const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/profile`, userData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             return response.data;

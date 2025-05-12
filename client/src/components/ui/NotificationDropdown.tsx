@@ -1,87 +1,130 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch } from '@/store';
-import { useRouter } from 'next/navigation';
-import { Bell } from 'lucide-react';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
 import {
+    fetchNotifications,
+    markAsRead,
+    markAllRead,
     selectNotifications,
     selectUnreadCount,
-    markAsRead,
-    type Notification,
 } from '@/slices/notificationSlice';
+import type { Notification } from '@/slices/notificationSlice';
+import { LuBellRing } from 'react-icons/lu';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { formatDistanceToNow } from 'date-fns';
+import { AppDispatch } from '@/store';
+import { useRouter } from 'next/navigation';
+import SimpleBar from 'simplebar-react';
+import { useTransition } from '@react-spring/web';
 
 export default function NotificationDropdown() {
     const dispatch = useDispatch<AppDispatch>();
-    const router = useRouter();
-    const [isOpen, setIsOpen] = useState(false);
     const notifications = useSelector(selectNotifications);
     const unreadCount = useSelector(selectUnreadCount);
+    const [isOpen, setIsOpen] = useState(false);
+    const router = useRouter();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const handleNotificationClick = async (notif: Notification) => {
-        if (!notif.isRead) {
-            await dispatch(markAsRead(notif._id));
-        }
+    // Fetch on mount
+    useEffect(() => {
+        dispatch(fetchNotifications());
+    }, [dispatch]);
+
+    // Click-away to close
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleClick = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, [isOpen]);
+
+    const handleClick = async (notif: Notification) => {
+        if (!notif.isRead) await dispatch(markAsRead(notif._id));
         setIsOpen(false);
         router.push(notif.link);
     };
 
-    // Handle keyboard events for accessibility
-    const handleKeyDown = (event: React.KeyboardEvent, notif: Notification) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            handleNotificationClick(notif);
-        }
-    };
-
-    // Add smooth animation config
+    // Animation config (same as FormField)
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
-    return (
-        <div className="notification-dropdown" ref={dropdownRef}>
-            <button className="notification-trigger" onClick={() => setIsOpen(!isOpen)}>
-                <Bell />
-                {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
-            </button>
+    // Dropdown transition (same as selectTransition in FormField)
+    const dropdownTransition = useTransition(isOpen, {
+        from: { opacity: 0, transform: 'translateY(-10%)' },
+        enter: { opacity: 1, transform: 'translateY(0)' },
+        leave: { opacity: 0, transform: 'translateY(-10%)' },
+        config: smoothConfig,
+    });
 
-            <AnimatedWrapper
-                as="div"
-                className="notification-content"
-                from={{ 
-                    opacity: 0,
-                    transform: 'translateY(-10px)'
-                }}
-                to={{ 
-                    opacity: isOpen ? 1 : 0,
-                    transform: isOpen ? 'translateY(0px)' : 'translateY(-10px)'
-                }}
-                config={smoothConfig}
+    return (
+        <div className="_customSelectWrapper notification-dropdown" ref={dropdownRef}>
+            <button
+                className="notification-trigger _input __select"
+                onClick={() => setIsOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                style={{ position: 'relative' }}
             >
-                {notifications.length === 0 ? (
-                    <div className="notification-empty">No notifications</div>
-                ) : (
-                    notifications.map((notif) => (
-                        <button
-                            key={notif._id}
-                            className={`notification-item ${notif.isRead ? '' : 'unread'}`}
-                            onClick={() => handleNotificationClick(notif)}
-                            onKeyDown={(e) => handleKeyDown(e, notif)}
-                            role="menuitem"
-                            tabIndex={0}
-                        >
-                            <h4>{notif.title}</h4>
-                            <p>{notif.message}</p>
-                            <span className="notification-time">
-                                {formatDistanceToNow(new Date(notif.createdAt), {
-                                    addSuffix: true,
-                                })}
-                            </span>
-                        </button>
-                    ))
+                <LuBellRing />
+                {unreadCount > 0 && (
+                    <span className="notification-badge">
+                        <div>{unreadCount}</div>
+                    </span>
                 )}
-            </AnimatedWrapper>
+            </button>
+            {dropdownTransition(
+                (style, open) =>
+                    open && (
+                        <AnimatedWrapper as="div" animationStyle={style}>
+                            <SimpleBar
+                                className="_SimpleBar"
+                                style={{ maxHeight: '50vh' }}
+                                forceVisible="y"
+                                autoHide={false}
+                            >
+                                <ul className="_SimpleBar-Group">
+                                    <div className="dropdown-header">
+                                        <span className="title">Notifications</span>
+                                        <button onClick={() => dispatch(markAllRead())}>
+                                            Mark All Read
+                                        </button>
+                                    </div>
+
+                                    {notifications.length === 0 ? (
+                                        <div className="empty-notifications">No notifications</div>
+                                    ) : (
+                                        <ul className="_SimpleBar-Group">
+                                            {notifications.map((n) => (
+                                                <li
+                                                    key={n._id}
+                                                    className={`suggestion-item ${
+                                                        !n.isRead ? 'unread' : ''
+                                                    }`}
+                                                    onClick={() => handleClick(n)}
+                                                    role="option"
+                                                    aria-selected={!n.isRead}
+                                                >
+                                                    <span className="item-title">{n.title}</span>
+                                                    <span className="item-message">
+                                                        {n.message}
+                                                    </span>
+                                                    <span className="item-timestamp">
+                                                        {formatDistanceToNow(
+                                                            new Date(n.createdAt),
+                                                            { addSuffix: true }
+                                                        )}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </ul>
+                            </SimpleBar>
+                        </AnimatedWrapper>
+                    )
+            )}
         </div>
     );
 }

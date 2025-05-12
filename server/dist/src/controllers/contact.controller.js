@@ -12,58 +12,114 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContactController = void 0;
+exports.ContactController = exports.MailService = exports.ContactFormDto = void 0;
 const common_1 = require("@nestjs/common");
 const nodemailer = require("nodemailer");
 const google_auth_library_1 = require("google-auth-library");
 const dotenv = require("dotenv");
+const notification_service_1 = require("../services/notification.service");
+const notification_gateway_1 = require("../gateways/notification.gateway");
 dotenv.config();
-const clientId = process.env.GMAIL_CLIENT_ID;
-const clientSecret = process.env.GMAIL_CLIENT_SECRET;
-const redirectUri = process.env.GMAIL_REDIRECT_URI;
-const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-const gmailUser = process.env.GMAIL_USER;
-const oauth2Client = new google_auth_library_1.OAuth2Client(clientId, clientSecret, redirectUri);
-oauth2Client.setCredentials({ refresh_token: refreshToken });
-async function createTransporter() {
-    const accessTokenObj = await oauth2Client.getAccessToken();
-    if (!accessTokenObj.token) {
-        throw new common_1.InternalServerErrorException('Failed to retrieve access token');
-    }
-    const accessToken = accessTokenObj.token;
-    const authOptions = {
-        type: 'OAuth2',
-        user: gmailUser,
-        clientId,
-        clientSecret,
-        refreshToken,
-        accessToken,
-    };
-    return nodemailer.createTransport({
-        service: 'gmail',
-        auth: authOptions,
-    });
+class ContactFormDto {
 }
+exports.ContactFormDto = ContactFormDto;
+let MailService = class MailService {
+    constructor() {
+        this.clientId = process.env.GMAIL_CLIENT_ID ?? '';
+        this.clientSecret = process.env.GMAIL_CLIENT_SECRET ?? '';
+        this.redirectUri = process.env.GMAIL_REDIRECT_URI ?? '';
+        this.refreshToken = process.env.GMAIL_REFRESH_TOKEN ?? '';
+        this.gmailUser = process.env.GMAIL_USER ?? '';
+        if (!this.clientId ||
+            !this.clientSecret ||
+            !this.redirectUri ||
+            !this.refreshToken ||
+            !this.gmailUser) {
+            throw new common_1.InternalServerErrorException('Missing GMail OAuth2 configuration in environment');
+        }
+        this.oauth2Client = new google_auth_library_1.OAuth2Client(this.clientId, this.clientSecret, this.redirectUri);
+        this.oauth2Client.setCredentials({ refresh_token: this.refreshToken });
+    }
+    async createTransporter() {
+        const accessTokenResponse = await this.oauth2Client.getAccessToken();
+        const accessToken = accessTokenResponse.token;
+        if (!accessToken) {
+            throw new common_1.InternalServerErrorException('Unable to retrieve GMail access token');
+        }
+        const auth = {
+            type: 'OAuth2',
+            user: this.gmailUser,
+            clientId: this.clientId,
+            clientSecret: this.clientSecret,
+            refreshToken: this.refreshToken,
+            accessToken,
+        };
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth,
+        });
+    }
+    async sendContactForm(form) {
+        const transporter = await this.createTransporter();
+        const mailOptions = {
+            from: `"${form.firstname} ${form.lastname}" <${form.email}>`,
+            to: this.gmailUser,
+            subject: 'New Contact Form Submission',
+            text: [
+                `First Name: ${form.firstname}`,
+                `Last Name:  ${form.lastname}`,
+                `Email:      ${form.email}`,
+                `Phone:      ${form.phone}`,
+                '',
+                'Message:',
+                form.message,
+            ].join('\n'),
+        };
+        await transporter.sendMail(mailOptions);
+    }
+};
+exports.MailService = MailService;
+exports.MailService = MailService = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [])
+], MailService);
 let ContactController = class ContactController {
+    constructor(mailService, notificationService, notificationGateway) {
+        this.mailService = mailService;
+        this.notificationService = notificationService;
+        this.notificationGateway = notificationGateway;
+    }
     async sendContactEmail(data) {
         try {
-            const transporter = await createTransporter();
-            const mailOptions = {
-                from: data.email,
-                to: gmailUser,
-                subject: 'Contact Form',
-                text: `First Name: ${data.firstname}\nLast Name: ${data.lastname}\nEmail: ${data.email}\nPhone: ${data.phone}\nMessage: ${data.message}`,
-            };
-            await transporter.sendMail(mailOptions);
+            const result = await this.mailService.sendContactForm(data);
+            await this.notificationService.create({
+                category: 'contact',
+                action: 'sent',
+                title: 'New Contact Message',
+                message: `Contact message from "${data.firstname} ${data.lastname}" <${data.email}>`,
+                metadata: {
+                    email: data.email,
+                    firstname: data.firstname,
+                    lastname: data.lastname,
+                    phone: data.phone,
+                    message: data.message,
+                },
+            });
+            this.notificationGateway.server.emit('contact:sent', {
+                type: 'sent',
+                contact: {
+                    email: data.email,
+                    firstname: data.firstname,
+                    lastname: data.lastname,
+                    phone: data.phone,
+                    message: data.message,
+                },
+            });
             return { message: 'Email sent successfully' };
         }
-        catch (error) {
-            if (error instanceof Error) {
-                throw new common_1.InternalServerErrorException(`Error sending email: ${error.message}`);
-            }
-            else {
-                throw new common_1.InternalServerErrorException('Unknown error occurred');
-            }
+        catch (err) {
+            const msg = err instanceof Error ? err.message : 'Unknown error sending email';
+            throw new common_1.InternalServerErrorException(`Failed to send contact email: ${msg}`);
         }
     }
 };
@@ -72,10 +128,13 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [ContactFormDto]),
     __metadata("design:returntype", Promise)
 ], ContactController.prototype, "sendContactEmail", null);
 exports.ContactController = ContactController = __decorate([
-    (0, common_1.Controller)('api/contact')
+    (0, common_1.Controller)('api/contact'),
+    __metadata("design:paramtypes", [MailService,
+        notification_service_1.NotificationService,
+        notification_gateway_1.NotificationGateway])
 ], ContactController);
 //# sourceMappingURL=contact.controller.js.map

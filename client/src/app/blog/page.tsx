@@ -6,7 +6,7 @@ import { fetchArticles, selectArticles, selectIsLoading } from '@/slices/article
 import _ from 'lodash';
 import { formatDistanceToNow, format } from 'date-fns';
 import { Eye, Hash, MessagesSquare, ThumbsUp, Clock9 } from 'lucide-react';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 import { LuEye, LuThumbsUp, LuMessageSquareMore, LuSquircle } from 'react-icons/lu';

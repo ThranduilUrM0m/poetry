@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import { Vote } from '@/types/article';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 interface VoteState {
     votes: Vote[];
     currentVote: Vote | null;
@@ -35,7 +33,7 @@ const getErrorMessage = (error: unknown): string => {
 // Fetch all votes using Axios
 export const fetchVotes = createAsyncThunk('vote/fetchVotes', async (_, { rejectWithValue }) => {
     try {
-        const response = await axios.get<Vote[]>(`${API_BASE_URL}/api/votes`);
+        const response = await axios.get<Vote[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/votes`);
         return response.data;
     } catch (error: unknown) {
         return rejectWithValue(getErrorMessage(error));
@@ -46,7 +44,7 @@ export const fetchUpdatedVote = createAsyncThunk(
     'vote/fetchUpdatedVote',
     async (voteId: string, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Vote>(`${API_BASE_URL}/api/votes/${voteId}`);
+            const response = await axios.get<Vote>(`${process.env.NEXT_PUBLIC_API_URL}/api/votes/${voteId}`);
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));

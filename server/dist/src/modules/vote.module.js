@@ -12,22 +12,21 @@ const mongoose_1 = require("@nestjs/mongoose");
 const vote_controller_1 = require("../controllers/vote.controller");
 const vote_service_1 = require("../services/vote.service");
 const vote_model_1 = require("../models/vote.model");
-const article_model_1 = require("../models/article.model");
-const comment_model_1 = require("../models/comment.model");
+const article_module_1 = require("./article.module");
+const comment_module_1 = require("./comment.module");
 let VoteModule = class VoteModule {
 };
 exports.VoteModule = VoteModule;
 exports.VoteModule = VoteModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            mongoose_1.MongooseModule.forFeature([
-                { name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema },
-                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
-                { name: comment_model_1.Comment.name, schema: comment_model_1.CommentSchema },
-            ]),
+            mongoose_1.MongooseModule.forFeature([{ name: vote_model_1.Vote.name, schema: vote_model_1.VoteSchema }]),
+            (0, common_1.forwardRef)(() => article_module_1.ArticleModule),
+            (0, common_1.forwardRef)(() => comment_module_1.CommentModule)
         ],
         controllers: [vote_controller_1.VoteController],
         providers: [vote_service_1.VoteService],
+        exports: [mongoose_1.MongooseModule, vote_service_1.VoteService],
     })
 ], VoteModule);
 //# sourceMappingURL=vote.module.js.map

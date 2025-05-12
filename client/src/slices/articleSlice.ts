@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import { Article } from '@/types/article';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 interface ArticleState {
     articles: Article[];
     currentArticle: Article | null;
@@ -38,7 +36,7 @@ export const fetchArticleBySlug = createAsyncThunk(
     async ({ category, slug }: { category: string; slug: string }, { rejectWithValue }) => {
         try {
             const response = await axios.get<Article>(
-                `${API_BASE_URL}/api/articles/${category}/${slug}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/articles/bySlug/${category}/${slug}`
             );
             return response.data;
         } catch (error: unknown) {
@@ -52,7 +50,7 @@ export const fetchArticles = createAsyncThunk(
     'article/fetchArticles',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Article[]>(`${API_BASE_URL}/api/articles`);
+            const response = await axios.get<Article[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/articles`);
             return response.data;
         } catch (error: unknown) {
             return rejectWithValue(getErrorMessage(error));
@@ -64,7 +62,7 @@ export const fetchUpdatedArticle = createAsyncThunk(
     'article/fetchUpdatedArticle',
     async (articleId: string, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Article>(`${API_BASE_URL}/api/articles/${articleId}`);
+            const response = await axios.get<Article>(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${articleId}`);
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
@@ -84,7 +82,7 @@ export const voteArticle = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/articles/${articleId}/vote`, {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${articleId}/vote`, {
                 direction,
                 fingerprint,
             });
@@ -103,7 +101,7 @@ export const trackView = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/articles/${articleId}/views`, {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${articleId}/views`, {
                 fingerprint,
             });
             return response.data;
@@ -121,9 +119,8 @@ export const updateArticleById = createAsyncThunk(
             if (!id || typeof id !== 'string') {
                 throw new Error('Invalid comment ID');
             }
-            
-            console.log('Pute Chienne : ', id);
-            const response = await axios.patch(`${API_BASE_URL}/api/articles/${id}`, data);
+
+            const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${id}`, data);
             return response.data;
         } catch (error) {
             return rejectWithValue((error as Error).message);
@@ -135,7 +132,7 @@ export const deleteArticle = createAsyncThunk(
     'articles/deleteArticle',
     async (id: string, { rejectWithValue }) => {
         try {
-            await axios.delete(`${API_BASE_URL}/api/articles/${id}`);
+            await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/articles/${id}`);
             return id;
         } catch (error) {
             return rejectWithValue((error as Error).message);
@@ -147,7 +144,7 @@ export const createArticle = createAsyncThunk(
     'articles/createArticle',
     async (data: Partial<Article>, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/articles`, data);
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/articles`, data);
             return response.data;
         } catch (error) {
             return rejectWithValue((error as Error).message);

@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import { View } from '@/types/article';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 interface ViewState {
     views: View[];
     currentView: View | null;
@@ -33,7 +31,7 @@ const getErrorMessage = (error: unknown): string => {
 };
 
 export const fetchViews = createAsyncThunk('views/fetchViews', async () => {
-    const response = await axios.get(`${API_BASE_URL}/api/views`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/views`);
     return response.data;
 });
 
@@ -41,7 +39,7 @@ export const fetchUpdatedView = createAsyncThunk(
     'view/fetchUpdatedView',
     async (viewId: string, { rejectWithValue }) => {
         try {
-            const response = await axios.get<View>(`${API_BASE_URL}/api/views/${viewId}`);
+            const response = await axios.get<View>(`${process.env.NEXT_PUBLIC_API_URL}/api/views/${viewId}`);
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));

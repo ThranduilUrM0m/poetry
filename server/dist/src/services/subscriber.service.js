@@ -22,49 +22,47 @@ let SubscriberService = class SubscriberService {
         this.subscriberModel = subscriberModel;
     }
     async ensureTestData() {
-        const count = await this.subscriberModel.countDocuments();
+        const count = await this.subscriberModel.countDocuments().exec();
         if (count === 0) {
             await this.subscriberModel.create([
                 { email: 'test1@example.com', isSubscribed: true },
                 { email: 'test2@example.com', isSubscribed: true },
-                { email: 'test3@example.com', isSubscribed: true }
+                { email: 'test3@example.com', isSubscribed: true },
             ]);
         }
     }
     async subscribe(email) {
-        const existingSubscriber = await this.subscriberModel.findOne({ email }).exec();
-        if (existingSubscriber) {
-            throw new Error('Email already subscribed');
+        const normalized = email.trim().toLowerCase();
+        const exists = await this.subscriberModel.exists({ email: normalized }).exec();
+        if (exists) {
+            throw new common_1.BadRequestException('Email already subscribed');
         }
-        const subscriber = new this.subscriberModel({ email });
-        return subscriber.save();
-    }
-    async getAllSubscribers() {
-        try {
-            const subscribers = await this.subscriberModel.find().exec();
-            return subscribers;
-        }
-        catch (error) {
-            console.error('Error fetching subscribers:', error);
-            throw new Error('Failed to fetch subscribers');
-        }
-    }
-    async getSubscriberBySlug(email) {
-        const subscriber = await this.subscriberModel.findOne({ email });
-        if (!subscriber)
-            throw new common_1.NotFoundException('Subscriber not found');
-        return subscriber;
-    }
-    async findBySlug(email) {
-        return this.subscriberModel.findOne({ email }).exec();
+        const subscriber = new this.subscriberModel({
+            email: normalized,
+            isSubscribed: true,
+        });
+        return (await subscriber.save()).toObject();
     }
     async unsubscribe(email) {
-        const subscriber = await this.subscriberModel
-            .findOneAndUpdate({ email }, { isSubscribed: false }, { new: true })
+        const normalized = email.trim().toLowerCase();
+        const updated = await this.subscriberModel
+            .findOneAndUpdate({ email: normalized }, { isSubscribed: false }, {
+            new: true,
+            runValidators: true,
+            lean: true,
+        })
             .exec();
-        if (!subscriber)
-            throw new common_1.NotFoundException('Article not found');
-        return subscriber;
+        if (!updated) {
+            throw new common_1.NotFoundException(`Subscriber with email "${email}" not found`);
+        }
+        return updated;
+    }
+    async getAllSubscribers() {
+        return this.subscriberModel.find().lean().exec();
+    }
+    async findByEmail(email) {
+        const normalized = email.trim().toLowerCase();
+        return this.subscriberModel.findOne({ email: normalized }).lean().exec();
     }
 };
 exports.SubscriberService = SubscriberService;

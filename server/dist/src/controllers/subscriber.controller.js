@@ -15,24 +15,55 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubscriberController = void 0;
 const common_1 = require("@nestjs/common");
 const subscriber_service_1 = require("../services/subscriber.service");
+const notification_service_1 = require("../services/notification.service");
+const notification_gateway_1 = require("../gateways/notification.gateway");
 let SubscriberController = class SubscriberController {
-    constructor(subscriberService) {
+    constructor(subscriberService, notificationService, notificationGateway) {
         this.subscriberService = subscriberService;
+        this.notificationService = notificationService;
+        this.notificationGateway = notificationGateway;
     }
     async subscribe(email) {
-        await this.subscriberService.subscribe(email);
+        if (!email || typeof email !== 'string') {
+            throw new common_1.BadRequestException('Email is required');
+        }
+        const subscriber = await this.subscriberService.subscribe(email);
+        await this.notificationService.create({
+            category: 'subscriber',
+            action: 'subscribe',
+            title: 'New Subscriber',
+            message: `A new subscriber joined: ${email}`,
+            metadata: { email },
+        });
+        this.notificationGateway.server.emit('subscriber:changed', {
+            type: 'subscribe',
+            subscriber,
+        });
         return { message: 'Subscription successful!' };
     }
     async unsubscribe(email) {
+        if (!email || typeof email !== 'string') {
+            throw new common_1.BadRequestException('Email is required');
+        }
         await this.subscriberService.unsubscribe(email);
+        await this.notificationService.create({
+            category: 'subscriber',
+            action: 'unsubscribe',
+            title: 'Unsubscribed',
+            message: `A subscriber left: ${email}`,
+            metadata: { email },
+        });
+        this.notificationGateway.server.emit('subscriber:changed', {
+            type: 'unsubscribe',
+            email,
+        });
         return { message: 'Unsubscription successful!' };
     }
-    async getAllSubscribers() {
-        const subscribers = await this.subscriberService.getAllSubscribers();
-        return subscribers;
+    async getAll() {
+        return this.subscriberService.getAllSubscribers();
     }
-    async getSubscriberBySlug(email) {
-        const subscriber = await this.subscriberService.findBySlug(email);
+    async getOne(email) {
+        const subscriber = await this.subscriberService.findByEmail(email);
         if (!subscriber) {
             throw new common_1.NotFoundException('Subscriber not found');
         }
@@ -59,16 +90,18 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], SubscriberController.prototype, "getAllSubscribers", null);
+], SubscriberController.prototype, "getAll", null);
 __decorate([
     (0, common_1.Get)(':email'),
     __param(0, (0, common_1.Param)('email')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], SubscriberController.prototype, "getSubscriberBySlug", null);
+], SubscriberController.prototype, "getOne", null);
 exports.SubscriberController = SubscriberController = __decorate([
     (0, common_1.Controller)('api/subscribers'),
-    __metadata("design:paramtypes", [subscriber_service_1.SubscriberService])
+    __metadata("design:paramtypes", [subscriber_service_1.SubscriberService,
+        notification_service_1.NotificationService,
+        notification_gateway_1.NotificationGateway])
 ], SubscriberController);
 //# sourceMappingURL=subscriber.controller.js.map

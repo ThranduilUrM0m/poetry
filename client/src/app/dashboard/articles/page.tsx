@@ -51,7 +51,7 @@ import {
 import { selectComments, fetchComments } from '@/slices/commentSlice';
 
 // Component imports
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { Comments } from '@/components/ui/HeroImage';
 import FormField from '@/components/ui/FormField';
 import CommentManagementModal from '@/components/ui/CommentModal';
@@ -120,12 +120,9 @@ const useCommentsAnalytics = () => {
     const comments = useSelector(selectComments);
 
     const getTopComments = React.useMemo(() => {
-        console.log('Processing comments:', comments);
-
         // Map comments with calculated scores first
         const commentsWithScores = comments
             .filter((comment: Comment) => {
-                console.log('Checking comment:', comment); // Debug log
                 return comment._comment_isOK;
             })
             .map((comment: Comment) => {
@@ -643,6 +640,10 @@ export default function DashboardPage() {
                     <button
                         className="__delete-button"
                         onClick={async () => {
+                            const confirmDelete = window.confirm(
+                                'Are you sure you want to delete this article? This action cannot be undone.'
+                            );
+                            if (!confirmDelete) return;
                             try {
                                 await dispatch(deleteArticle(row.original._id!)).unwrap();
                                 await handleRefreshArticles();
@@ -841,11 +842,27 @@ export default function DashboardPage() {
                     <button
                         type="button"
                         className="__deleteArticle"
-                        onClick={() => {
+                        onClick={async () => {
                             const selectedIds = table
                                 .getSelectedRowModel()
-                                .rows.map((row) => row.original._id);
-                            console.log('Deleting selected articles:', selectedIds);
+                                .rows.map((row) => row.original._id)
+                                .filter((id): id is string => typeof id === 'string'); // Filter out undefined
+
+                            if (selectedIds.length === 0) return;
+
+                            const confirmDelete = window.confirm(
+                                `Are you sure you want to delete ${selectedIds.length} article(s)? This action cannot be undone.`
+                            );
+                            if (!confirmDelete) return;
+
+                            try {
+                                for (const id of selectedIds) {
+                                    await dispatch(deleteArticle(id)).unwrap();
+                                }
+                                await handleRefreshArticles();
+                            } catch (error) {
+                                console.error('Failed to delete selected articles:', error);
+                            }
                         }}
                         disabled={table.getSelectedRowModel().rows.length === 0}
                     >
@@ -1087,7 +1104,6 @@ export default function DashboardPage() {
             setIsLoading(true);
             try {
                 await dispatch(fetchComments());
-                console.log('Fetched comments:', comments);
             } catch (error) {
                 console.error('Failed to load comments:', error);
             } finally {

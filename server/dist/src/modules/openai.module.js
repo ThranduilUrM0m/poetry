@@ -8,8 +8,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OpenAIModule = void 0;
 const common_1 = require("@nestjs/common");
-const openai_controller_1 = require("../controllers/openai.controller");
 const openai_service_1 = require("../services/openai.service");
+const openai_controller_1 = require("../controllers/openai.controller");
 let OpenAIModule = class OpenAIModule {
 };
 exports.OpenAIModule = OpenAIModule;
@@ -17,6 +17,7 @@ exports.OpenAIModule = OpenAIModule = __decorate([
     (0, common_1.Module)({
         controllers: [openai_controller_1.OpenAIController],
         providers: [openai_service_1.OpenAIService],
+        exports: [openai_service_1.OpenAIService],
     })
 ], OpenAIModule);
 //# sourceMappingURL=openai.module.js.map

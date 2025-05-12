@@ -103,8 +103,7 @@ const formatAudienceData = (
 // Dashboard Page Component
 // ----------------------------------------------------------------------
 export default function DashboardPage() {
-    const { loadError, isReady, chartData } = useDashboard();
-    console.log('[Page] Using context values:', { isReady, chartData });
+    const { loadError/* , isReady */, chartData } = useDashboard();
 
     // Retrieve auth-related data.
     const analyticsData = useSelector(selectAnalytics);

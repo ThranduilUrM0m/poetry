@@ -4,11 +4,14 @@ import { usePathname } from 'next/navigation';
 import NProgress from 'nprogress';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { LoadingContext } from '@/context/LoadingContext';
 import { HeaderThemeProvider } from '@/context/HeaderThemeContext';
 import { SearchModalProvider } from '@/context/SearchModalContext';
 import SearchModal from '@/components/ui/SearchModal';
+import { AppDispatch } from '@/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchUserProfile, selectUser } from '@/slices/userSlice';
 import 'nprogress/nprogress.css';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -16,6 +19,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const isPrivate = pathname?.startsWith('/dashboard') || pathname?.startsWith('/login');
     const [isLoaded, setIsLoaded] = useState(false);
 
+    const dispatch = useDispatch<AppDispatch>();
+    const user = useSelector(selectUser);
+
+    // Start NProgress on route change
     useEffect(() => {
         NProgress.start();
         setIsLoaded(false);
@@ -28,6 +35,13 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
             NProgress.done();
         };
     }, [pathname]);
+
+    // If we're in a private path, ensure we have the user in Redux
+    useEffect(() => {
+        if (isPrivate && !user) {
+            dispatch(fetchUserProfile());
+        }
+    }, [dispatch, isPrivate, user]);
 
     return (
         <LoadingContext.Provider value={{ isLoaded }}>

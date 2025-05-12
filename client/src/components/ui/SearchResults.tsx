@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import SimpleBar from 'simplebar-react';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import ArticleCard from '@/components/ui/ArticleCard';
 import { Article } from '@/types/article';
 

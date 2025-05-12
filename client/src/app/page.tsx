@@ -13,7 +13,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import { HomeSection1, HomeSection2 } from '@/components/ui/HeroImage';
 import LongArrow from '@/components/ui/LongArrow';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 

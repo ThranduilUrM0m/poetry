@@ -24,7 +24,7 @@ import type { AppDispatch } from '@/store';
 import { formatDistanceToNow } from 'date-fns';
 import _ from 'lodash';
 import SimpleBar from 'simplebar-react';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import FormField from '@/components/ui/FormField';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
@@ -55,6 +55,7 @@ import {
 } from '@/slices/commentSlice';
 
 import 'quill/dist/quill.snow.css';
+import { VoteStateManager } from '@/utils/voteStateManager';
 
 interface FormData {
     Parent: string | null;
@@ -94,7 +95,7 @@ export interface CommentTree extends Comment {
     children?: CommentTree[];
 }
 
-export const buildCommentTree = (comments: Comment[]): CommentTree[] => {    
+export const buildCommentTree = (comments: Comment[]): CommentTree[] => {
     const commentMap: { [id: string]: CommentTree } = {};
     const roots: CommentTree[] = [];
 
@@ -110,9 +111,10 @@ export const buildCommentTree = (comments: Comment[]): CommentTree[] => {
 
         if (comment.Parent) {
             // Handle comments with parents
-            const parentId = typeof comment.Parent === 'string' 
-                ? comment.Parent 
-                : (comment.Parent as Comment)._id;
+            const parentId =
+                typeof comment.Parent === 'string'
+                    ? comment.Parent
+                    : (comment.Parent as Comment)._id;
 
             if (parentId && commentMap[parentId]) {
                 commentMap[parentId].children!.push(commentMap[comment._id]);
@@ -198,7 +200,9 @@ const CommentCard: React.FC<CommentCardProps> = ({
                     <p className="author">
                         <b>{_.capitalize(comment._comment_author)}</b> ,{' '}
                         {comment.updatedAt &&
-                            formatDistanceToNow(new Date(comment.updatedAt), { addSuffix: true })}
+                            formatDistanceToNow(new Date(comment.updatedAt), {
+                                addSuffix: true,
+                            })}
                     </p>
                     {currentComment?._id === comment._id && (
                         <div className="__editing">Editing</div>
@@ -345,21 +349,49 @@ export default function ArticlePage() {
         }
     }, [article, dispatch]);
 
-    // Enhanced view tracking:
-    // Check if the article has been viewed before by this fingerprint.
-    // If not, dispatch trackView and then set a flag in localStorage.
-    useEffect(() => {
-        if (article?._id && fingerprint) {
-            const viewKey = `viewed_${article._id}`;
-            const alreadyViewed = localStorage.getItem(viewKey);
-            if (!alreadyViewed) {
-                dispatch(trackView({ articleId: article._id, fingerprint }));
-                if (category && slug) {
-                    dispatch(fetchArticleBySlug({ category, slug }));
-                }
-                localStorage.setItem(viewKey, 'true');
-            }
+    const verifyArticleView = async (articleId: string, fp: string) => {
+        const viewKey = `viewed_${articleId}`;
+        const locallyViewed = localStorage.getItem(viewKey);
+
+        // Always fetch the fresh article to verify
+        const response = await dispatch(fetchUpdatedArticle(articleId)).unwrap();
+        const hasDbView = response?.views?.some((view) => view._viewer === fp);
+
+        // Synchronize localStorage with database state
+        if (hasDbView && !locallyViewed) {
+            localStorage.setItem(viewKey, 'true');
+        } else if (!hasDbView && locallyViewed) {
+            localStorage.removeItem(viewKey);
         }
+
+        return hasDbView;
+    };
+
+    // Enhanced view tracking with database verification
+    useEffect(() => {
+        const trackArticleView = async () => {
+            if (!article?._id || !fingerprint) return;
+
+            try {
+                const hasViewed = await verifyArticleView(article._id, fingerprint);
+
+                if (!hasViewed) {
+                    await dispatch(trackView({ articleId: article._id, fingerprint })).unwrap();
+                    localStorage.setItem(`viewed_${article._id}`, 'true');
+
+                    // Refresh article data after tracking
+                    if (category && slug) {
+                        await dispatch(fetchArticleBySlug({ category, slug }));
+                    }
+                }
+            } catch (error) {
+                console.error('Error verifying/tracking view:', error);
+                // Clean up localStorage if tracking failed
+                localStorage.removeItem(`viewed_${article._id}`);
+            }
+        };
+
+        trackArticleView();
     }, [article?._id, fingerprint, category, slug, dispatch]);
 
     // Ready state after article has loaded
@@ -408,6 +440,30 @@ export default function ArticlePage() {
         }
     }, [article?._id, dispatch]);
 
+    // Add new effect to verify vote states on load
+    useEffect(() => {
+        if (!fingerprint || !article?._id) return;
+
+        // Verify article votes
+        const articleVoteState = VoteStateManager.verifyVoteStates(
+            article.votes || [],
+            fingerprint,
+            article._id
+        );
+        setUserVote(articleVoteState);
+
+        // Verify comment votes
+        comments.forEach((comment) => {
+            if (comment._id) {
+                VoteStateManager.verifyVoteStates(
+                    comment._comment_votes || [],
+                    fingerprint,
+                    comment._id
+                );
+            }
+        });
+    }, [article, comments, fingerprint]);
+
     // Add this helper function at the top of the file
     const isMentionValid = (body: string, parentAuthor: string) => {
         return body.startsWith(`@${parentAuthor} `);
@@ -416,10 +472,10 @@ export default function ArticlePage() {
     // Update the handleReply function
     const handleReply = (comment: Comment) => {
         const mention = `@${comment._comment_author} `;
-    
+
         // Clear any existing currentComment state
         dispatch(clearCurrentComment());
-        
+
         // Reset form with new values
         reset({
             Parent: comment._id!,
@@ -427,9 +483,9 @@ export default function ArticlePage() {
             _comment_email: '',
             _comment_body: mention,
             _comment_fingerprint: fingerprint,
-            article: article!
+            article: article!,
         });
-    
+
         // Use setTimeout to ensure the form has been reset before setting focus
         setTimeout(() => {
             setFocus('_comment_body');
@@ -463,34 +519,48 @@ export default function ArticlePage() {
     const handleCommentVote = async (commentId: string, direction: 'up' | 'down') => {
         if (!fingerprint) return;
 
-        // Find the comment in the current state
         const comment = comments.find((c) => c._id === commentId);
         if (!comment) return;
 
-        // Optimistically update the UI
+        // Save state before making changes for potential rollback
         const previousVotes = comment._comment_votes || [];
-        const hasUserVoted = previousVotes.some((vote) => vote.voter === fingerprint);
-        const updatedVotes =
-            hasUserVoted && previousVotes.some((vote) => vote.direction === direction)
-                ? previousVotes.filter((vote) => vote.voter !== fingerprint) // Remove vote if toggled
-                : [
-                      ...previousVotes.filter((vote) => vote.voter !== fingerprint), // Remove previous vote
-                      { voter: fingerprint, direction } as Vote, // Add new vote
-                  ];
-
-        // Update the local state
-        const updatedComments = comments.map((c) =>
-            c._id === commentId ? { ...c, _comment_votes: updatedVotes } : c
-        );
-        dispatch(setComments(updatedComments));
 
         try {
-            // Dispatch the vote action to the backend
+            // Optimistic update
+            const hasUserVoted = previousVotes.some((vote) => vote.voter === fingerprint);
+            const isSameDirection = previousVotes.some(
+                (vote) => vote.voter === fingerprint && vote.direction === direction
+            );
+
+            const updatedVotes =
+                hasUserVoted && isSameDirection
+                    ? previousVotes.filter((vote) => vote.voter !== fingerprint)
+                    : [
+                          ...previousVotes.filter((vote) => vote.voter !== fingerprint),
+                          { voter: fingerprint, direction } as Vote,
+                      ];
+
+            // Update local state and storage
+            dispatch(
+                setComments(
+                    comments.map((c) =>
+                        c._id === commentId ? { ...c, _comment_votes: updatedVotes } : c
+                    )
+                )
+            );
+            VoteStateManager.saveVoteState(
+                commentId,
+                isSameDirection ? null : direction,
+                fingerprint
+            );
+
+            // Make API call
             await dispatch(voteComment({ commentId, direction, fingerprint }));
         } catch (error) {
             console.error(error);
-            // Revert the optimistic update in case of an error
+            // Revert changes on error
             dispatch(setComments(comments));
+            VoteStateManager.verifyVoteStates(previousVotes, fingerprint, commentId);
         }
     };
 
@@ -513,11 +583,15 @@ export default function ArticlePage() {
         if (!article?._id || !fingerprint) return;
         const previousVote = userVote;
         try {
+            // Optimistic update
             setUserVote(direction);
+            VoteStateManager.saveVoteState(article._id, direction, fingerprint);
+
             await dispatch(voteArticle({ articleId: article._id, direction, fingerprint }));
         } catch (error) {
             console.error(error);
             setUserVote(previousVote);
+            VoteStateManager.saveVoteState(article._id, previousVote, fingerprint);
         }
     };
 

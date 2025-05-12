@@ -8,7 +8,7 @@ import Slider from 'react-slick';
 import { formatDistanceToNow } from 'date-fns';
 import { Squircle } from 'lucide-react';
 import _ from 'lodash';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { AboutSection1 } from '@/components/ui/HeroImage';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';

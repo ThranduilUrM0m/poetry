@@ -13,6 +13,9 @@ const view_controller_1 = require("../controllers/view.controller");
 const view_service_1 = require("../services/view.service");
 const view_model_1 = require("../models/view.model");
 const article_model_1 = require("../models/article.model");
+const article_module_1 = require("./article.module");
+const notification_service_1 = require("../services/notification.service");
+const notification_module_1 = require("./notification.module");
 let ViewModule = class ViewModule {
 };
 exports.ViewModule = ViewModule;
@@ -21,11 +24,14 @@ exports.ViewModule = ViewModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([
                 { name: view_model_1.View.name, schema: view_model_1.ViewSchema },
-                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema },
+                { name: article_model_1.Article.name, schema: article_model_1.ArticleSchema }
             ]),
+            (0, common_1.forwardRef)(() => article_module_1.ArticleModule),
+            notification_module_1.NotificationModule,
         ],
         controllers: [view_controller_1.ViewController],
-        providers: [view_service_1.ViewService],
+        providers: [view_service_1.ViewService, notification_service_1.NotificationService],
+        exports: [mongoose_1.MongooseModule, view_service_1.ViewService],
     })
 ], ViewModule);
 //# sourceMappingURL=view.module.js.map

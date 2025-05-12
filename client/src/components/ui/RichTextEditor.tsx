@@ -155,7 +155,6 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 quill.on('selection-change', (range: QuillRange | null) => {
                     if (range) {
                         const formats = quill.getFormat(range.index);
-                        console.log('Change formats : ', formats);
                         setCurrentFont((formats.font as string) || '');
                         setCurrentSize((formats.size as string) || '');
                         setCurrentHeader(formats.header?.toString() || 'false');

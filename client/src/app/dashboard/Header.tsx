@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '@/slices/userSlice';
 import { createAvatar } from '@dicebear/core';
 import { openPeeps } from '@dicebear/collection';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import NotificationDropdown from '@/components/ui/NotificationDropdown';
 import { useDashboard } from '@/context/DashboardContext';
 import chroma from 'chroma-js';

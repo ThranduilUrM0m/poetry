@@ -1,101 +1,100 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { View } from '../models/view.model';
-import { Article, ArticleDocument } from '../models/article.model';
+// src/controllers/view.controller.ts
+
+import {
+    Controller,
+    Get,
+    Post,
+    Patch,
+    Delete,
+    Param,
+    Body,
+    NotFoundException,
+    BadRequestException,
+} from '@nestjs/common';
+import { Types } from 'mongoose';
 import { ViewService } from '../services/view.service';
+import { ArticleService } from '../services/article.service';
+import { View } from '../models/view.model';
+import { Article } from '../models/article.model';
 import { dummyViews, dummyArticles } from '../data/dummyData';
 
-// Define a type representing a View with its article field populated.
 export type PopulatedView = Omit<View, 'article'> & { article: Article };
 
 @Controller('api/views')
 export class ViewController {
     constructor(
         private readonly viewService: ViewService,
-        @InjectModel(View.name) private readonly viewModel: Model<View>,
-        @InjectModel(Article.name) private readonly articleModel: Model<ArticleDocument>
+        private readonly articleService: ArticleService // ← inject it
     ) {}
-
-    /**
-     * Helper: Populates a single field by querying the database first,
-     * and falling back to dummy data if no record is found.
-     * The generic type T is constrained to objects having an _id.
-     */
-    private async populateField<T extends { _id: Types.ObjectId | string }>(
-        id: Types.ObjectId,
-        model: Model<T>,
-        dummyData: T[]
-    ): Promise<T> {
-        const doc = await model.findById(id).lean().exec();
-        if (doc) {
-            return doc as T;
-        }
-        const fallback = dummyData.find((item) => item._id.toString() === id.toString());
-        if (fallback) {
-            return fallback;
-        }
-        throw new NotFoundException(`Unable to populate field for id ${id.toString()}`);
-    }
-
-    /**
-     * Helper: Returns a fully populated view.
-     * It populates the 'article' field with the complete Article document.
-     */
-    private async populateView(view: View): Promise<PopulatedView> {
-        const populatedView: PopulatedView = {
-            ...view,
-            article: {} as Article,
-        };
-
-        if (view.article && view.article instanceof Types.ObjectId) {
-            populatedView.article = await this.populateField<ArticleDocument>(
-                view.article,
-                this.articleModel,
-                dummyArticles as ArticleDocument[]
-            );
-        } else {
-            populatedView.article = view.article as Article;
-        }
-        return populatedView;
-    }
 
     @Post()
     async createView(@Body() data: Partial<View>): Promise<PopulatedView> {
-        const newView = await this.viewService.createView(data);
-        return this.populateView(newView);
+        const view = await this.viewService.createView(data);
+        return this.populateView(view);
     }
 
     @Get()
     async getAllViews(): Promise<PopulatedView[]> {
-        const viewsFromDb = await this.viewService.getAllViews();
-        if (viewsFromDb.length > 0) {
-            return Promise.all(viewsFromDb.map((view) => this.populateView(view)));
-        }
-        return Promise.all(dummyViews.map(async (view) => this.populateView(view as View)));
+        const views = await this.viewService.getAllViews();
+        return Promise.all(views.map((v) => this.populateView(v)));
     }
 
     @Get(':id')
     async getViewById(@Param('id') id: string): Promise<PopulatedView> {
-        const viewFromDb = await this.viewService.getViewById(id);
-        if (viewFromDb) {
-            return this.populateView(viewFromDb);
+        let view: View;
+        try {
+            view = await this.viewService.getViewById(id);
+        } catch {
+            // fallback to dummy
+            const dummy = dummyViews.find((d) => d._id?.toString() === id);
+            if (!dummy) {
+                throw new NotFoundException('View not found');
+            }
+            view = dummy as View;
         }
-        const dummyView = dummyViews.find((a) => a._id?.toString() === id);
-        if (!dummyView) {
-            throw new NotFoundException('View not found');
-        }
-        return this.populateView(dummyView as View);
+        return this.populateView(view);
     }
 
     @Patch(':id')
     async updateView(@Param('id') id: string, @Body() data: Partial<View>): Promise<PopulatedView> {
-        const updatedView = await this.viewService.updateView(id, data);
-        return this.populateView(updatedView);
+        const updated = await this.viewService.updateView(id, data);
+        return this.populateView(updated);
     }
 
     @Delete(':id')
-    async deleteView(@Param('id') id: string): Promise<unknown> {
+    async deleteView(@Param('id') id: string): Promise<{ message: string }> {
         return this.viewService.deleteView(id);
+    }
+
+    private async populateView(view: View): Promise<PopulatedView> {
+        let article: any = null;
+
+        // If the view.article is an ObjectId, try loading from DB
+        if (view.article instanceof Types.ObjectId) {
+            try {
+                article = await this.articleService.getById(view.article.toString());
+            } catch {
+                article = null;
+            }
+        } else {
+            // It may already be populated
+            article = view.article as any;
+        }
+
+        // Fallback to dummyArticles, but only if we find a dummy with a _id
+        if (!article) {
+            const fallback = dummyArticles.find(
+                (a) => a._id !== undefined && a._id.toString() === view.article.toString()
+            );
+            if (fallback && fallback._id) {
+                article = fallback as any;
+            }
+        }
+
+        if (!article) {
+            throw new NotFoundException('Associated article not found');
+        }
+
+        return { ...view, article };
     }
 }

@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import { Subscriber } from '@/types/subscriber';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 // Define the initial state
 interface SubscriberState {
     subscribers: Subscriber[];
@@ -39,7 +37,7 @@ export const subscribeSubscriber = createAsyncThunk(
     'subscriber/subscribeSubscriber',
     async (email: string, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/subscribers`, { email });
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/subscribers`, { email });
             return response.data; // Return the newly added subscriber
         } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
@@ -63,7 +61,7 @@ export const fetchSubscriberBySlug = createAsyncThunk(
     async ({ email }: { email: string }, { rejectWithValue }) => {
         try {
             const response = await axios.get<Subscriber>(
-                `${API_BASE_URL}/api/subscribers/${email}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/subscribers/${email}`
             );
             return response.data;
         } catch (error: unknown) {
@@ -77,7 +75,7 @@ export const fetchAllSubscribers = createAsyncThunk(
     'subscriber/fetchAllSubscribers',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Subscriber[]>(`${API_BASE_URL}/api/subscribers`);
+            const response = await axios.get<Subscriber[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/subscribers`);
             return response.data;
         } catch (error: unknown) {
             return rejectWithValue(getErrorMessage(error));
@@ -91,7 +89,7 @@ export const fetchSubscribers = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             // Fix the URL to match the backend endpoint
-            const response = await axios.get<Subscriber[]>(`${API_BASE_URL}/api/subscribers`);
+            const response = await axios.get<Subscriber[]>(`${process.env.NEXT_PUBLIC_API_URL}/api/subscribers`);
             return response.data;
         } catch (error: unknown) {
             console.error('Fetch subscribers error:', error); // Debug log
@@ -117,7 +115,9 @@ const subscriberSlice = createSlice({
             );
         },
         deleteSubscriber(state, action: PayloadAction<string>) {
-            state.subscribers = state.subscribers.filter((subscriber) => subscriber._id !== action.payload);
+            state.subscribers = state.subscribers.filter(
+                (subscriber) => subscriber._id !== action.payload
+            );
         },
         setCurrentSubscriber(state, action: PayloadAction<Subscriber>) {
             state.currentSubscriber = action.payload;
@@ -144,7 +144,7 @@ const subscriberSlice = createSlice({
             state.error = null;
             state.currentSubscriber = null;
             state.successMessage = null;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder

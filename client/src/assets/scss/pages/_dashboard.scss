@@ -74,7 +74,7 @@
             @apply flex flex-col flex-1 h-full;
 
             &-header {
-                @apply flex justify-between items-end h-[10vh];
+                @apply flex justify-between items-end h-[10vh] z-10;
 
                 &-left {
                     @apply flex flex-col h-full px-[2.5vh] pt-[2.5vh];
@@ -101,10 +101,101 @@
                                 svg {
                                     @apply w-[4vh] h-[4vh] stroke-[2px] stroke-[rgb(var(--text)/1)];
                                 }
+
+                                .notification-badge {
+                                    @apply absolute top-0 right-full translate-x-[calc(100%+1vh)] translate-y-1/4 w-fit h-fit;
+
+                                    div {
+                                        @apply flex items-center justify-center border-[.5vh] px-[1vh] w-fit h-[4vh] border-[rgb(var(--background)/1)] rounded-[1.25vh] text-[1.75vh] font-normal leading-[1] bg-red-500 text-white;
+                                    }
+                                }
                             }
 
-                            .notification-content {
-                                @apply absolute;
+                            &>div {
+                                ._SimpleBar {
+                                    @apply shadow-lg absolute w-[60vh] right-0 bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+
+                                    // Scrollbar styling
+                                    .simplebar-scrollbar {
+                                        width: 1.5vh !important;
+                                        @apply bg-transparent;
+
+                                        &::before {
+                                            @apply bg-[rgb(var(--text)/.25)] opacity-100;
+                                            width: 100% !important;
+                                        }
+
+                                        &.simplebar-visible::before {
+                                            @apply opacity-100;
+                                        }
+                                    }
+
+                                    .simplebar-track {
+                                        &.simplebar-vertical {
+                                            width: 1.5vh !important;
+                                            @apply bg-[rgb(var(--hoverGray)/.25)];
+                                            right: 1vh;
+                                        }
+
+                                        &.simplebar-horizontal {
+                                            @apply hidden;
+                                        }
+                                    }
+
+                                    // Suggestions Groups
+                                    &-Group {
+                                        @apply w-full;
+
+                                        // Dropdown header
+                                        .dropdown-header {
+                                            @apply flex items-center justify-between px-[2vh] py-[1.5vh] border-b border-[rgb(var(--hoverGray)/.75)];
+
+                                            span {
+                                                &.title {
+                                                    @apply font-semibold text-[2vh];
+                                                }
+                                            }
+
+                                            button {
+                                                @apply text-[1.7vh] text-[rgb(var(--primary)/1)];
+
+                                                &:hover {
+                                                    @apply underline;
+                                                }
+                                            }
+                                        }
+
+                                        // Empty state
+                                        .empty-notifications {
+                                            @apply px-[2vh] py-[2vh] text-[1.8vh] text-[rgb(var(--text)/.5)];
+                                        }
+
+                                        // Notification items
+                                        .suggestion-item {
+                                            @apply flex flex-col gap-[.5vh] px-[2vh] py-[1.5vh] cursor-pointer transition-all duration-200;
+                                            border-bottom: 1px solid rgb(var(--hoverGray)/.15);
+
+                                            &.unread {
+                                                @apply bg-[rgb(var(--primary-light)/.15)];
+                                            }
+
+                                            // Title
+                                            .item-title {
+                                                @apply font-semibold text-[1.9vh];
+                                            }
+
+                                            // Message
+                                            .item-message {
+                                                @apply text-[1.7vh] text-[rgb(var(--text)/.85)];
+                                            }
+
+                                            // Timestamp
+                                            .item-timestamp {
+                                                @apply text-[1.5vh] text-[rgb(var(--text)/.5)];
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -671,14 +762,14 @@
 
                                                             .__update-date {
                                                                 @apply relative flex text-[1.75vh] w-full h-fit;
-                        
+
                                                                 span {
                                                                     @apply text-nowrap;
 
                                                                     &:first-of-type {
                                                                         @apply mr-[.5vh] text-[rgb(var(--text)/.5)];
                                                                     }
-                        
+
                                                                     &:last-of-type {
                                                                         @apply text-[rgb(var(--text)/.5)] font-semibold;
                                                                     }
@@ -723,8 +814,10 @@
                                     }
 
                                     .__table {
+
                                         thead tr th,
                                         tbody tr td {
+
                                             // Select column
                                             &:nth-child(1) {
                                                 @apply w-fit;

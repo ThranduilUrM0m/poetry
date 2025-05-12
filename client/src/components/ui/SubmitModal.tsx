@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '@/store';
 import Overlay from '@/components/ui/Overlay';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 
 // Define the smooth beautiful configuration like in the Footer component
 const smoothConfig = { mass: 1, tension: 170, friction: 26 };

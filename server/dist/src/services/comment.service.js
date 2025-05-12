@@ -17,302 +17,278 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const comment_model_1 = require("../models/comment.model");
+const vote_model_1 = require("../models/vote.model");
+const dummyData_1 = require("../data/dummyData");
+const article_service_1 = require("./article.service");
+const COMMENTS_FALLBACK = dummyData_1.dummyComments;
 let CommentService = class CommentService {
-    constructor(commentModel) {
+    constructor(commentModel, voteModel, articleService) {
         this.commentModel = commentModel;
+        this.voteModel = voteModel;
+        this.articleService = articleService;
     }
-    async getCommentsByArticle(articleId) {
-        try {
-            const articleObjectId = new mongoose_2.Types.ObjectId(articleId);
-            const comments = await this.commentModel.aggregate([
-                { $match: { article: articleObjectId } },
-                {
-                    $lookup: {
-                        from: 'articles',
-                        localField: 'article',
-                        foreignField: '_id',
-                        as: 'articleLookup',
-                    },
-                },
-                {
-                    $addFields: {
-                        article: {
-                            $cond: [
-                                { $gt: [{ $size: '$articleLookup' }, 0] },
-                                { $arrayElemAt: ['$articleLookup', 0] },
-                                '$article',
-                            ],
-                        },
-                    },
-                },
-                { $project: { articleLookup: 0 } },
-                {
-                    $lookup: {
-                        from: 'comments',
-                        localField: 'Parent',
-                        foreignField: '_id',
-                        as: 'parentLookup',
-                    },
-                },
-                {
-                    $addFields: {
-                        Parent: {
-                            $cond: [
-                                { $gt: [{ $size: '$parentLookup' }, 0] },
-                                { $arrayElemAt: ['$parentLookup', 0] },
-                                '$Parent',
-                            ],
-                        },
-                    },
-                },
-                { $project: { parentLookup: 0 } },
-                { $sort: { createdAt: -1 } },
-            ]);
-            return comments;
-        }
-        catch (error) {
-            console.error('Error fetching comments:', error);
-            throw error;
-        }
+    async findCommentsWithFallback(filter) {
+        const real = await this.commentModel.find(filter).lean().exec();
+        if (real.length)
+            return real;
+        return COMMENTS_FALLBACK.filter((c) => Object.entries(filter).every(([k, v]) => String(c[k]) === String(v)));
     }
-    async commentExists(id) {
-        const idToCheck = typeof id === 'string' ? id : id.toString();
-        if (!mongoose_2.Types.ObjectId.isValid(idToCheck))
-            return false;
-        const exists = await this.commentModel.exists({
-            _id: new mongoose_2.Types.ObjectId(idToCheck),
+    async findCommentWithFallback(id, withVotes = false) {
+        if (!(0, mongoose_2.isObjectIdOrHexString)(id)) {
+            throw new common_1.BadRequestException(`Invalid comment ID "${id}"`);
+        }
+        const query = this.commentModel.findById(id);
+        if (withVotes) {
+            query.populate('_comment_votes');
+        }
+        const doc = await query.lean().exec();
+        if (doc) {
+            return doc;
+        }
+        const fallback = COMMENTS_FALLBACK.find((c) => c._id.equals(id));
+        if (fallback) {
+            return fallback;
+        }
+        throw new common_1.NotFoundException(`Comment "${id}" not found`);
+    }
+    async findOneWithFallback(filter, isId = false) {
+        let doc = null;
+        if (isId) {
+            if (!(0, mongoose_2.isObjectIdOrHexString)(filter)) {
+                throw new common_1.BadRequestException(`Invalid Comment ID "${filter}"`);
+            }
+            doc = await this.commentModel
+                .findById(filter)
+                .lean()
+                .exec();
+        }
+        else {
+            doc = await this.commentModel
+                .findOne(filter)
+                .lean()
+                .exec();
+        }
+        if (doc)
+            return doc;
+        let fallback = dummyData_1.dummyComments.find((c) => {
+            if (isId) {
+                return c._id && c._id.toString() === filter;
+            }
+            return Object.entries(filter).every(([k, val]) => String(c[k] ?? '').toLowerCase() === String(val).toLowerCase());
         });
-        return !!exists;
+        if (fallback) {
+            if (fallback._id && fallback._comment_author) {
+                return {
+                    ...fallback,
+                    _id: fallback._id,
+                    _comment_votes: fallback._comment_votes || [],
+                };
+            }
+        }
+        const criteria = isId ? `ID "${filter}"` : JSON.stringify(filter);
+        throw new common_1.NotFoundException(`No comment found for ${criteria}`);
     }
     async createComment(data) {
         if (data.Parent) {
-            const parentId = data.Parent.toString();
-            const parentExists = await this.commentExists(parentId);
-            if (!parentExists) {
+            if (!(0, mongoose_2.isObjectIdOrHexString)(data.Parent.toString())) {
+                throw new common_1.BadRequestException('Invalid Parent ID');
+            }
+            const exists = await this.commentModel
+                .exists({
+                _id: new mongoose_2.Types.ObjectId(data.Parent),
+            })
+                .exec();
+            if (!exists) {
                 throw new common_1.NotFoundException('Parent comment not found');
             }
         }
-        const newComment = new this.commentModel({
+        const created = new this.commentModel({
             ...data,
-            isFeatured: data.isFeatured || true,
+            isFeatured: data.isFeatured ?? true,
         });
-        return newComment.save();
+        return (await created.save()).toObject();
     }
     async getAllComments() {
-        try {
-            const comments = await this.commentModel.aggregate([
-                {
-                    $lookup: {
-                        from: 'articles',
-                        localField: 'article',
-                        foreignField: '_id',
-                        as: 'articleLookup',
-                    },
-                },
-                {
-                    $addFields: {
-                        article: {
-                            $cond: {
-                                if: { $gt: [{ $size: '$articleLookup' }, 0] },
-                                then: { $arrayElemAt: ['$articleLookup', 0] },
-                                else: '$article',
-                            },
-                        },
-                    },
-                },
-                { $project: { articleLookup: 0 } },
-                {
-                    $lookup: {
-                        from: 'comments',
-                        localField: 'Parent',
-                        foreignField: '_id',
-                        as: 'parentLookup',
-                    },
-                },
-                {
-                    $addFields: {
-                        Parent: {
-                            $cond: {
-                                if: { $gt: [{ $size: '$parentLookup' }, 0] },
-                                then: { $arrayElemAt: ['$parentLookup', 0] },
-                                else: '$Parent',
-                            },
-                        },
-                    },
-                },
-                { $project: { parentLookup: 0 } },
-                { $sort: { createdAt: -1 } },
-            ]);
-            const validComments = comments.filter((comment) => comment.article);
-            if (validComments.length === 0) {
-                console.warn('No valid comments found in database');
-                return [];
-            }
-            return validComments;
-        }
-        catch (error) {
-            console.error('Error in getAllComments service:', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new Error(`Failed to fetch comments: ${errorMessage}`);
-        }
+        const rawComments = await this.findCommentsWithFallback({});
+        return Promise.all(rawComments.map((c) => this.populateOne(c)));
     }
     async getCommentById(id) {
-        const [comment] = await this.commentModel.aggregate([
-            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
-            {
-                $lookup: {
-                    from: 'articles',
-                    localField: 'article',
-                    foreignField: '_id',
-                    as: 'articleLookup',
-                },
-            },
-            {
-                $addFields: {
-                    article: {
-                        $cond: [
-                            { $gt: [{ $size: '$articleLookup' }, 0] },
-                            { $arrayElemAt: ['$articleLookup', 0] },
-                            '$article',
-                        ],
-                    },
-                },
-            },
-            { $project: { articleLookup: 0 } },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: 'Parent',
-                    foreignField: '_id',
-                    as: 'parentLookup',
-                },
-            },
-            {
-                $addFields: {
-                    Parent: {
-                        $cond: [
-                            { $gt: [{ $size: '$parentLookup' }, 0] },
-                            { $arrayElemAt: ['$parentLookup', 0] },
-                            '$Parent',
-                        ],
-                    },
-                },
-            },
-            { $project: { parentLookup: 0 } },
-        ]);
-        if (!comment)
-            throw new common_1.NotFoundException('Comment not found');
-        return comment;
+        const comment = await this.findCommentWithFallback(id);
+        return this.populateOne(comment);
+    }
+    async getCommentsByArticle(articleId) {
+        if (!(0, mongoose_2.isObjectIdOrHexString)(articleId)) {
+            throw new common_1.BadRequestException('Invalid article ID');
+        }
+        const rawComments = await this.findCommentsWithFallback({
+            article: new mongoose_2.Types.ObjectId(articleId),
+        });
+        return Promise.all(rawComments.map((c) => this.populateOne(c)));
     }
     async updateComment(id, data) {
         if (data.Parent) {
-            throw new common_1.BadRequestException('Cannot change comment parent');
+            throw new common_1.BadRequestException('Cannot change Parent of a comment');
         }
-        const updatedComment = await this.commentModel.findByIdAndUpdate(id, data, {
+        if (!(0, mongoose_2.isObjectIdOrHexString)(id)) {
+            throw new common_1.BadRequestException(`Invalid comment ID "${id}"`);
+        }
+        const updated = await this.commentModel
+            .findByIdAndUpdate(id, data, {
             new: true,
             runValidators: true,
-        });
-        const [comment] = await this.commentModel.aggregate([
-            { $match: { _id: updatedComment?._id } },
-            {
-                $lookup: {
-                    from: 'articles',
-                    localField: 'article',
-                    foreignField: '_id',
-                    as: 'articleLookup',
-                },
-            },
-            {
-                $addFields: {
-                    article: {
-                        $cond: [
-                            { $gt: [{ $size: '$articleLookup' }, 0] },
-                            { $arrayElemAt: ['$articleLookup', 0] },
-                            '$article',
-                        ],
-                    },
-                },
-            },
-            { $project: { articleLookup: 0 } },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: 'Parent',
-                    foreignField: '_id',
-                    as: 'parentLookup',
-                },
-            },
-            {
-                $addFields: {
-                    Parent: {
-                        $cond: [
-                            { $gt: [{ $size: '$parentLookup' }, 0] },
-                            { $arrayElemAt: ['$parentLookup', 0] },
-                            '$Parent',
-                        ],
-                    },
-                },
-            },
-            { $project: { parentLookup: 0 } },
-        ]);
-        if (!comment)
-            throw new common_1.NotFoundException('Comment not found');
-        return comment;
+            lean: true,
+        })
+            .exec();
+        if (!updated) {
+            throw new common_1.NotFoundException(`Comment "${id}" not found`);
+        }
+        return updated;
     }
     async deleteComment(id) {
-        const [commentToDelete] = await this.commentModel.aggregate([
-            { $match: { _id: new mongoose_2.Types.ObjectId(id) } },
-            {
-                $lookup: {
-                    from: 'articles',
-                    localField: 'article',
-                    foreignField: '_id',
-                    as: 'articleLookup',
-                },
-            },
-            {
-                $addFields: {
-                    article: {
-                        $cond: [
-                            { $gt: [{ $size: '$articleLookup' }, 0] },
-                            { $arrayElemAt: ['$articleLookup', 0] },
-                            '$article',
-                        ],
-                    },
-                },
-            },
-            { $project: { articleLookup: 0 } },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: 'Parent',
-                    foreignField: '_id',
-                    as: 'parentLookup',
-                },
-            },
-            {
-                $addFields: {
-                    Parent: {
-                        $cond: [
-                            { $gt: [{ $size: '$parentLookup' }, 0] },
-                            { $arrayElemAt: ['$parentLookup', 0] },
-                            '$Parent',
-                        ],
-                    },
-                },
-            },
-            { $project: { parentLookup: 0 } },
-        ]);
-        await this.commentModel.findByIdAndDelete(id);
-        if (!commentToDelete)
-            throw new common_1.NotFoundException('Comment not found');
-        return { message: 'Comment deleted successfully' };
+        if (!(0, mongoose_2.isObjectIdOrHexString)(id)) {
+            throw new common_1.BadRequestException(`Invalid comment ID "${id}"`);
+        }
+        const res = await this.commentModel.findByIdAndDelete(id).exec();
+        if (!res) {
+            throw new common_1.NotFoundException(`Comment "${id}" not found`);
+        }
+    }
+    async populateArrayField(ids, model, dummyData) {
+        const results = [];
+        for (const id of ids) {
+            try {
+                const doc = await model.findById(id).lean().exec();
+                if (doc)
+                    results.push(doc);
+            }
+            catch {
+                const dummy = dummyData.find((d) => d._id.equals(id));
+                if (dummy)
+                    results.push(dummy);
+            }
+        }
+        return results;
+    }
+    async populateOne(comment) {
+        const { _comment_votes, Parent, article: articleRef, _id, ...rest } = comment;
+        let populatedParent = null;
+        if (Parent) {
+            try {
+                populatedParent = await this.findCommentWithFallback(Parent.toString(), true);
+            }
+            catch {
+                populatedParent = null;
+            }
+        }
+        let populatedArticle = null;
+        if (articleRef) {
+            try {
+                populatedArticle = await this.articleService.getById(articleRef.toString());
+            }
+            catch {
+                populatedArticle = null;
+            }
+        }
+        let populatedVotes = await this.voteModel
+            .find({ target: _id, targetType: 'Comment' })
+            .lean()
+            .exec();
+        if (!Array.isArray(populatedVotes) || populatedVotes.length === 0) {
+            populatedVotes = dummyData_1.dummyVotes
+                .filter((v) => v.target?.toString() === _id.toString() && v.targetType === 'Comment')
+                .map((v) => ({
+                ...v,
+                _id: v._id,
+                createdAt: v.createdAt ?? new Date(),
+                updatedAt: v.updatedAt ?? new Date(),
+            }));
+        }
+        return {
+            ...rest,
+            _id,
+            Parent: populatedParent,
+            article: populatedArticle,
+            _comment_votes: populatedVotes,
+        };
+    }
+    async populateMany(raw) {
+        return Promise.all(raw.map((c) => this.populateOne(c)));
+    }
+    async toggleVote(commentId, fingerprint, direction) {
+        if (!(0, mongoose_2.isObjectIdOrHexString)(commentId)) {
+            throw new common_1.BadRequestException(`Invalid comment ID "${commentId}"`);
+        }
+        let comment;
+        let isDummy = false;
+        let changed = false;
+        try {
+            comment = await this.findOneWithFallback(commentId, true);
+            isDummy = !(await this.commentModel.exists({ _id: commentId }));
+        }
+        catch (e) {
+            throw new common_1.NotFoundException(`No comment found for ID "${commentId}"`);
+        }
+        let existingVote = await this.voteModel
+            .findOne({
+            target: new mongoose_2.Types.ObjectId(commentId),
+            voter: fingerprint,
+            targetType: 'Comment',
+        })
+            .lean()
+            .exec();
+        let updateOperation = {};
+        if (existingVote) {
+            await this.voteModel.findByIdAndDelete(existingVote._id).exec();
+            updateOperation = { $pull: { _comment_votes: existingVote._id } };
+            changed = true;
+            if (existingVote.direction !== direction) {
+                const newVote = await this.voteModel.create({
+                    voter: fingerprint,
+                    targetType: 'Comment',
+                    target: new mongoose_2.Types.ObjectId(commentId),
+                    direction,
+                });
+                updateOperation = { $push: { _comment_votes: newVote._id } };
+                changed = true;
+            }
+        }
+        else {
+            const newVote = await this.voteModel.create({
+                voter: fingerprint,
+                targetType: 'Comment',
+                target: new mongoose_2.Types.ObjectId(commentId),
+                direction,
+            });
+            updateOperation = { $push: { _comment_votes: newVote._id } };
+            changed = true;
+        }
+        if (!isDummy) {
+            const updated = await this.commentModel
+                .findByIdAndUpdate(commentId, updateOperation, {
+                new: true,
+                runValidators: true,
+                lean: true,
+            })
+                .exec();
+            if (!updated) {
+                const fallback = await this.findOneWithFallback(commentId, true);
+                return { comment: await this.populateOne(fallback), changed };
+            }
+            return { comment: await this.populateOne(updated), changed };
+        }
+        else {
+            return { comment: await this.populateOne(comment), changed };
+        }
     }
 };
 exports.CommentService = CommentService;
 exports.CommentService = CommentService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(comment_model_1.Comment.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(1, (0, mongoose_1.InjectModel)(vote_model_1.Vote.name)),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => article_service_1.ArticleService))),
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        article_service_1.ArticleService])
 ], CommentService);
 //# sourceMappingURL=comment.service.js.map

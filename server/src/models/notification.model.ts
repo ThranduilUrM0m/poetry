@@ -1,41 +1,25 @@
+// notification.model.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 
 export type NotificationDocument = Notification & Document;
-
-export enum NotificationType {
-    ARTICLE_CREATED = 'ARTICLE_CREATED',
-    ARTICLE_UPDATED = 'ARTICLE_UPDATED',
-    ARTICLE_DELETED = 'ARTICLE_DELETED',
-    COMMENT_CREATED = 'COMMENT_CREATED',
-    COMMENT_UPDATED = 'COMMENT_UPDATED',
-    COMMENT_DELETED = 'COMMENT_DELETED',
-    VOTE_ADDED = 'VOTE_ADDED',
-    VOTE_REMOVED = 'VOTE_REMOVED',
-    VIEW_ADDED = 'VIEW_ADDED',
-    SUBSCRIBER_ADDED = 'SUBSCRIBER_ADDED',
-    USER_REGISTERED = 'USER_REGISTERED',
-}
 
 @Schema({ timestamps: true })
 export class Notification {
     @Prop({ required: true })
-    userId: Types.ObjectId;
-
-    @Prop({ required: true, enum: NotificationType })
-    type: NotificationType;
+    category: string; // e.g. "comment", "article", "auth"
 
     @Prop({ required: true })
-    title: string;
+    action: string; // e.g. "created", "updated", "deleted", "logged_in"
 
     @Prop({ required: true })
-    message: string;
+    title: string; // short summary
 
     @Prop({ required: true })
-    link: string;
+    message: string; // human-readable detail
 
-    @Prop({ type: Object })
-    metadata: Record<string, any>;
+    @Prop({ type: mongoose.Schema.Types.Mixed, default: {} })
+    metadata: Record<string, any>; // arbitrary key/values
 
     @Prop({ default: false })
     isRead: boolean;

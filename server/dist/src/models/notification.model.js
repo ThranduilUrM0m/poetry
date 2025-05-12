@@ -9,34 +9,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotificationSchema = exports.Notification = exports.NotificationType = void 0;
+exports.NotificationSchema = exports.Notification = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-var NotificationType;
-(function (NotificationType) {
-    NotificationType["ARTICLE_CREATED"] = "ARTICLE_CREATED";
-    NotificationType["ARTICLE_UPDATED"] = "ARTICLE_UPDATED";
-    NotificationType["ARTICLE_DELETED"] = "ARTICLE_DELETED";
-    NotificationType["COMMENT_CREATED"] = "COMMENT_CREATED";
-    NotificationType["COMMENT_UPDATED"] = "COMMENT_UPDATED";
-    NotificationType["COMMENT_DELETED"] = "COMMENT_DELETED";
-    NotificationType["VOTE_ADDED"] = "VOTE_ADDED";
-    NotificationType["VOTE_REMOVED"] = "VOTE_REMOVED";
-    NotificationType["VIEW_ADDED"] = "VIEW_ADDED";
-    NotificationType["SUBSCRIBER_ADDED"] = "SUBSCRIBER_ADDED";
-    NotificationType["USER_REGISTERED"] = "USER_REGISTERED";
-})(NotificationType || (exports.NotificationType = NotificationType = {}));
 let Notification = class Notification {
 };
 exports.Notification = Notification;
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", mongoose_2.Types.ObjectId)
-], Notification.prototype, "userId", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, enum: NotificationType }),
     __metadata("design:type", String)
-], Notification.prototype, "type", void 0);
+], Notification.prototype, "category", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Notification.prototype, "action", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
@@ -46,11 +32,7 @@ __decorate([
     __metadata("design:type", String)
 ], Notification.prototype, "message", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], Notification.prototype, "link", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.default.Schema.Types.Mixed, default: {} }),
     __metadata("design:type", Object)
 ], Notification.prototype, "metadata", void 0);
 __decorate([

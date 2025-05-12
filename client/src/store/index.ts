@@ -1,4 +1,6 @@
 ﻿import { configureStore } from '@reduxjs/toolkit';
+import socketMiddleware from '../middleware';
+
 import authReducer from '@/slices/authSlice';
 import contactReducer from '@/slices/contactSlice';
 import articleReducer from '@/slices/articleSlice';
@@ -27,6 +29,8 @@ export const store = configureStore({
         tags: tagReducer,
         fonts: fontsReducer
     },
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(socketMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

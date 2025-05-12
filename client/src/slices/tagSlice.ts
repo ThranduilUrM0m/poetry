@@ -3,8 +3,6 @@ import { RootState } from '@/store';
 import axios from 'axios';
 import { commonDevTags } from '@/utils/tagSuggestions';
 
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
-
 interface TagState {
     suggestions: string[];
     isLoading: boolean;
@@ -23,7 +21,7 @@ export const fetchTagSuggestions = createAsyncThunk<
     { rejectValue: string[] }
 >('tags/fetchSuggestions', async ({ input, content }, { rejectWithValue }) => {
     try {
-        const { data } = await axios.post(`${API_BASE_URL}/api/analyze-comment/suggest-tags`, {
+        const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/analyze-comment/suggest-tags`, {
             input,
             content,
         });

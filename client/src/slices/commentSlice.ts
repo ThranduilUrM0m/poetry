@@ -1,9 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
 import { Comment } from '@/types/article';
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000'; // Base URL for the backend
 
 interface CommentState {
     comments: Comment[];
@@ -58,43 +56,31 @@ export const analyzeComment = createAsyncThunk(
                 throw new Error('Comment not found');
             }
 
-            const response = await axios.post(`${API_BASE_URL}/api/analyze-comment`, {
-                text: comment._comment_body,
-            });
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/analyze-comment`,
+                {
+                    text: comment._comment_body,
+                }
+            );
 
             const analysis = response.data;
             const isFlagged = analysis.toxic || analysis.spam || analysis.sentiment === 'negative';
 
             // Determine approval status based on analysis
-            let updateData = {};
-            if (!isFlagged) {
-                // Case 1: Not flagged
-                updateData = {
-                    _comment_isOK: true,
-                    isFeatured: true,
-                };
-            } else if (analysis.severity === 'low') {
-                // Case 2: Flagged with low severity
-                updateData = {
-                    _comment_isOK: true,
-                    isFeatured: false,
-                };
-            } else {
-                // Case 3: Flagged with medium/high severity
-                updateData = {
-                    _comment_isOK: false,
-                    isFeatured: false,
-                };
-            }
+            const updateData: Partial<Comment> = !isFlagged
+                ? { _comment_isOK: true, isFeatured: true }
+                : analysis.severity === 'low'
+                ? { _comment_isOK: true, isFeatured: false }
+                : { _comment_isOK: false, isFeatured: false };
 
-            // Update the comment with new status
-            if (comment._id) {
-                await dispatch(
-                    updateComment({
-                        id: comment._id,
-                        data: updateData,
-                    })
-                ).unwrap();
+            // Extract typed keys from updateData
+            const keys = Object.keys(updateData) as Array<keyof typeof updateData>;
+
+            // Check if any value actually differs
+            const needsUpdate = keys.some((key) => comment[key] !== updateData[key]);
+
+            if (needsUpdate) {
+                await dispatch(updateComment({ id: commentId, data: updateData })).unwrap();
             }
 
             return {
@@ -141,7 +127,10 @@ export const createComment = createAsyncThunk(
                 isFeatured: true, // Default to true
             };
 
-            const response = await axios.post(`${API_BASE_URL}/api/comments`, backendPayload);
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments`,
+                backendPayload
+            );
             const newComment = response.data;
 
             // Trigger analysis immediately after creation
@@ -163,7 +152,10 @@ export const updateComment = createAsyncThunk(
                 throw new Error('Invalid comment ID');
             }
 
-            const response = await axios.patch(`${API_BASE_URL}/api/comments/${id}`, data);
+            const response = await axios.patch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments/${id}`,
+                data
+            );
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
@@ -182,10 +174,13 @@ export const voteComment = createAsyncThunk(
         { rejectWithValue }
     ) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/comments/${commentId}/vote`, {
-                direction,
-                fingerprint,
-            });
+            const response = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments/${commentId}/vote`,
+                {
+                    direction,
+                    fingerprint,
+                }
+            );
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
@@ -197,7 +192,9 @@ export const fetchComments = createAsyncThunk(
     'comment/fetchComments',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Comment[]>(`${API_BASE_URL}/api/comments`);
+            const response = await axios.get<Comment[]>(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments`
+            );
             if (!response.data) {
                 throw new Error('No data received from server');
             }
@@ -217,7 +214,7 @@ export const fetchCommentsByArticle = createAsyncThunk(
     async (articleId: string, { rejectWithValue }) => {
         try {
             const response = await axios.get<Comment[]>(
-                `${API_BASE_URL}/api/comments/article/${articleId}`
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments/article/${articleId}`
             );
             // If response is successful but empty, return empty array
             return response.data || [];
@@ -237,7 +234,9 @@ export const fetchUpdatedComment = createAsyncThunk(
     'comment/fetchUpdatedArticle',
     async (commentId: string, { rejectWithValue }) => {
         try {
-            const response = await axios.get<Comment>(`${API_BASE_URL}/api/comments/${commentId}`);
+            const response = await axios.get<Comment>(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/comments/${commentId}`
+            );
             return response.data;
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
@@ -278,7 +277,7 @@ export const deleteComment = createAsyncThunk(
                 throw new Error('Either admin rights or fingerprint required');
             }
 
-            const response = await fetch(`${API_BASE_URL}/api/comments/${id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/comments/${id}`, {
                 method: 'DELETE',
                 headers,
             });
@@ -453,10 +452,14 @@ export const {
 export default commentSlice.reducer;
 
 // Selectors
-export const selectApprovedComments = (state: RootState) =>
-    state.comment.comments.filter((c) => c._comment_isOK);
-export const selectFeaturedComments = (state: RootState) =>
-    state.comment.comments.filter((c) => c.isFeatured && c._comment_isOK);
+const selectAllComments = (state: RootState) => state.comment.comments;
+
+export const selectApprovedComments = createSelector([selectAllComments], (comments) =>
+    comments.filter((c) => c._comment_isOK)
+);
+export const selectFeaturedComments = createSelector([selectAllComments], (comments) =>
+    comments.filter((c) => c.isFeatured && c._comment_isOK)
+);
 export const selectCommentAnalysis = (commentId: string) => (state: RootState) =>
     state.comment.commentAnalyses[commentId];
 export const selectFlaggedComments = (state: RootState) => state.comment.flaggedComments;

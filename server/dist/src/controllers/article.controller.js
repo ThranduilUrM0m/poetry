@@ -14,254 +14,264 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticleController = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const article_model_1 = require("../models/article.model");
-const user_model_1 = require("../models/user.model");
-const comment_model_1 = require("../models/comment.model");
-const view_model_1 = require("../models/view.model");
-const vote_model_1 = require("../models/vote.model");
+const mongoose_1 = require("mongoose");
 const article_service_1 = require("../services/article.service");
-const dummyData_1 = require("../data/dummyData");
+const notification_service_1 = require("../services/notification.service");
+const notification_gateway_1 = require("../gateways/notification.gateway");
 let ArticleController = class ArticleController {
-    constructor(articleService, articleModel, userModel, commentModel, viewModel, voteModel) {
+    constructor(articleService, notificationService, notificationGateway) {
         this.articleService = articleService;
-        this.articleModel = articleModel;
-        this.userModel = userModel;
-        this.commentModel = commentModel;
-        this.viewModel = viewModel;
-        this.voteModel = voteModel;
+        this.notificationService = notificationService;
+        this.notificationGateway = notificationGateway;
     }
-    async populateField(id, model, dummyData) {
-        const doc = await model.findById(id).lean().exec();
-        if (doc) {
-            return doc;
-        }
-        const fallback = dummyData.find((item) => item._id.toString() === id.toString());
-        if (fallback) {
-            return fallback;
-        }
-        throw new common_1.NotFoundException(`Unable to populate field for id ${id.toString()}`);
+    async create(dto) {
+        const article = await this.articleService.createArticle(dto);
+        await this.notificationService.create({
+            category: 'article',
+            action: 'created',
+            title: 'Article Created',
+            message: `A new article was created: "${article.title}"`,
+            metadata: {
+                articleId: article._id,
+                title: article.title,
+                category: article.category,
+                isPrivate: article.isPrivate,
+                isFeatured: article.isFeatured,
+                createdAt: article.createdAt,
+                updatedAt: article.updatedAt,
+            },
+        });
+        this.notificationGateway.server.emit('article:created', {
+            type: 'created',
+            article,
+        });
+        return article;
     }
-    async populateArrayField(ids, model, dummyData) {
-        const results = [];
-        for (const id of ids) {
-            try {
-                const item = await this.populateField(id, model, dummyData);
-                results.push(item);
-            }
-            catch (error) {
-                console.log(error);
-            }
-        }
-        return results;
+    async findAll() {
+        return this.articleService.getAllArticles();
     }
-    async populateArticle(article) {
-        const populatedArticle = {
-            ...article,
-            author: {},
-            comments: [],
-            votes: [],
-            views: [],
-        };
-        if (article.author instanceof mongoose_2.Types.ObjectId) {
-            populatedArticle.author = await this.populateField(article.author, this.userModel, dummyData_1.dummyUsers);
-        }
-        else {
-            populatedArticle.author = article.author;
-        }
-        if (article.comments && Array.isArray(article.comments)) {
-            populatedArticle.comments = await this.populateArrayField(article.comments, this.commentModel, dummyData_1.dummyComments);
-        }
-        if (article.votes && Array.isArray(article.votes)) {
-            populatedArticle.votes = await this.populateArrayField(article.votes, this.voteModel, dummyData_1.dummyVotes);
-        }
-        if (article.views && Array.isArray(article.views)) {
-            populatedArticle.views = await this.populateArrayField(article.views, this.viewModel, dummyData_1.dummyViews);
-        }
-        return populatedArticle;
+    async findBySlug(category, slug) {
+        return this.articleService.getBySlug(category, slug);
     }
-    async createArticle(data) {
-        return this.articleService.createArticle(data);
+    async findByCategory(category) {
+        const list = await this.articleService.getByCategory(category);
+        if (!list.length) {
+            throw new common_1.NotFoundException(`No articles in "${category}"`);
+        }
+        return list;
     }
-    async getAllArticles() {
-        const articlesFromDb = await this.articleService.getAllArticles();
-        if (articlesFromDb.length > 0) {
-            return Promise.all(articlesFromDb.map((article) => this.populateArticle(article)));
-        }
-        else {
-            return Promise.all(dummyData_1.dummyArticles.map(async (article) => this.populateArticle(article)));
-        }
-    }
-    async getArticlesByCategory(category) {
-        const articlesFromDb = await this.articleService.getArticleByCategory(category);
-        if (articlesFromDb.length > 0) {
-            return Promise.all(articlesFromDb.map((article) => this.populateArticle(article)));
-        }
-        const filteredDummy = dummyData_1.dummyArticles.filter((article) => article.category?.toLowerCase() === category.toLowerCase());
-        if (filteredDummy.length === 0) {
-            throw new common_1.NotFoundException('No articles found for this category');
-        }
-        return Promise.all(filteredDummy.map(async (article) => this.populateArticle(article)));
-    }
-    async getArticleBySlug(category, slug) {
-        const articleFromDb = await this.articleService.findBySlug(category, slug);
-        if (articleFromDb) {
-            return this.populateArticle(articleFromDb);
-        }
-        const dummyArticle = dummyData_1.dummyArticles.find((a) => a.category?.toLowerCase() === category.toLowerCase() && a.slug === slug);
-        if (!dummyArticle) {
-            throw new common_1.NotFoundException('Article not found');
-        }
-        return this.populateArticle(dummyArticle);
-    }
-    async updateArticle(identifier, data) {
-        if (mongoose_2.Types.ObjectId.isValid(identifier)) {
-            try {
-                const updated = await this.articleService.updateArticleById(identifier, data);
-                return this.populateArticle(updated);
-            }
-            catch (error) {
-                throw new common_1.NotFoundException('Article not found by ID');
-            }
-        }
-        else {
-            const updated = await this.articleService.updateArticleBySlug(identifier, data);
-            return this.populateArticle(updated);
-        }
-    }
-    async updateArticles(data) {
-        const updatedArticles = await this.articleService.updateArticles(data);
-        return Promise.all(updatedArticles.map((article) => this.populateArticle(article)));
-    }
-    async deleteArticle(identifier) {
-        if (mongoose_2.Types.ObjectId.isValid(identifier)) {
-            try {
-                await this.articleService.deleteArticleById(identifier);
-                return { message: `Deleted article ${identifier}` };
-            }
-            catch (err) {
-                if (err instanceof common_1.NotFoundException) {
-                    throw err;
-                }
-                throw new common_1.BadRequestException('Invalid article ID');
-            }
-        }
-        else {
-            try {
-                await this.articleService.deleteArticleBySlug(identifier);
-                return { message: `Deleted article "${identifier}"` };
-            }
-            catch (err) {
-                if (err instanceof common_1.NotFoundException) {
-                    throw err;
-                }
-                throw new common_1.BadRequestException('Invalid slug');
-            }
-        }
-    }
-    async trackView(id, body) {
+    async updateOne(idOrSlug, dto) {
+        const isId = (0, mongoose_1.isObjectIdOrHexString)(idOrSlug);
+        let prevArticle;
         try {
-            const exists = await this.articleModel
-                .exists({ _id: id, 'views._viewer': body.fingerprint })
-                .lean()
-                .exec();
-            if (!exists) {
-                const view = await this.viewModel.create({
-                    _viewer: body.fingerprint,
-                    article: new mongoose_2.Types.ObjectId(id),
-                });
-                const updatedArticle = await this.articleModel
-                    .findByIdAndUpdate(new mongoose_2.Types.ObjectId(id), { $push: { views: view._id } }, { new: true, lean: true })
-                    .exec();
-                if (!updatedArticle) {
-                    const dummyArticle = dummyData_1.dummyArticles.find((a) => a._id?.toString() === id);
-                    if (dummyArticle) {
-                        return this.populateArticle(dummyArticle);
-                    }
-                    throw new common_1.NotFoundException('Article not found');
-                }
-                return this.populateArticle(updatedArticle);
-            }
-            const article = await this.articleModel.findById(id).lean().exec();
-            if (!article) {
-                const dummyArticle = dummyData_1.dummyArticles.find((a) => a._id?.toString() === id);
-                if (dummyArticle) {
-                    return this.populateArticle(dummyArticle);
-                }
-                throw new common_1.NotFoundException('Article not found');
-            }
-            return this.populateArticle(article);
+            prevArticle = isId
+                ? await this.articleService.getById(idOrSlug)
+                : await this.articleService.getBySlug(dto.category || '', idOrSlug);
         }
-        catch (error) {
-            console.error(error);
+        catch (err) {
+            throw new common_1.NotFoundException(`Article "${idOrSlug}" not found for update`);
+        }
+        let article;
+        try {
+            article = isId
+                ? await this.articleService.updateById(idOrSlug, dto)
+                : await this.articleService.updateBySlug(idOrSlug, dto);
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException)
+                throw err;
+            throw new common_1.BadRequestException(`Failed to update "${idOrSlug}"`);
+        }
+        const changedFields = {};
+        for (const key of Object.keys(dto)) {
+            if (prevArticle[key] !== article[key]) {
+                changedFields[key] = {
+                    old: prevArticle[key],
+                    new: article[key],
+                };
+            }
+        }
+        const changedKeys = Object.keys(changedFields);
+        const message = changedKeys.length > 0
+            ? `Article "${article.title}" updated: ${changedKeys
+                .map((k) => `${k}: "${changedFields[k].old}" → "${changedFields[k].new}"`)
+                .join(', ')}`
+            : `Article "${article.title}" updated (no visible changes)`;
+        await this.notificationService.create({
+            category: 'article',
+            action: 'updated',
+            title: 'Article Updated',
+            message,
+            metadata: {
+                articleId: article._id,
+                title: article.title,
+                category: article.category,
+                isPrivate: article.isPrivate,
+                isFeatured: article.isFeatured,
+                createdAt: article.createdAt,
+                updatedAt: article.updatedAt,
+                changed: changedFields,
+            },
+        });
+        this.notificationGateway.server.emit('article:updated', {
+            type: 'updated',
+            article,
+            changed: changedFields,
+        });
+        return article;
+    }
+    async updateMany(dtos) {
+        const prevArticles = await this.articleService.getAllArticles();
+        const prevMap = new Map(prevArticles.map((a) => [a._id.toString(), a]));
+        const updatedArticles = await this.articleService.bulkUpdate(dtos);
+        for (const article of updatedArticles) {
+            const prev = prevMap.get(article._id.toString());
+            if (!prev)
+                continue;
+            const changedFields = {};
+            for (const key of Object.keys(article)) {
+                if (prev[key] !== article[key]) {
+                    changedFields[key] = {
+                        old: prev[key],
+                        new: article[key],
+                    };
+                }
+            }
+            const changedKeys = Object.keys(changedFields);
+            const message = changedKeys.length > 0
+                ? `Article "${article.title}" updated: ${changedKeys
+                    .map((k) => `${k}: "${changedFields[k].old}" → "${changedFields[k].new}"`)
+                    .join(', ')}`
+                : `Article "${article.title}" updated (no visible changes)`;
+            await this.notificationService.create({
+                category: 'article',
+                action: 'updated',
+                title: 'Article Updated',
+                message,
+                metadata: {
+                    articleId: article._id,
+                    title: article.title,
+                    category: article.category,
+                    isPrivate: article.isPrivate,
+                    isFeatured: article.isFeatured,
+                    createdAt: article.createdAt,
+                    updatedAt: article.updatedAt,
+                    changed: changedFields,
+                },
+            });
+            this.notificationGateway.server.emit('article:updated', {
+                type: 'updated',
+                article,
+                changed: changedFields,
+            });
+        }
+        return updatedArticles;
+    }
+    async delete(idOrSlug) {
+        const isId = (0, mongoose_1.isObjectIdOrHexString)(idOrSlug);
+        let deletedArticle = null;
+        try {
+            deletedArticle = isId
+                ? await this.articleService.getById(idOrSlug)
+                : await this.articleService.getBySlug('', idOrSlug);
+            if (isId) {
+                await this.articleService.deleteById(idOrSlug);
+            }
+            else {
+                await this.articleService.deleteBySlug(idOrSlug);
+            }
+        }
+        catch (err) {
+            if (err instanceof common_1.NotFoundException)
+                throw err;
+            throw new common_1.BadRequestException(`Failed to delete "${idOrSlug}"`);
+        }
+        if (deletedArticle) {
+            await this.notificationService.create({
+                category: 'article',
+                action: 'deleted',
+                title: 'Article Deleted',
+                message: `Article deleted: "${deletedArticle.title}"`,
+                metadata: {
+                    articleId: deletedArticle._id,
+                    title: deletedArticle.title,
+                    category: deletedArticle.category,
+                    isPrivate: deletedArticle.isPrivate,
+                    isFeatured: deletedArticle.isFeatured,
+                    createdAt: deletedArticle.createdAt,
+                    updatedAt: deletedArticle.updatedAt,
+                },
+            });
+            this.notificationGateway.server.emit('article:deleted', {
+                type: 'deleted',
+                deletedArticle,
+            });
+        }
+        return { message: `Deleted ${isId ? 'ID' : 'slug'} ${idOrSlug}` };
+    }
+    async trackView(id, fp) {
+        try {
+            const { article, changed } = await this.articleService.trackView(id, fp);
+            if (changed) {
+                await this.notificationService.create({
+                    category: 'article',
+                    action: 'viewed',
+                    title: 'Article Viewed',
+                    message: `Article "${article.title}" was viewed.`,
+                    metadata: {
+                        articleId: article._id,
+                        title: article.title,
+                        category: article.category,
+                        isPrivate: article.isPrivate,
+                        isFeatured: article.isFeatured,
+                        createdAt: article.createdAt,
+                        updatedAt: article.updatedAt,
+                        fingerprint: fp,
+                    },
+                });
+                this.notificationGateway.server.emit('article:viewed', {
+                    type: 'viewed',
+                    article,
+                    fingerprint: fp,
+                });
+            }
+            return article;
+        }
+        catch {
             throw new common_1.HttpException('Failed to track view', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async vote(id, body) {
-        return this.toggleVote(id, body.fingerprint, body.direction);
-    }
-    async toggleVote(id, fingerprint, direction) {
+    async toggleVote(id, body) {
         try {
-            const article = await this.articleModel.findById(id).lean().exec();
-            if (!article) {
-                const dummyArticle = dummyData_1.dummyArticles.find((a) => a._id?.toString() === id);
-                if (dummyArticle) {
-                    const existingDummyVote = dummyData_1.dummyVotes.find((vote) => vote.target?.toString() === id && vote.voter === fingerprint);
-                    if (existingDummyVote) {
-                        console.log('Vote exists in dummy data, no changes will be made.');
-                        return this.populateArticle(dummyArticle);
-                    }
-                    await this.voteModel.create({
-                        voter: fingerprint,
-                        targetType: 'Article',
-                        target: new mongoose_2.Types.ObjectId(id),
-                        direction,
-                    });
-                    return this.populateArticle(dummyArticle);
-                }
-                throw new common_1.NotFoundException('Article not found');
-            }
-            const existingVote = await this.voteModel
-                .findOne({ target: new mongoose_2.Types.ObjectId(id), voter: fingerprint })
-                .exec();
-            let update;
-            if (existingVote) {
-                if (existingVote.direction === direction) {
-                    await this.voteModel.findByIdAndDelete(existingVote._id).exec();
-                    update = { $pull: { votes: existingVote._id } };
-                }
-                else {
-                    await this.voteModel.findByIdAndDelete(existingVote._id).exec();
-                    update = { $pull: { votes: existingVote._id } };
-                    const newVote = await this.voteModel.create({
-                        voter: fingerprint,
-                        targetType: 'Article',
-                        target: new mongoose_2.Types.ObjectId(id),
-                        direction,
-                    });
-                    update = { $push: { votes: newVote._id } };
-                }
-            }
-            else {
-                const newVote = await this.voteModel.create({
-                    voter: fingerprint,
-                    targetType: 'Article',
-                    target: new mongoose_2.Types.ObjectId(id),
-                    direction,
+            const { article, changed } = await this.articleService.toggleVote(id, body.fingerprint, body.direction);
+            if (changed) {
+                await this.notificationService.create({
+                    category: 'article',
+                    action: 'voted',
+                    title: 'Article Voted',
+                    message: `Article "${article.title}" received a "${body.direction}" vote.`,
+                    metadata: {
+                        articleId: article._id,
+                        title: article.title,
+                        category: article.category,
+                        isPrivate: article.isPrivate,
+                        isFeatured: article.isFeatured,
+                        createdAt: article.createdAt,
+                        updatedAt: article.updatedAt,
+                        fingerprint: body.fingerprint,
+                        direction: body.direction,
+                    },
                 });
-                update = { $push: { votes: newVote._id } };
+                this.notificationGateway.server.emit('article:voted', {
+                    type: 'voted',
+                    article,
+                    direction: body.direction,
+                    fingerprint: body.fingerprint,
+                });
             }
-            const updatedArticle = await this.articleModel
-                .findByIdAndUpdate(new mongoose_2.Types.ObjectId(id), update, { new: true, lean: true })
-                .exec();
-            if (!updatedArticle) {
-                throw new common_1.NotFoundException('Article not found after update');
-            }
-            return this.populateArticle(updatedArticle);
+            return article;
         }
-        catch (error) {
-            console.error(error);
+        catch {
             throw new common_1.HttpException('Failed to process vote', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -273,28 +283,28 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "createArticle", null);
+], ArticleController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "getAllArticles", null);
+], ArticleController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('bySlug/:category/:slug'),
+    __param(0, (0, common_1.Param)('category')),
+    __param(1, (0, common_1.Param)('slug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ArticleController.prototype, "findBySlug", null);
 __decorate([
     (0, common_1.Get)(':category'),
     __param(0, (0, common_1.Param)('category')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "getArticlesByCategory", null);
-__decorate([
-    (0, common_1.Get)(':category/:slug'),
-    __param(0, (0, common_1.Param)('category')),
-    __param(1, (0, common_1.Param)('slug')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], ArticleController.prototype, "getArticleBySlug", null);
+], ArticleController.prototype, "findByCategory", null);
 __decorate([
     (0, common_1.Patch)(':identifier'),
     __param(0, (0, common_1.Param)('identifier')),
@@ -302,27 +312,27 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "updateArticle", null);
+], ArticleController.prototype, "updateOne", null);
 __decorate([
     (0, common_1.Patch)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Array]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "updateArticles", null);
+], ArticleController.prototype, "updateMany", null);
 __decorate([
     (0, common_1.Delete)(':identifier'),
     __param(0, (0, common_1.Param)('identifier')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "deleteArticle", null);
+], ArticleController.prototype, "delete", null);
 __decorate([
     (0, common_1.Post)(':id/views'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    __param(1, (0, common_1.Body)('fingerprint')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], ArticleController.prototype, "trackView", null);
 __decorate([
@@ -332,19 +342,11 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
-], ArticleController.prototype, "vote", null);
+], ArticleController.prototype, "toggleVote", null);
 exports.ArticleController = ArticleController = __decorate([
     (0, common_1.Controller)('api/articles'),
-    __param(1, (0, mongoose_1.InjectModel)(article_model_1.Article.name)),
-    __param(2, (0, mongoose_1.InjectModel)(user_model_1.User.name)),
-    __param(3, (0, mongoose_1.InjectModel)(comment_model_1.Comment.name)),
-    __param(4, (0, mongoose_1.InjectModel)(view_model_1.View.name)),
-    __param(5, (0, mongoose_1.InjectModel)(vote_model_1.Vote.name)),
     __metadata("design:paramtypes", [article_service_1.ArticleService,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model,
-        mongoose_2.Model])
+        notification_service_1.NotificationService,
+        notification_gateway_1.NotificationGateway])
 ], ArticleController);
 //# sourceMappingURL=article.controller.js.map

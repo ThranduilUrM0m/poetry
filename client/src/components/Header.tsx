@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import AnimatedWrapper from '@/components/ui/AnimatedWrapper';
+import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import Overlay from '@/components/ui/Overlay';
 import { useSearchModal } from '@/context/SearchModalContext';
 import { useHeaderTheme } from '@/context/HeaderThemeContext';
