@@ -69,6 +69,7 @@ interface CommentManagementModalProps {
     onClose: () => void;
     comments: Comment[];
     refreshComments: () => Promise<void>;
+    initialFilter?: string;
 }
 
 // Validation schema
@@ -217,10 +218,11 @@ export default function CommentManagementModal({
     onClose,
     comments,
     refreshComments,
+    initialFilter,
 }: CommentManagementModalProps) {
     // Refs and state management
     const modalRef = useRef<HTMLDivElement>(null);
-    const [globalFilter, setGlobalFilter] = useState('');
+    const [globalFilter, setGlobalFilter] = useState(initialFilter || '');
     const [sorting, setSorting] = useState<SortingState>([]);
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
@@ -439,7 +441,9 @@ export default function CommentManagementModal({
                 </button>
             ),
             sortingFn: 'alphanumeric',
-            cell: (info) => <span className="__author">{_.capitalize(info.getValue() as string)}</span>,
+            cell: (info) => (
+                <span className="__author">{_.capitalize(info.getValue() as string)}</span>
+            ),
         },
         {
             id: 'email',
@@ -450,7 +454,9 @@ export default function CommentManagementModal({
                 </button>
             ),
             sortingFn: 'alphanumeric',
-            cell: (info) => <span className="__email">{_.capitalize(info.getValue() as string)}</span>,
+            cell: (info) => (
+                <span className="__email">{_.capitalize(info.getValue() as string)}</span>
+            ),
         },
         {
             id: 'body',
@@ -642,6 +648,14 @@ export default function CommentManagementModal({
     useEffect(() => {
         table.setPageIndex(0);
     }, [timeFrameOption, table]);
+
+    // Apply initialFilter only once when opening
+    useEffect(() => {
+        if (initialFilter) {
+            setGlobalFilter(initialFilter);
+            table.setGlobalFilter(initialFilter);
+        }
+    }, [initialFilter, table]);
 
     // Event handlers
     const handleSearch = (value: string) => {

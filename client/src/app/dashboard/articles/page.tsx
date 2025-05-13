@@ -352,9 +352,22 @@ export default function DashboardPage() {
     const [selectedSuggestions, setSelectedSuggestions] = useState<SearchSuggestion[]>([]);
     const [transformedSuggestions, setTransformedSuggestions] = useState<SearchSuggestion[]>([]);
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+    const [commentModalArticleId, setCommentModalArticleId] = useState<string | null>(null);
     const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
 
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
+
+    // Handler to open modal for a given article
+    const handleOpenComments = (articleId: string) => {
+        setCommentModalArticleId(articleId);
+        setIsCommentModalOpen(true);
+    };
+
+    // Handler to close
+    const handleCloseComments = () => {
+        setIsCommentModalOpen(false);
+        setCommentModalArticleId(null);
+    };
 
     // Form handling
     const {
@@ -491,7 +504,8 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     Private
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
             cell: ({ row }) => <PrivateCell row={row} onUpdate={handleRefreshArticles} />,
@@ -520,14 +534,23 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <MessageSquare className="__icon-header" />
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
-            cell: (info) => (
-                <span className="__count">
-                    {(info.row.original.comments?.length || 0).toLocaleString()}
-                </span>
-            ),
+            cell: (info) => {
+                const count = info.row.original.comments?.length || 0;
+                const articleId = info.row.original._id!;
+                return (
+                    <button
+                        className="__comments-button"
+                        onClick={() => handleOpenComments(articleId)}
+                        aria-label={`View ${count} comments`}
+                    >
+                        {count.toLocaleString()}
+                    </button>
+                );
+            },
             enableSorting: true,
             meta: {
                 tdClassName: 'isCentered', // Custom class for this column's cells
@@ -538,7 +561,8 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <Eye className="__icon-header" />
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
             cell: (info) => (
@@ -556,7 +580,8 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <ThumbsUp className="__icon-header" />
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
             cell: (info) => (
@@ -576,7 +601,8 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <ThumbsDown className="__icon-header" />
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
             cell: (info) => (
@@ -612,7 +638,8 @@ export default function DashboardPage() {
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     Bio
-                    {column.getIsSorted() && (column.getIsSorted() === 'asc' ? ' ↑' : ' ↓')}
+                    {column.getIsSorted() &&
+                        (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
             cell: (info) => (
@@ -1215,12 +1242,13 @@ export default function DashboardPage() {
                         </div>
                         {renderArticlesTable()}
                     </div>
-                    {isCommentModalOpen && (
+                    {isCommentModalOpen && commentModalArticleId && (
                         <CommentManagementModal
                             isOpen={isCommentModalOpen}
-                            onClose={() => setIsCommentModalOpen(false)}
+                            onClose={handleCloseComments}
                             comments={comments}
                             refreshComments={handleRefreshComments}
+                            initialFilter={commentModalArticleId}
                         />
                     )}
                     {isArticleModalOpen && (
