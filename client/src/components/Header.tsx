@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
-import Overlay from '@/components/ui/Overlay';
+import { useOverlay } from '@/context/OverlayContext';
 import { useSearchModal } from '@/context/SearchModalContext';
 import { useHeaderTheme } from '@/context/HeaderThemeContext';
 import logo from '@/assets/images/b_white_orange..svg';
@@ -22,8 +22,8 @@ export default function Header() {
     const { theme } = useHeaderTheme();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const pathname = usePathname();
+    const { showOverlay, hideOverlay } = useOverlay();
     const menuRef = useRef<HTMLDivElement>(null);
-    const overlayRef = useRef<HTMLDivElement>(null);
     const backgroundRef = useRef<HTMLDivElement>(null);
     const { openModal } = useSearchModal(); // Use context to open modal
 
@@ -32,27 +32,6 @@ export default function Header() {
         if (pathname === '/dashboard') return 'header _dashboard';
         return 'header';
     };
-
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isMenuOpen) {
-                setIsMenuOpen(!isMenuOpen);
-            }
-        };
-        const handleClickOutside = (event: MouseEvent) => {
-            if (overlayRef.current && overlayRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false);
-            }
-        };
-        if (isMenuOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isMenuOpen]);
 
     // Smooth beautiful config
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
@@ -89,18 +68,42 @@ export default function Header() {
         );
     });
 
+    // Show/hide overlay with correct close handler
+    useEffect(() => {
+        if (isMenuOpen) {
+            showOverlay({
+                zIndex: 99,
+                blurClass: '',
+                onClick: () => setIsMenuOpen(false), // Always use the same handler
+            });
+        } else {
+            hideOverlay();
+        }
+        return () => hideOverlay();
+    }, [isMenuOpen, showOverlay, hideOverlay, setIsMenuOpen]);
+
+    // Escape key and click outside
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsMenuOpen(false);
+        };
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node))
+                setIsMenuOpen(false);
+        };
+        document.addEventListener('keydown', handleEscape);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
     return (
         <header className={getHeaderClass()}>
             <nav className="header__nav">
                 <div className="header__nav-left">
-                    {/* Overlay for the menu */}
-                    {isMenuOpen && (
-                        <Overlay
-                            isVisible={isMenuOpen}
-                            onClick={() => setIsMenuOpen(false)}
-                            zIndex={10}
-                        />
-                    )}
                     <div className="header__nav-left-hamburger" ref={menuRef}>
                         {/* Sidebar background */}
                         <AnimatedWrapper
@@ -113,7 +116,10 @@ export default function Header() {
                                     ? 'circle(150vh at 15vh 5vh)'
                                     : 'circle(0vh at 15vh 5vh)',
                             }}
-                            config={{ ...smoothConfig, duration: staggerConfig.backgroundDuration }}
+                            config={{
+                                ...smoothConfig,
+                                duration: staggerConfig.backgroundDuration,
+                            }}
                         >
                             {/* Menu items */}
                             <AnimatedWrapper

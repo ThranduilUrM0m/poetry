@@ -16,6 +16,7 @@
     "@dicebear/core": "^9.2.2",
     "@fingerprintjs/fingerprintjs": "^4.6.1",
     "@hookform/resolvers": "^4.1.1",
+    "@mcaskill/sass-mq": "^6.0.0",
     "@opeepsfun/open-peeps": "^1.0.6",
     "@radix-ui/react-dialog": "^1.1.7",
     "@radix-ui/react-dropdown-menu": "^2.1.7",

@@ -6,6 +6,7 @@ otherwise it wouldn't know em, cause they aren't global, @import used to do that
 @use 'abstracts/variables';
 @use 'abstracts/mixins';
 @use 'abstracts/functions';
+@use 'abstracts/mq';
 
 // Base styles
 @use 'base/reset';
@@ -41,11 +42,15 @@ body {
 
     .__mainWrapper,
     main {
-        @apply p-0;
-        min-height: 100vh;
+        @apply p-0 min-h-[100vh] w-full;
 
         section {
-            @apply relative h-[100vh] py-[10vh];
+            @apply relative h-[100vh] py-[15vh];
+            
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply py-[10vh];
+            }
         }
     }
 

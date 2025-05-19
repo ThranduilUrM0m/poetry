@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 // Components
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import FormField from '@/components/ui/FormField';
-import Overlay from '@/components/ui/Overlay';
+import { useOverlay } from '@/context/OverlayContext';
 
 // Redux
 import { AppDispatch } from '@/store';
@@ -132,6 +132,7 @@ export default function ArticleManagementModal({
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
     // Refs and state management
+    const { showOverlay, hideOverlay } = useOverlay();
     const modalRef = useRef<HTMLDivElement>(null);
 
     const onSubmit: SubmitHandler<ArticleFormValues> = async (data) => {
@@ -223,9 +224,41 @@ export default function ArticleManagementModal({
         return arabicRegex.test(text);
     };
 
+    // Show/hide overlay with correct close handler
+    useEffect(() => {
+        if (isOpen) {
+            showOverlay({
+                zIndex: 99,
+                blurClass: '',
+                onClick: onClose, // Always use the same handler
+            });
+        } else {
+            hideOverlay();
+        }
+        return () => hideOverlay();
+    }, [isOpen, showOverlay, hideOverlay, onClose]);
+
+    // Escape key and click outside
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        const handleClickOutside = (e: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(e.target as Node)) onClose();
+        };
+        document.addEventListener('keydown', handleEscape);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
     return (
         <>
-            <Overlay isVisible={isOpen} onClick={onClose} zIndex={99} />
             <AnimatedWrapper
                 className="_modal__article"
                 from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}

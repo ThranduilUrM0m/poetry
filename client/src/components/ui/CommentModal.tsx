@@ -26,7 +26,7 @@ import {
 
 // Component imports
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
-import Overlay from '@/components/ui/Overlay';
+import { useOverlay } from '@/context/OverlayContext';
 import FormField from '@/components/ui/FormField';
 
 // Type and interface imports
@@ -221,6 +221,7 @@ export default function CommentManagementModal({
     initialFilter,
 }: CommentManagementModalProps) {
     // Refs and state management
+    const { showOverlay, hideOverlay } = useOverlay();
     const modalRef = useRef<HTMLDivElement>(null);
     const [globalFilter, setGlobalFilter] = useState(initialFilter || '');
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -722,185 +723,215 @@ export default function CommentManagementModal({
         }
     };
 
+    // Show/hide overlay with correct close handler
+    useEffect(() => {
+        if (isOpen) {
+            showOverlay({
+                zIndex: 99,
+                blurClass: '',
+                onClick: onClose, // Always use the same handler
+            });
+        } else {
+            hideOverlay();
+        }
+        return () => hideOverlay();
+    }, [isOpen, showOverlay, hideOverlay, onClose]);
+
+    // Escape key and click outside
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        const handleClickOutside = (e: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(e.target as Node)) onClose();
+        };
+        document.addEventListener('keydown', handleEscape);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
     return (
-        <>
-            <Overlay isVisible={isOpen} onClick={onClose} zIndex={99} />
-            <AnimatedWrapper
-                className="_modal__comments"
-                from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
-                to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
-                config={smoothConfig}
-                ref={modalRef}
-            >
-                {/* Header */}
-                <div className="_header">
-                    <div className="_formContainer">
-                        <form className="__header _form">
-                            <div className="_row">
-                                <FormField
-                                    name="globalFilter"
-                                    type="text"
-                                    label="Search"
-                                    icon={<Search />}
-                                    control={control}
-                                    onInputChange={handleSearch}
-                                />
-                                <FormField
-                                    control={control}
-                                    icon={<Timer />}
-                                    name="timeFrameOption"
-                                    type="select"
-                                    options={[
-                                        { value: '24h', label: 'Last 24 hours' },
-                                        { value: '7d', label: 'Last 7 days' },
-                                        { value: '30d', label: 'Last 30 days' },
-                                        { value: '6m', label: 'Last 6 months' },
-                                        { value: 'all', label: 'All time' },
-                                    ]}
-                                    rules={{ required: true }}
-                                />
-                                <button
-                                    className={`button __batch-delete ${
-                                        table.getSelectedRowModel().rows.length === 0
-                                            ? '__disabled'
-                                            : ''
-                                    }`}
-                                    onClick={handleBatchDelete}
-                                    disabled={table.getSelectedRowModel().rows.length === 0}
-                                >
-                                    <Trash2 />
-                                    <span>
-                                        {table.getSelectedRowModel().rows.length !== 0 &&
-                                            `${table.getSelectedRowModel().rows.length} articles`}
-                                    </span>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Close button */}
-                    <AnimatedWrapper
-                        as="button"
-                        onClick={onClose}
-                        aria-label="Close"
-                        className="__commentClose"
-                        hover={{
-                            from: { transform: 'translateX(-1%)', opacity: 0.5 },
-                            to: { transform: 'translateX(0)', opacity: 1 },
-                        }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
-                        config={smoothConfig}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                            <g>
-                                <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
-                                <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
-                            </g>
-                        </svg>
-                        Esc
-                    </AnimatedWrapper>
+        <AnimatedWrapper
+            className="_modal__comments"
+            from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
+            to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
+            config={smoothConfig}
+            ref={modalRef}
+        >
+            {/* Header */}
+            <div className="_header">
+                <div className="_formContainer">
+                    <form className="__header _form">
+                        <div className="_row">
+                            <FormField
+                                name="globalFilter"
+                                type="text"
+                                label="Search"
+                                icon={<Search />}
+                                control={control}
+                                onInputChange={handleSearch}
+                            />
+                            <FormField
+                                control={control}
+                                icon={<Timer />}
+                                name="timeFrameOption"
+                                type="select"
+                                options={[
+                                    { value: '24h', label: 'Last 24 hours' },
+                                    { value: '7d', label: 'Last 7 days' },
+                                    { value: '30d', label: 'Last 30 days' },
+                                    { value: '6m', label: 'Last 6 months' },
+                                    { value: 'all', label: 'All time' },
+                                ]}
+                                rules={{ required: true }}
+                            />
+                            <button
+                                className={`button __batch-delete ${
+                                    table.getSelectedRowModel().rows.length === 0
+                                        ? '__disabled'
+                                        : ''
+                                }`}
+                                onClick={handleBatchDelete}
+                                disabled={table.getSelectedRowModel().rows.length === 0}
+                            >
+                                <Trash2 />
+                                <span>
+                                    {table.getSelectedRowModel().rows.length !== 0 &&
+                                        `${table.getSelectedRowModel().rows.length} articles`}
+                                </span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
-                {/* Body */}
-                <div className="_body">
-                    <div className="__table">
-                        <table>
-                            <thead>
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    <tr key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => (
-                                            <th key={header.id}>
-                                                {flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </thead>
-                        </table>
-                        <SimpleBar
-                            className="_SimpleBar"
-                            forceVisible="y"
-                            autoHide={false}
-                            style={{ maxHeight: '55.5vh' }}
-                        >
-                            <table>
-                                <tbody>
-                                    {table.getRowModel().rows.map((row) => {
-                                        const depth = (row.original as CommentWithDepth).depth || 0;
-                                        const isReply = depth > 0;
+                {/* Close button */}
+                <AnimatedWrapper
+                    as="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="__commentClose"
+                    hover={{
+                        from: { transform: 'translateX(-1%)', opacity: 0.5 },
+                        to: { transform: 'translateX(0)', opacity: 1 },
+                    }}
+                    click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
+                    config={smoothConfig}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <g>
+                            <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
+                            <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
+                        </g>
+                    </svg>
+                    Esc
+                </AnimatedWrapper>
+            </div>
 
-                                        return (
-                                            <tr
-                                                key={row.id}
-                                                className={isReply ? '__reply-row' : '__parent-row'}
-                                            >
-                                                {row.getVisibleCells().map((cell) => (
-                                                    <td
-                                                        key={cell.id}
-                                                        className={isReply ? '__reply-cell' : ''}
-                                                    >
-                                                        {flexRender(
-                                                            cell.column.columnDef.cell,
-                                                            cell.getContext()
-                                                        )}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </SimpleBar>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="_footer">
-                    {/* Pagination */}
-                    <div className="__pagination">
-                        <span className="__pagination-info">
-                            {(() => {
-                                const pageIndex = table.getState().pagination.pageIndex;
-                                const pageSize = table.getState().pagination.pageSize;
-                                // Change this line to use getFilteredRowModel instead of getCoreRowModel
-                                const totalItems = table.getFilteredRowModel().rows.length;
-                                const startIndex = pageIndex * pageSize + 1;
-                                const endIndex = Math.min((pageIndex + 1) * pageSize, totalItems);
-
-                                return totalItems === 0 ? (
-                                    'No comments to display'
-                                ) : (
-                                    <>
-                                        {`Showing `}
-                                        <strong>{startIndex}</strong>
-                                        {` to `}
-                                        <strong>{endIndex}</strong>
-                                        {` of `}
-                                        <strong>{totalItems}</strong>
-                                        {` comments`}
-                                    </>
-                                );
-                            })()}
-                        </span>
-                        <ul className="__pagination-controls">
-                            {_.map(_.range(1, table.getPageCount() + 1), (number) => (
-                                <li
-                                    key={number}
-                                    onClick={() => table.setPageIndex(number - 1)}
-                                    className={
-                                        table.getState().pagination.pageIndex + 1 === number
-                                            ? 'current'
-                                            : ''
-                                    }
-                                />
+            {/* Body */}
+            <div className="_body">
+                <div className="__table">
+                    <table>
+                        <thead>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <tr key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <th key={header.id}>
+                                            {flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                        </th>
+                                    ))}
+                                </tr>
                             ))}
-                        </ul>
-                    </div>
+                        </thead>
+                    </table>
+                    <SimpleBar
+                        className="_SimpleBar"
+                        forceVisible="y"
+                        autoHide={false}
+                        style={{ maxHeight: '55.5vh' }}
+                    >
+                        <table>
+                            <tbody>
+                                {table.getRowModel().rows.map((row) => {
+                                    const depth = (row.original as CommentWithDepth).depth || 0;
+                                    const isReply = depth > 0;
+
+                                    return (
+                                        <tr
+                                            key={row.id}
+                                            className={isReply ? '__reply-row' : '__parent-row'}
+                                        >
+                                            {row.getVisibleCells().map((cell) => (
+                                                <td
+                                                    key={cell.id}
+                                                    className={isReply ? '__reply-cell' : ''}
+                                                >
+                                                    {flexRender(
+                                                        cell.column.columnDef.cell,
+                                                        cell.getContext()
+                                                    )}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </SimpleBar>
                 </div>
-            </AnimatedWrapper>
-        </>
+            </div>
+
+            {/* Footer */}
+            <div className="_footer">
+                {/* Pagination */}
+                <div className="__pagination">
+                    <span className="__pagination-info">
+                        {(() => {
+                            const pageIndex = table.getState().pagination.pageIndex;
+                            const pageSize = table.getState().pagination.pageSize;
+                            // Change this line to use getFilteredRowModel instead of getCoreRowModel
+                            const totalItems = table.getFilteredRowModel().rows.length;
+                            const startIndex = pageIndex * pageSize + 1;
+                            const endIndex = Math.min((pageIndex + 1) * pageSize, totalItems);
+
+                            return totalItems === 0 ? (
+                                'No comments to display'
+                            ) : (
+                                <>
+                                    {`Showing `}
+                                    <strong>{startIndex}</strong>
+                                    {` to `}
+                                    <strong>{endIndex}</strong>
+                                    {` of `}
+                                    <strong>{totalItems}</strong>
+                                    {` comments`}
+                                </>
+                            );
+                        })()}
+                    </span>
+                    <ul className="__pagination-controls">
+                        {_.map(_.range(1, table.getPageCount() + 1), (number) => (
+                            <li
+                                key={number}
+                                onClick={() => table.setPageIndex(number - 1)}
+                                className={
+                                    table.getState().pagination.pageIndex + 1 === number
+                                        ? 'current'
+                                        : ''
+                                }
+                            />
+                        ))}
+                    </ul>
+                </div>
+            </div>
+        </AnimatedWrapper>
     );
 }

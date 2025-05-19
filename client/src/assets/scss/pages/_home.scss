@@ -1,3 +1,5 @@
+@use '../abstracts/mq';
+
 .home {
     @apply w-full h-full;
 
@@ -6,21 +8,31 @@
         &-1 {
             @apply flex justify-stretch;
 
-            &-left,
-            &-right {
-                @apply relative basis-1/2;
-            }
-
             // Left Column
             &-left {
-                @apply h-[100vh] flex flex-col items-center justify-center;
+                @apply relative h-[calc(100vh-15vh)] flex flex-col items-center justify-end basis-full;
+                
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply h-[100vh] basis-1/2 justify-center;
+                }
 
                 &-fadedText {
-                    @apply w-1/2 h-fit text-[rgb(var(--text)/.5)] text-right text-[5vh] font-[600];
+                    @apply w-3/4 h-fit text-[rgb(var(--text)/.5)] text-right text-[5vh] font-[600];
+                    
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-1/2;
+                    }
                 }
 
                 &-text {
-                    @apply relative w-1/2 h-fit text-right text-[5vh] font-[600] leading-[1.2];
+                    @apply relative w-3/4 h-fit text-right text-[5vh] font-[600] leading-[1.2];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-1/2;
+                    }
 
                     .__lastWord {
                         @apply text-[rgb(var(--primary-light)/1)];
@@ -28,12 +40,22 @@
 
                     &::before {
                         content: 'Speaking.';
-                        @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
+                        @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2 hidden;
+                        
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply block;
+                        }
                     }
                 }
 
                 &-read {
-                    @apply w-1/2 h-[5vh] mt-[7.5vh] mb-[10vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
+                    @apply w-3/4 h-[5vh] mt-[2.5vh] mb-[2.5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-1/2 mt-[7.5vh] mb-[10vh];
+                    }
 
                     span {
                         @apply flex items-center;
@@ -46,25 +68,50 @@
 
                 &::before {
                     content: '';
-                    @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.5)] top-1/2 -right-0 backdrop-blur-[.75vh] -translate-y-1/2;
+                    @apply z-[-1] absolute bg-[rgb(var(--white)/.5)] backdrop-blur-[.75vh] w-3/4 h-1/2 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2;
+                    
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[40vw] h-[calc(100vh-30vh)] top-1/2 -right-0 left-auto -translate-y-1/2 -translate-x-0;
+                    }
                 }
 
                 &::after {
                     content: '';
-                    @apply z-[-1] absolute w-[30vw] h-[60vh] bg-[rgb(var(--primary-light)/.25)] bottom-0 left-[50vh] backdrop-blur-[.75vh] -translate-x-1/4 translate-y-[40vh];
+                    @apply z-[-1] absolute w-[30vw] h-[60vh] bg-[rgb(var(--primary-light)/.25)] bottom-0 left-[50vh] backdrop-blur-[.75vh] -translate-x-1/4 translate-y-[40vh] hidden;
+                    
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply block;
+                    }
                 }
             }
 
             // Right Column
             &-right {
-                @apply relative h-[100vh];
+                @apply absolute top-0 left-0 w-full h-[100vh] basis-full;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply relative basis-1/2;
+                }
 
                 &-image {
-                    @apply relative w-full h-full;
+                    @apply relative w-full h-full hidden;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply block;
+                    }
                 }
 
                 &-text {
-                    @apply absolute flex flex-col justify-center h-fit w-1/2 top-1/2 left-[5vh] -translate-y-1/2;
+                    @apply absolute flex flex-col justify-center h-fit w-fit top-[22.5vh] left-1/2 -translate-x-1/2 -translate-y-0;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-1/2 top-1/2 left-[5vh] -translate-x-0 -translate-y-1/2;
+                    }
 
                     &-hello {
                         @apply text-9xl font-abril font-medium text-[rgb(var(--white)/1)] leading-[.75];
@@ -72,7 +119,12 @@
 
                     &::before {
                         content: '';
-                        @apply z-[-1] absolute w-[40vw] h-[calc(100vh-30vh)] bg-[rgb(var(--white)/.25)] top-1/2 -left-[5vh] backdrop-blur-[.75vh] -translate-y-1/2;
+                        @apply z-[-1] absolute w-[100vw] h-[30vh] bg-[rgb(var(--white)/.25)] top-1/2 left-1/2 backdrop-blur-[.75vh] -translate-x-1/2 -translate-y-0;
+                        
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply w-[40vw] h-[calc(100vh-30vh)] -left-[5vh] -translate-x-0 -translate-y-1/2;
+                        }
                     }
                 }
             }
@@ -88,12 +140,22 @@
 
             // Left Column
             &-left {
-                @apply basis-1/3;
+                @apply basis-1/3 hidden;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply block;
+                }
             }
 
             // Right Column
             &-right {
-                @apply basis-2/3;
+                @apply basis-full;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-2/3;
+                }
 
                 ._sliderArticles {
                     @apply relative p-[5vh] w-full h-full;
@@ -115,15 +177,25 @@
 
                                                 ._form {
                                                     .articleCategory {
-                                                        @apply relative text-[1.75vh] w-fit h-fit mb-[4vh] text-[rgb(var(--text)/.5)];
+                                                        @apply relative text-[2vh] w-fit h-fit mb-[4vh] text-[rgb(var(--text)/.5)];
+
+                                                        // sm breakpoint (>= 640px): small tablets and up
+                                                        @include mq.mq($from: sm) {
+                                                            @apply text-[1.75vh];
+                                                        }
                                                     }
 
                                                     h2 {
                                                         @apply w-fit items-end;
 
                                                         &.articleTitle {
-                                                            @apply relative font-medium mb-[1vh] text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[6vh];
+                                                            @apply relative font-medium mb-[1vh] text-[5vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[6vh];
 
+                                                            // sm breakpoint (>= 640px): small tablets and up
+                                                            @include mq.mq($from: sm) {
+                                                                @apply text-[6vh];
+                                                            }
+                                                            
                                                             &::before {
                                                                 @apply absolute bg-[rgb(var(--text)/.75)] w-[20vh] h-[1.25vh] bottom-0 left-[calc(100%+5vh)] -translate-y-full;
                                                                 content: '';
@@ -139,20 +211,35 @@
 
                                                             span {
                                                                 &:first-of-type {
-                                                                    @apply text-[rgb(var(--primary)/1)] font-normal text-[3.5vh] leading-[3.5vh];
+                                                                    @apply text-[rgb(var(--primary)/1)] font-normal text-[2.5vh] leading-[2.5vh];
 
+                                                                    // sm breakpoint (>= 640px): small tablets and up
+                                                                    @include mq.mq($from: sm) {
+                                                                        @apply text-[3.5vh] leading-[3.5vh];
+                                                                    }
+                                                                    
                                                                     &:not(:lang(ar)) {
                                                                         @apply font-abril;
                                                                     }
                                                                 }
 
                                                                 &:last-of-type {
-                                                                    @apply text-[rgb(var(--text)/.25)] font-normal text-[2.5vh] leading-[3.5vh];
+                                                                    @apply text-[rgb(var(--text)/.25)] font-normal text-[2vh] leading-[2vh];
+                                                                    
+                                                                    // sm breakpoint (>= 640px): small tablets and up
+                                                                    @include mq.mq($from: sm) {
+                                                                        @apply text-[2.5vh] leading-[3.5vh];
+                                                                    }
                                                                 }
                                                             }
 
                                                             svg {
-                                                                @apply self-center mx-[2.5vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                                @apply self-center mx-[2vh] w-[2.75vh] h-[2.75vh] stroke-[4] stroke-[rgb(var(--text)/.25)];
+                                                            
+                                                                // sm breakpoint (>= 640px): small tablets and up
+                                                                @include mq.mq($from: sm) {
+                                                                    @apply mx-[2.5vh];
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -162,7 +249,12 @@
                                                     }
 
                                                     ._button {
-                                                        @apply ml-auto w-1/4;
+                                                        @apply ml-auto w-1/2;
+                                                        
+                                                        // sm breakpoint (>= 640px): small tablets and up
+                                                        @include mq.mq($from: sm) {
+                                                            @apply w-1/4;
+                                                        }
                                                     }
 
                                                     .information {
@@ -237,6 +329,11 @@
                     ._shadowIndex {
                         @apply absolute font-abril opacity-25 m-0 text-[20vh] leading-normal font-bold text-[rgb(var(--primary-light)/1)] w-fit h-fit;
 
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply basis-2/3;
+                        }
+
                         p {
                             @apply m-0;
                         }
@@ -246,12 +343,22 @@
                         }
 
                         &._number {
-                            @apply flex top-0 right-0 translate-y-full rotate-90 origin-top-right;
+                            @apply flex top-0 right-0 -translate-y-[15vh];
 
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply rotate-90 origin-top-right translate-y-full;
+                            }
+                            
                             &._outlined {
-                                @apply text-transparent -translate-x-[5%] translate-y-[105%];
+                                @apply text-transparent -translate-x-[5%] -translate-y-[15vh];
                                 content: var(--before-content);
                                 -webkit-text-stroke: .1vh rgb(var(--text)/1);
+                                
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply translate-y-[105%];
+                                }
                             }
                         }
                     }
@@ -269,14 +376,29 @@
 
             // Left Column
             &-left {
-                @apply basis-7/12 z-[1];
+                @apply basis-full z-[1];
 
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-7/12;
+                }
+                
                 ._form {
-                    @apply z-10 bg-[rgb(var(--text)/1)] text-[rgb(var(--white)/.75)] absolute p-[5vh] flex flex-col h-full h-3/4 w-3/4 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/4;
+                    @apply z-10 bg-[rgb(var(--text)/1)] text-[rgb(var(--white)/.75)] absolute p-[5vh] flex flex-col h-3/4 w-3/4 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2;
 
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply -translate-x-1/4;
+                    }
+                    
                     .aboutMe {
-                        @apply relative text-[1.75vh] w-fit h-fit mb-auto;
+                        @apply relative text-[2vh] w-fit h-fit mb-auto;
 
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply text-[1.75vh];
+                        }
+                        
                         &::before {
                             @apply absolute bg-[rgb(var(--white)/.75)] w-[200%] h-[.25vh] top-1/2 left-[calc(100%+5vh)] -translate-y-1/2;
                             content: '';
@@ -284,29 +406,49 @@
                     }
 
                     .fullName {
-                        @apply font-medium text-[7vh] mt-[2vh] leading-[1.2];
+                        @apply font-medium text-[5vh] mt-[2vh] leading-[1.2];
+                        
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply text-[7vh];
+                        }
                     }
 
                     .text {
-                        @apply relative;
-
+                        @apply relative text-[3vh] leading-[1.2];
+                        
                         span {
                             @apply text-[rgb(var(--primary)/1)];
                         }
                     }
 
                     ._button {
-                        @apply ml-auto w-1/4 my-[2vh];
+                        @apply ml-auto w-1/2 my-[2vh];
+                        
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply w-1/4;
+                        }
                     }
                 }
             }
 
             // Right Column
             &-right {
-                @apply relative flex justify-start items-center h-full basis-5/12;
+                @apply absolute top-0 left-0 w-1/2 h-full flex justify-start items-center basis-5/12;
 
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply relative top-auto left-auto w-auto;
+                }
+                
                 &-image {
-                    @apply relative w-3/4 h-full;
+                    @apply relative w-full h-full;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-3/4;
+                    }
 
                     img {
                         @apply w-full h-full border-[2vh] border-solid border-[rgb(var(--text)/.10)];

@@ -1,3 +1,5 @@
+@use '../abstracts/mq';
+
 .__footerWrapper {
     @apply bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-10vh)] h-[75vh] m-[5vh];
 
@@ -5,19 +7,39 @@
         @apply flex flex-col w-full h-full;
 
         &__container {
-            @apply flex-1 flex items-center justify-stretch mx-[4vh];
+            @apply flex-1 flex flex-col items-center justify-stretch mx-[2vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply mx-[4vh] flex-row;
+            }
 
             &-left,
             &-right {
-                @apply relative;
+                @apply relative w-full;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply w-auto;
+                }
             }
 
             // Left Column
             &-left {
-                @apply flex flex-col items-center justify-center basis-3/5;
+                @apply flex flex-col items-center justify-center basis-2/5;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-3/5;
+                }
 
                 h2 {
-                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[5vh] pl-[14vh];
+                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[2.5vh] pl-[5vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply mb-[5vh] pl-[14vh];
+                    }
 
                     .__lastWord {
                         @apply text-[rgb(var(--text)/1)] font-[600];
@@ -25,11 +47,55 @@
                 }
 
                 .newsletter {
-                    @apply relative flex justify-start items-center w-full h-full pl-[14vh] pr-[28vh];
+                    @apply relative flex justify-start items-center w-full h-fit pl-[5vh] pr-[5vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply pl-[14vh] pr-[28vh] h-full;
+                    }
 
                     ._form {
+                        @apply flex-row;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply flex-col;
+                        }
+
+                        ._row {
+                            @apply w-full;
+
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply w-auto;
+                            }
+
+                            &:first-of-type {
+                                @apply basis-2/3;
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply basis-1/2;
+                                }
+                            }
+
+                            &:last-of-type {
+                                @apply basis-1/3;
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply basis-1/2;
+                                }
+                            }
+                        }
+
                         ._button {
-                            @apply ml-auto w-2/5;
+                            @apply ml-auto w-full;
+
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply w-2/5;
+                            }
                         }
                     }
                 }
@@ -37,11 +103,21 @@
 
             // Right Column
             &-right {
-                @apply basis-2/5;
+                @apply basis-3/5;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-2/5;
+                }
 
                 h2 {
-                    @apply text-8xl font-abril font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
-                    
+                    @apply text-6xl font-abril font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply text-8xl;
+                    }
+
                     &::before {
                         content: 'Qasida.';
                         @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
@@ -49,21 +125,36 @@
                 }
 
                 &-links {
-                    @apply relative h-full w-full flex;
+                    @apply relative h-auto w-full mt-auto flex;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply h-full mt-0;
+                    }
 
                     div {
                         @apply m-0 basis-1/4;
 
                         h3 {
-                            @apply text-xl font-medium text-[rgb(var(--text)/.5)] mb-[3vh];
-                        }
-    
-                        ul {
-                            li {
-                                @apply flex items-center;
+                            @apply text-lg font-normal text-[rgb(var(--text)/.5)] mb-[2vh];
+
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply text-xl font-medium mb-[3vh];
                             }
                         }
-    
+
+                        ul {
+                            li {
+                                @apply flex items-center text-[2.5vh];
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply text-base;
+                                }
+                            }
+                        }
+
                         &:first-of-type {
                             @apply basis-2/4;
 
@@ -75,12 +166,17 @@
                                         @apply relative;
 
                                         svg {
-                                            @apply stroke-[rgb(var(--text)/.5)] w-[4vh] h-[4vh];
+                                            @apply stroke-[rgb(var(--text)/.5)] w-[3vh] h-[3vh];
+                                            
+                                            // sm breakpoint (>= 640px): small tablets and up
+                                            @include mq.mq($from: sm) {
+                                                @apply w-[4vh] h-[4vh];
+                                            }
                                         }
 
                                         span {
                                             @apply absolute z-[1] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max h-max;
-                                            
+
                                             &.iconBackground {
                                                 @apply w-[7.5vh] h-[7.5vh];
                                                 @apply bg-[rgb(var(--text)/.15)];
@@ -101,33 +197,71 @@
         }
 
         &__nav {
-            @apply h-[10vh] flex items-center justify-between mx-[4vh] border-t-[.3vh] border-[rgb(var(--text)/.25)];
+            @apply h-[10vh] mx-[2vh] flex items-center justify-between border-t-[.3vh] border-[rgb(var(--text)/.25)];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply mx-[4vh];
+            }
 
             &-left,
             &-right {
-                @apply relative h-full flex items-center justify-center;
+                @apply relative h-full flex items-center justify-center text-[2vh];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply text-[2.5vh];
+                }
 
                 ul {
                     @apply m-0 flex;
 
                     li {
-                        @apply flex items-center h-[10vh];
+                        @apply flex items-center h-[15vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply h-[10vh];
+                        }
+
+                        svg {
+                            @apply w-[2vh] h-[2vh];
+
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply w-[2.5vh] h-[2.5vh];
+                            }
+                        }
                     }
                 }
             }
 
             &-left {
-                @apply ml-[14vh];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply ml-[14vh];
+                }
 
                 ul {
                     li {
-                        @apply gap-[1vh];
+                        @apply gap-[.5vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply gap-[1vh];
+                        }
                     }
                 }
 
                 &::before {
-                    @apply absolute bg-[rgb(var(--text)/1)] w-[10vh] h-[.25vh] top-1/2 left-0 -translate-x-[calc(100%+4vh)] -translate-y-1/2;
+                    @apply absolute bg-[rgb(var(--text)/1)] w-[10vh] h-[.25vh] top-1/2 left-0 -translate-x-[calc(100%+4vh)] -translate-y-1/2 hidden;
                     content: "";
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply block;
+                    }
                 }
             }
 
@@ -136,7 +270,12 @@
                     li {
                         a {
                             span {
-                                @apply flex items-center gap-[1vh];
+                                @apply flex items-center gap-[.5vh];
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply gap-[1vh];
+                                }
                             }
                         }
                     }

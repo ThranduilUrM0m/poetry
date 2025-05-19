@@ -1,5 +1,5 @@
 .__overlay {
-    @apply fixed inset-0 bg-[rgb(var(--white)/0.25)] backdrop-blur-[.25vh] top-0 left-0 w-full h-[100%];
+    @apply fixed inset-0 w-[100vw] h-[100vh] bg-[rgb(var(--white)/0.25)] backdrop-blur-[.25vh] top-0 left-0;
 }
 
 ._modal {

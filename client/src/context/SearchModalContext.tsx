@@ -1,6 +1,6 @@
 // /src/context/SearchModalContext.tsx
 'use client';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { SearchSuggestion } from '@/types/search';
 
 export type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
@@ -26,22 +26,19 @@ export const SearchModalProvider = ({ children }: { children: ReactNode }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [filters, setFilters] = useState<SearchModalFilters | null>(null);
 
-    const openModal = (newFilters: SearchModalFilters = {}) => {
-        // Ensure we set filters before opening the modal
+    const openModal = useCallback((newFilters: SearchModalFilters = {}) => {
         setFilters(newFilters);
-        // Use requestAnimationFrame to ensure state is updated
         requestAnimationFrame(() => {
             setIsOpen(true);
         });
-    };
+    }, []);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setIsOpen(false);
-        // Clear filters after modal is closed
         setTimeout(() => {
             setFilters(null);
-        }, 300); // Add delay to match animation duration
-    };
+        }, 300);
+    }, []);
 
     return (
         <SearchModalContext.Provider value={{ isOpen, filters, openModal, closeModal }}>

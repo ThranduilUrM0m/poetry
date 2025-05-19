@@ -12,7 +12,24 @@ import SearchModal from '@/components/ui/SearchModal';
 import { AppDispatch } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserProfile, selectUser } from '@/slices/userSlice';
+import { OverlayProvider, useOverlay } from '@/context/OverlayContext';
+import Overlay from '@/components/ui/Overlay';
+import { createPortal } from 'react-dom';
 import 'nprogress/nprogress.css';
+
+function GlobalOverlay() {
+    const { overlayState, hideOverlay } = useOverlay();
+    if (!overlayState.isVisible) return null;
+    return createPortal(
+        <Overlay
+            isVisible={overlayState.isVisible}
+            zIndex={overlayState.zIndex ?? 100}
+            className={overlayState.blurClass}
+            onClick={overlayState.onClick || hideOverlay}
+        />,
+        document.body
+    );
+}
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -47,44 +64,47 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         <LoadingContext.Provider value={{ isLoaded }}>
             <HeaderThemeProvider>
                 <SearchModalProvider>
-                    {!isPrivate && (
+                    <OverlayProvider>
+                        {!isPrivate && (
+                            <AnimatedWrapper
+                                className="__headerWrapper"
+                                from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                                to={{
+                                    transform: isLoaded ? 'translateY(0)' : 'translateY(-100%)',
+                                    opacity: isLoaded ? 1 : 0,
+                                }}
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                            >
+                                <Header />
+                            </AnimatedWrapper>
+                        )}
                         <AnimatedWrapper
-                            className="__headerWrapper"
-                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                            className="__mainWrapper"
+                            from={{ transform: 'translateY(-20%)', opacity: 0 }}
                             to={{
-                                transform: isLoaded ? 'translateY(0)' : 'translateY(-100%)',
+                                transform: isLoaded ? 'translateY(0)' : 'translateY(-20%)',
                                 opacity: isLoaded ? 1 : 0,
                             }}
                             config={{ mass: 1, tension: 170, friction: 26 }}
                         >
-                            <Header />
+                            {children}
                         </AnimatedWrapper>
-                    )}
-                    <AnimatedWrapper
-                        className="__mainWrapper"
-                        from={{ transform: 'translateY(-20%)', opacity: 0 }}
-                        to={{
-                            transform: isLoaded ? 'translateY(0)' : 'translateY(-20%)',
-                            opacity: isLoaded ? 1 : 0,
-                        }}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                    >
-                        {children}
-                    </AnimatedWrapper>
-                    {!isPrivate && (
-                        <AnimatedWrapper
-                            className="__footerWrapper"
-                            from={{ transform: 'translateY(100%)', opacity: 0 }}
-                            to={{
-                                transform: isLoaded ? 'translateY(0)' : 'translateY(100%)',
-                                opacity: isLoaded ? 1 : 0,
-                            }}
-                            config={{ mass: 1, tension: 170, friction: 26 }}
-                        >
-                            <Footer />
-                        </AnimatedWrapper>
-                    )}
-                    <SearchModal />
+                        {!isPrivate && (
+                            <AnimatedWrapper
+                                className="__footerWrapper"
+                                from={{ transform: 'translateY(100%)', opacity: 0 }}
+                                to={{
+                                    transform: isLoaded ? 'translateY(0)' : 'translateY(100%)',
+                                    opacity: isLoaded ? 1 : 0,
+                                }}
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                            >
+                                <Footer />
+                            </AnimatedWrapper>
+                        )}
+                        <SearchModal />
+                        <GlobalOverlay />
+                    </OverlayProvider>
                 </SearchModalProvider>
             </HeaderThemeProvider>
         </LoadingContext.Provider>

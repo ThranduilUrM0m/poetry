@@ -10,7 +10,7 @@ import * as Yup from 'yup';
 import * as stringSimilarity from 'string-similarity';
 import SimpleBar from 'simplebar-react';
 import FormField from '@/components/ui/FormField';
-import Overlay from '@/components/ui/Overlay';
+import { useOverlay } from '@/context/OverlayContext';
 import SearchResults from '@/components/ui/SearchResults';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { SearchSuggestion } from '@/types/search';
@@ -57,7 +57,7 @@ const calculateViewScore = (article: Article): number => {
 };
 
 const calculateUpvoteScore = (article: Article): number => {
-    const upvotesCount = article.votes?.filter(vote => vote.direction === 'up').length || 0;
+    const upvotesCount = article.votes?.filter((vote) => vote.direction === 'up').length || 0;
     const createdAt = new Date(article.createdAt!);
     const now = new Date();
     const daysSincePublication = Math.floor(
@@ -88,8 +88,8 @@ const calculateTrendingScore = (article: Article): number => {
 const getAttractionScore = (article: Article): number => {
     const viewsCount = _.get(article, 'views.length', 0);
     const commentsCount = _.get(article, 'comments.length', 0);
-    const upvotesCount = article.votes?.filter(vote => vote.direction === 'up').length || 0;
-    const downvotesCount = article.votes?.filter(vote => vote.direction === 'down').length || 0;
+    const upvotesCount = article.votes?.filter((vote) => vote.direction === 'up').length || 0;
+    const downvotesCount = article.votes?.filter((vote) => vote.direction === 'down').length || 0;
     let score: number = viewsCount + 2 * commentsCount + 3 * upvotesCount - 2 * downvotesCount;
     if (article.isFeatured) {
         score *= 1.5;
@@ -225,9 +225,8 @@ export default function SearchModal(): JSX.Element | null {
     const articles = useSelector(selectArticles);
     const isLoading = useSelector(selectIsLoading);
     const error = useSelector(selectError);
+    const { showOverlay, hideOverlay } = useOverlay();
     const modalRef = useRef<HTMLDivElement>(null);
-
-    /* const overlayRef = useRef<HTMLDivElement>(null); */
 
     // -----------------------------------------------------------------------------
     // Pagination: (Declared only once)
@@ -268,7 +267,10 @@ export default function SearchModal(): JSX.Element | null {
             if (filters.initialSuggestions) {
                 setSelectedSuggestions(filters.initialSuggestions);
                 // Filter articles based on initial suggestions
-                const filteredArticles = filterArticlesBySuggestions(articles, filters.initialSuggestions);
+                const filteredArticles = filterArticlesBySuggestions(
+                    articles,
+                    filters.initialSuggestions
+                );
                 setArticleSuggestions(filteredArticles);
                 const availableSuggestions = generateSearchSuggestions(filteredArticles);
                 const compatibleSuggestions = getCompatibleSuggestions(
@@ -302,7 +304,7 @@ export default function SearchModal(): JSX.Element | null {
     const generateSearchSuggestions = (articles: Article[]): SearchSuggestion[] => {
         const createSuggestion = (
             id: string,
-            type: 'title' | 'category' | 'author' | 'tag',  // Valid SuggestionType values
+            type: 'title' | 'category' | 'author' | 'tag', // Valid SuggestionType values
             title: string,
             article: Article,
             priority: number,
@@ -311,9 +313,9 @@ export default function SearchModal(): JSX.Element | null {
             _id: id,
             title: _.startCase(title),
             type,
-            sourceType: 'Article' as const,  // Required by the discriminated union
-            source: article,  // Must match sourceType ('Article')
-            priority,  // Now required by BaseSuggestion
+            sourceType: 'Article' as const, // Required by the discriminated union
+            source: article, // Must match sourceType ('Article')
+            priority, // Now required by BaseSuggestion
             icon,
         });
         const uniqueTitles = new Set(articles.map((a) => _.startCase(a.title)));
@@ -505,33 +507,42 @@ export default function SearchModal(): JSX.Element | null {
         setCurrentPage(1);
     }, [articles, sortOption, timeFrameOption, selectedSuggestions]);
 
-    // Event listeners for Escape key and click outside.
+    // Show/hide overlay with correct close handler
     useEffect(() => {
         if (isOpen) {
-            // Only dispatch fetchArticles if articles are not already loaded
-            if (!articles || articles.length === 0) {
-                dispatch(fetchArticles());
-            }
-            // Initialize suggestions once the modal is opened
-            setArticleSuggestions(articles);
-            const initialSuggestions = generateSearchSuggestions(articles);
-            setTransformedSuggestions(initialSuggestions);
-            setCurrentPage(1);
+            showOverlay({
+                zIndex: 99,
+                blurClass: '',
+                onClick: closeModal, // Always use the same handler
+            });
+        } else {
+            hideOverlay();
         }
+        return () => hideOverlay();
+    }, [isOpen, showOverlay, hideOverlay, closeModal]);
+
+    // Escape key and click outside
+    useEffect(() => {
+        if (!isOpen) return;
+
+        // Only dispatch fetchArticles if articles are not already loaded
+        if (!articles || articles.length === 0) {
+            dispatch(fetchArticles());
+        }
+        // Initialize suggestions once the modal is opened
+        setArticleSuggestions(articles);
+        const initialSuggestions = generateSearchSuggestions(articles);
+        setTransformedSuggestions(initialSuggestions);
+        setCurrentPage(1);
+
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isOpen) {
-                closeModal();
-            }
+            if (e.key === 'Escape') closeModal();
         };
-        const handleClickOutside = (event: MouseEvent) => {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                closeModal();
-            }
+        const handleClickOutside = (e: MouseEvent) => {
+            if (modalRef.current && !modalRef.current.contains(e.target as Node)) closeModal();
         };
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.addEventListener('mousedown', handleClickOutside);
-        }
+        document.addEventListener('keydown', handleEscape);
+        document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('keydown', handleEscape);
             document.removeEventListener('mousedown', handleClickOutside);
@@ -556,197 +567,190 @@ export default function SearchModal(): JSX.Element | null {
     if (!isOpen) return null;
 
     return (
-        <>
-            <Overlay isVisible={isOpen} onClick={closeModal} zIndex={20} />
-            <AnimatedWrapper
-                className="_modal__search"
-                from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
-                to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
-                config={smoothConfig}
-                ref={modalRef}
-            >
-                {/* Header */}
-                <div className="_header">
-                    <div className="_formContainer">
-                        <form>
-                            <div className="_row">
-                                <FormField
-                                    label="Search"
-                                    name="searchQuery"
-                                    type="text"
-                                    icon={<Search />}
-                                    error={
-                                        transformedSuggestions.length === 0 && searchQuery
-                                            ? 'No exact matches found, here are some suggestions.'
-                                            : errors.searchQuery?.message
-                                    }
-                                    suggestions={transformedSuggestions}
-                                    allArticles={articles}
-                                    control={control}
-                                    rules={{ required: 'This field is required' }}
-                                    onClear={handleClear}
-                                    onInputChange={handleSearch}
-                                    onSuggestionSelect={handleSuggestionSelect}
-                                    selectedSuggestions={selectedSuggestions}
-                                />
-                            </div>
-                        </form>
-                    </div>
-                    <AnimatedWrapper
-                        as="button"
-                        onClick={closeModal}
-                        aria-label="Close Search"
-                        className="__searchClose"
-                        hover={{
-                            from: { transform: 'translateX(-1%)', opacity: 0.5 },
-                            to: { transform: 'translateX(0)', opacity: 1 },
-                        }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
-                        config={smoothConfig}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                            <g>
-                                <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
-                                <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
-                            </g>
-                        </svg>
-                        Esc
-                    </AnimatedWrapper>
-                </div>
-
-                {/* Body */}
-                <div className="_body">
-                    {isLoading && <p>Loading articles...</p>}
-                    {error && <p className="text-red-500">Error: {error}</p>}
-                    <div className="__suggestions">
-                        <SimpleBar
-                            className="_SimpleBar"
-                            forceVisible="y"
-                            autoHide={false}
-                            style={{ maxHeight: '20vh' }}
-                        >
-                            {selectedSuggestions.length > 0 && (
-                                <AnimatedWrapper
-                                    className="__suggestions-content"
-                                    from={{ opacity: 0 }}
-                                    to={{ opacity: 1 }}
-                                    config={smoothConfig}
-                                >
-                                    <div className="selected-header">
-                                        <h3>Selected Filters</h3>
-                                        <button
-                                            onClick={handleClearAllSuggestions}
-                                            className="clear-all"
-                                        >
-                                            Clear All
-                                        </button>
-                                    </div>
-                                    <div className="selected-tags">
-                                        {selectedSuggestions.map((suggestion) => (
-                                            <AnimatedWrapper
-                                                key={suggestion._id}
-                                                className={`selected-tag ${suggestion.type}`}
-                                                from={{ scale: 0.8, opacity: 0 }}
-                                                to={{ scale: 1, opacity: 1 }}
-                                                config={smoothConfig}
-                                                hover={{
-                                                    from: { scale: 1 },
-                                                    to: { scale: 1.05 },
-                                                }}
-                                            >
-                                                {suggestion.icon}
-                                                <span
-                                                    lang={
-                                                        containsArabic(suggestion.title)
-                                                            ? 'ar'
-                                                            : 'en'
-                                                    }
-                                                >
-                                                    {suggestion.title}
-                                                </span>
-                                                <button
-                                                    onClick={() =>
-                                                        handleRemoveSuggestion(suggestion)
-                                                    }
-                                                    className="remove-tag"
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            </AnimatedWrapper>
-                                        ))}
-                                    </div>
-                                </AnimatedWrapper>
-                            )}
-                        </SimpleBar>
-
-                        {/* FILTERS DROPDOWNS */}
-                        <form className="__filters">
-                            <div className="_row">
-                                <FormField
-                                    control={control}
-                                    icon={<ArrowLeftRight />}
-                                    name="sortOption"
-                                    type="select"
-                                    options={[
-                                        { value: 'trending', label: 'Trending' },
-                                        { value: 'mostViewed', label: 'Most Viewed' },
-                                        { value: 'topRated', label: 'Top Rated' },
-                                        { value: 'mostRecent', label: 'Most Recent' },
-                                        { value: 'mostRelevant', label: 'Most Relevant' },
-                                    ]}
-                                    rules={{ required: true }}
-                                />
-                                <FormField
-                                    control={control}
-                                    icon={<Timer />}
-                                    name="timeFrameOption"
-                                    type="select"
-                                    options={[
-                                        { value: '24h', label: 'Last 24 hours' },
-                                        { value: '7d', label: 'Last 7 days' },
-                                        { value: '30d', label: 'Last 30 days' },
-                                        { value: '6m', label: 'Last 6 months' },
-                                        { value: 'all', label: 'All time' },
-                                    ]}
-                                    rules={{ required: true }}
-                                />
-                            </div>
-                        </form>
-                    </div>
-                    <SearchResults
-                        articleSuggestions={getPaginatedArticles(articleSuggestions)}
-                        onSearchClose={closeModal}
-                    />
-                </div>
-
-                {/* Footer */}
-                <div className="_footer">
-                    <div className="results-info">
-                        <div>
-                            Showing&nbsp;
-                            <strong>{currentPage * cardsPerPage - cardsPerPage + 1}</strong>
-                            &nbsp;to&nbsp;
-                            <strong>
-                                {Math.min(currentPage * cardsPerPage, articleSuggestions.length)}
-                            </strong>
-                            &nbsp;of&nbsp;
-                            <strong>{articleSuggestions.length}</strong>&nbsp;articles.
+        <AnimatedWrapper
+            className="_modal__search"
+            from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
+            to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
+            config={smoothConfig}
+            ref={modalRef}
+        >
+            {/* Header */}
+            <div className="_header">
+                <div className="_formContainer">
+                    <form>
+                        <div className="_row">
+                            <FormField
+                                label="Search"
+                                name="searchQuery"
+                                type="text"
+                                icon={<Search />}
+                                error={
+                                    transformedSuggestions.length === 0 && searchQuery
+                                        ? 'No exact matches found, here are some suggestions.'
+                                        : errors.searchQuery?.message
+                                }
+                                suggestions={transformedSuggestions}
+                                allArticles={articles}
+                                control={control}
+                                rules={{ required: 'This field is required' }}
+                                onClear={handleClear}
+                                onInputChange={handleSearch}
+                                onSuggestionSelect={handleSuggestionSelect}
+                                selectedSuggestions={selectedSuggestions}
+                            />
                         </div>
-                    </div>
-                    <ul className="_pageNumbers">
-                        {_.map(
-                            _.range(1, Math.ceil(articleSuggestions.length / cardsPerPage) + 1),
-                            (number) => (
-                                <li
-                                    key={number}
-                                    onClick={() => handleClickPage(number)}
-                                    className={currentPage === number ? 'current' : ''}
-                                />
-                            )
-                        )}
-                    </ul>
+                    </form>
                 </div>
-            </AnimatedWrapper>
-        </>
+                <AnimatedWrapper
+                    as="button"
+                    onClick={closeModal}
+                    aria-label="Close Search"
+                    className="__searchClose"
+                    hover={{
+                        from: { transform: 'translateX(-1%)', opacity: 0.5 },
+                        to: { transform: 'translateX(0)', opacity: 1 },
+                    }}
+                    click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
+                    config={smoothConfig}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                        <g>
+                            <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
+                            <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
+                        </g>
+                    </svg>
+                    Esc
+                </AnimatedWrapper>
+            </div>
+
+            {/* Body */}
+            <div className="_body">
+                {isLoading && <p>Loading articles...</p>}
+                {error && <p className="text-red-500">Error: {error}</p>}
+                <div className="__suggestions">
+                    <SimpleBar
+                        className="_SimpleBar"
+                        forceVisible="y"
+                        autoHide={false}
+                        style={{ maxHeight: '20vh' }}
+                    >
+                        {selectedSuggestions.length > 0 && (
+                            <AnimatedWrapper
+                                className="__suggestions-content"
+                                from={{ opacity: 0 }}
+                                to={{ opacity: 1 }}
+                                config={smoothConfig}
+                            >
+                                <div className="selected-header">
+                                    <h3>Selected Filters</h3>
+                                    <button
+                                        onClick={handleClearAllSuggestions}
+                                        className="clear-all"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                                <div className="selected-tags">
+                                    {selectedSuggestions.map((suggestion) => (
+                                        <AnimatedWrapper
+                                            key={suggestion._id}
+                                            className={`selected-tag ${suggestion.type}`}
+                                            from={{ scale: 0.8, opacity: 0 }}
+                                            to={{ scale: 1, opacity: 1 }}
+                                            config={smoothConfig}
+                                            hover={{
+                                                from: { scale: 1 },
+                                                to: { scale: 1.05 },
+                                            }}
+                                        >
+                                            {suggestion.icon}
+                                            <span
+                                                lang={
+                                                    containsArabic(suggestion.title) ? 'ar' : 'en'
+                                                }
+                                            >
+                                                {suggestion.title}
+                                            </span>
+                                            <button
+                                                onClick={() => handleRemoveSuggestion(suggestion)}
+                                                className="remove-tag"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </AnimatedWrapper>
+                                    ))}
+                                </div>
+                            </AnimatedWrapper>
+                        )}
+                    </SimpleBar>
+
+                    {/* FILTERS DROPDOWNS */}
+                    <form className="__filters">
+                        <div className="_row">
+                            <FormField
+                                control={control}
+                                icon={<ArrowLeftRight />}
+                                name="sortOption"
+                                type="select"
+                                options={[
+                                    { value: 'trending', label: 'Trending' },
+                                    { value: 'mostViewed', label: 'Most Viewed' },
+                                    { value: 'topRated', label: 'Top Rated' },
+                                    { value: 'mostRecent', label: 'Most Recent' },
+                                    { value: 'mostRelevant', label: 'Most Relevant' },
+                                ]}
+                                rules={{ required: true }}
+                            />
+                            <FormField
+                                control={control}
+                                icon={<Timer />}
+                                name="timeFrameOption"
+                                type="select"
+                                options={[
+                                    { value: '24h', label: 'Last 24 hours' },
+                                    { value: '7d', label: 'Last 7 days' },
+                                    { value: '30d', label: 'Last 30 days' },
+                                    { value: '6m', label: 'Last 6 months' },
+                                    { value: 'all', label: 'All time' },
+                                ]}
+                                rules={{ required: true }}
+                            />
+                        </div>
+                    </form>
+                </div>
+                <SearchResults
+                    articleSuggestions={getPaginatedArticles(articleSuggestions)}
+                    onSearchClose={closeModal}
+                />
+            </div>
+
+            {/* Footer */}
+            <div className="_footer">
+                <div className="results-info">
+                    <div>
+                        Showing&nbsp;
+                        <strong>{currentPage * cardsPerPage - cardsPerPage + 1}</strong>
+                        &nbsp;to&nbsp;
+                        <strong>
+                            {Math.min(currentPage * cardsPerPage, articleSuggestions.length)}
+                        </strong>
+                        &nbsp;of&nbsp;
+                        <strong>{articleSuggestions.length}</strong>&nbsp;articles.
+                    </div>
+                </div>
+                <ul className="_pageNumbers">
+                    {_.map(
+                        _.range(1, Math.ceil(articleSuggestions.length / cardsPerPage) + 1),
+                        (number) => (
+                            <li
+                                key={number}
+                                onClick={() => handleClickPage(number)}
+                                className={currentPage === number ? 'current' : ''}
+                            />
+                        )
+                    )}
+                </ul>
+            </div>
+        </AnimatedWrapper>
     );
 }

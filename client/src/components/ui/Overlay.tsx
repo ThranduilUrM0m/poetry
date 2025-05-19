@@ -9,11 +9,23 @@ interface OverlayProps {
     zIndex?: number;
 }
 
-export default function Overlay({ isVisible, onClick, className = '', zIndex = 10 }: OverlayProps) {
+export default function Overlay({
+    isVisible,
+    onClick,
+    className = '',
+    zIndex = 100,
+}: OverlayProps) {
     return (
         <AnimatedWrapper
             as="div"
-            style={{ zIndex }}
+            style={{
+                zIndex,
+                position: 'fixed',
+                inset: 0,
+                width: '100vw',
+                height: '100vh',
+                pointerEvents: isVisible ? 'auto' : 'none',
+            }}
             onClick={onClick}
             className={`__overlay ${className}`}
             from={{ opacity: 0, display: 'none' }}
@@ -21,9 +33,9 @@ export default function Overlay({ isVisible, onClick, className = '', zIndex = 1
                 opacity: isVisible ? 1 : 0,
                 display: isVisible ? 'block' : 'none',
             }}
-            config={{ mass: 1, tension: 210, friction: 20 }} // Optimized spring configuration
-            hover={isVisible ? { to: { transform: 'scale(1.05)' } } : undefined} // Subtle hover effect
-            click={isVisible ? { to: { transform: 'scale(0.95)' } } : undefined} // Subtle click effect
+            config={{ mass: 1, tension: 210, friction: 20 }}
+            hover={isVisible ? { to: { transform: 'scale(1.05)' } } : undefined}
+            click={isVisible ? { to: { transform: 'scale(0.95)' } } : undefined}
         />
     );
 }

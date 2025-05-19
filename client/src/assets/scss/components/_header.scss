@@ -1,16 +1,38 @@
+@use '../abstracts/mq';
+
 .__headerWrapper,
 .header {
-    @apply z-30 fixed top-0 left-0 w-full h-[10vh] bg-[rgb(var(--white)/0)] backdrop-blur-[.25vh];
+    // Base (mobile/default) styles
+    @apply z-30 fixed top-0 left-0 w-full h-[15vh] bg-[rgb(var(--white)/0)] backdrop-blur-[.75vh];
+
+    // sm breakpoint (>= 640px): small tablets and up
+    @include mq.mq($from: sm) {
+        @apply h-[10vh] backdrop-blur-[.25vh];
+    }
 
     &__nav {
-        @apply h-full flex items-center justify-between px-[5vh];
+        // Base nav layout (mobile/default)
+        @apply h-full flex items-center justify-between;
+
+        // sm breakpoint (>= 640px): small tablets and up
+        @include mq.mq($from: sm) {
+            @apply px-[5vh];
+        }
 
         &-left,
         &-right {
+            // Base left/right section (mobile/default)
             @apply relative h-full flex items-center justify-center;
         }
 
         &-left {
+            @apply w-[30vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply w-[20vh];
+            }
+
             &-hamburger {
                 .__background {
                     @apply fixed w-[75vh] h-[100vh] top-0 left-0 bg-[rgb(var(--white)/1)];
@@ -56,13 +78,30 @@
 
             &-logo,
             &-hamburger {
-                @apply z-20 w-[10vh] h-[10vh] flex items-center justify-center relative;
+                @apply z-20 w-[15vh] h-[15vh] flex items-center justify-center relative;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply w-[10vh] h-[10vh];
+                }
             }
         }
 
         &-right {
+            @apply w-[15vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply w-[10vh];
+            }
+
             &-search {
-                @apply h-full w-[10vh] flex items-center justify-center relative overflow-hidden;
+                @apply h-full w-[15vh] flex items-center justify-center relative overflow-hidden;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply w-[10vh];
+                }
 
                 &.__white svg {
                     @apply stroke-[rgb(var(--white)/1)];
@@ -73,7 +112,12 @@
                 }
 
                 svg {
-                    @apply w-[4vh] h-[4vh] stroke-[3] stroke-[rgb(var(--white)/1)];
+                    @apply w-[5.5vh] h-[5.5vh] stroke-[3] stroke-[rgb(var(--white)/1)];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[4vh] h-[4vh];
+                    }
                 }
             }
         }

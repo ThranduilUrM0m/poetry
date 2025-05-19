@@ -16,6 +16,7 @@ import LongArrow from '@/components/ui/LongArrow';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
+import { useMedia } from 'react-use';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -47,6 +48,7 @@ interface SliderSettings {
 }
 
 export default function HomePage() {
+    const isSm = useMedia('(min-width: 640px)');
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles);
@@ -129,15 +131,25 @@ export default function HomePage() {
 
     return (
         <main className="home">
-            <SectionObserver theme="light">
+            <SectionObserver theme={isSm ? 'light' : 'dark'}>
                 <section className="home__section-1">
                     <AnimatedWrapper
                         as="div"
                         className="home__section-1-left"
-                        from={{ transform: 'translateY(-10vh) translateX(-100%)', opacity: 0 }}
+                        from={{
+                            transform: isSm
+                                ? 'translateY(-10vh) translateX(-100%)'
+                                : 'translateY(0) translateX(-100%)',
+                            opacity: 0,
+                        }}
                         to={
                             isReady
-                                ? { transform: 'translateY(-10vh) translateX(0)', opacity: 1 }
+                                ? {
+                                      transform: isSm
+                                          ? 'translateY(-10vh) translateX(0)'
+                                          : 'translateY(0) translateX(0)',
+                                      opacity: 1,
+                                  }
                                 : {}
                         }
                         config={{ mass: 1, tension: 170, friction: 26 }}
@@ -183,10 +195,20 @@ export default function HomePage() {
                     <AnimatedWrapper
                         as="div"
                         className="home__section-1-right"
-                        from={{ transform: 'translateY(-10vh) translateX(100%)', opacity: 0 }}
+                        from={{
+                            transform: isSm
+                                ? 'translateY(-10vh) translateX(100%)'
+                                : 'translateY(0) translateX(100%)',
+                            opacity: 0,
+                        }}
                         to={
                             isReady
-                                ? { transform: 'translateY(-10vh) translateX(0)', opacity: 1 }
+                                ? {
+                                      transform: isSm
+                                          ? 'translateY(-10vh) translateX(0)'
+                                          : 'translateY(0) translateX(0)',
+                                      opacity: 1,
+                                  }
                                 : {}
                         }
                         config={{ mass: 1, tension: 170, friction: 26 }}
