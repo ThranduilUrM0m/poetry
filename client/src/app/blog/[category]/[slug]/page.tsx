@@ -53,7 +53,7 @@ import {
     clearCommentState,
     selectApprovedComments,
 } from '@/slices/commentSlice';
-
+import { extractHTMLContent } from '@/utils/extractHTMLContent';
 import 'quill/dist/quill.snow.css';
 import { VoteStateManager } from '@/utils/voteStateManager';
 
@@ -84,18 +84,11 @@ const validationSchema = Yup.object().shape({
     ),
 }) as Yup.ObjectSchema<FormData>;
 
-export function extractHTMLContent(htmlContent: string): string {
-    if (!htmlContent) return '';
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    return tempDiv.innerHTML;
-}
-
-export interface CommentTree extends Comment {
+interface CommentTree extends Comment {
     children?: CommentTree[];
 }
 
-export const buildCommentTree = (comments: Comment[]): CommentTree[] => {
+const buildCommentTree = (comments: Comment[]): CommentTree[] => {
     const commentMap: { [id: string]: CommentTree } = {};
     const roots: CommentTree[] = [];
 

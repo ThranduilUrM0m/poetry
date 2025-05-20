@@ -187,7 +187,7 @@ const useCommentsAnalytics = () => {
     };
 };
 
-export const usePopularCategories = () => {
+const usePopularCategories = () => {
     const articles = useSelector(selectArticles);
 
     const getPopularCategories = React.useMemo(() => {

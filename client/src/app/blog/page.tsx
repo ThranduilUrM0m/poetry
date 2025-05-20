@@ -52,7 +52,7 @@ interface SliderSettings {
  * and returns a Next.js <Image> component.
  * If no image is found, returns null.
  */
-export function extractFirstImage(htmlContent: string): JSX.Element | null {
+function extractFirstImage(htmlContent: string): JSX.Element | null {
     if (!htmlContent) return null;
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
@@ -72,7 +72,7 @@ export function extractFirstImage(htmlContent: string): JSX.Element | null {
  * If maxLength is provided, returns a substring of that length with ellipsis.
  * Otherwise, splits the text by punctuation and returns the first sentence.
  */
-export function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
+function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
     if (!htmlContent) return '';
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
