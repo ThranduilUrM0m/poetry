@@ -1,8 +1,6 @@
-// filepath: functions/index.js
 const functions = require('firebase-functions');
 const next = require('next');
 const express = require('express');
-const path = require('path');
 
 const dev = false;
 const app = next({
@@ -13,8 +11,8 @@ const handle = app.getRequestHandler();
 
 const server = express();
 
-// SSR handler for all non-API routes
-server.all('*', (req, res) => {
+// Make sure paths are properly formatted
+server.get('*', (req, res) => {
     return handle(req, res);
 });
 

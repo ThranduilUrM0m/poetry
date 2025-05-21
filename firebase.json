@@ -3,12 +3,19 @@
         "public": "client/public",
         "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
         "rewrites": [
-            { "source": "/api/**", "destination": "https://poetry-g71n.onrender.com/api/**" },
-            { "source": "**", "function": "nextjsFunc" }
+            {
+                "source": "/api/**",
+                "destination": "https://poetry-g71n.onrender.com/api/**"
+            },
+            {
+                "source": "**",
+                "function": "nextjsFunc"
+            }
         ]
     },
     "functions": {
         "source": "functions",
-        "runtime": "nodejs22"
+        "runtime": "nodejs22",
+        "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
 }
