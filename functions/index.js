@@ -5,15 +5,16 @@ const express = require('express');
 const dev = false;
 const app = next({
     dev,
-    conf: { distDir: '../client/.next' }
-});
-const handle = app.getRequestHandler();
-
-const server = express();
-
-// Make sure paths are properly formatted
-server.get('*', (req, res) => {
-    return handle(req, res);
+    conf: { distDir: 'client/.next' } // Changed path
 });
 
-exports.nextjsFunc = functions.https.onRequest(server);
+exports.nextjsFunc = functions.https.onRequest(async (req, res) => {
+    try {
+        await app.prepare();
+        const handle = app.getRequestHandler();
+        return handle(req, res);
+    } catch (error) {
+        console.error('Error occurred:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
