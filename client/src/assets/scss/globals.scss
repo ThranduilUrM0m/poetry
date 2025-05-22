@@ -33,6 +33,10 @@ otherwise it wouldn't know em, cause they aren't global, @import used to do that
 @tailwind components;
 @tailwind utilities;
 
+* {
+    border: .25vh solid rgb(var(--primary)/1) !important;
+}
+
 body {
     @apply relative m-0 font-latin text-[.875rem] text-[rgb(var(--text)/1)] bg-[rgb(var(--background)/1)] antialiased tracking-wide scroll-smooth overflow-x-hidden;
 

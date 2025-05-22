@@ -26,7 +26,7 @@
         }
 
         &-left {
-            @apply w-[30vh];
+            @apply w-[15vh];
 
             // sm breakpoint (>= 640px): small tablets and up
             @include mq.mq($from: sm) {
@@ -35,7 +35,12 @@
 
             &-hamburger {
                 .__background {
-                    @apply fixed w-[75vh] h-[100vh] top-0 left-0 bg-[rgb(var(--white)/1)];
+                    @apply fixed w-full h-[100vh] top-0 left-0 bg-[rgb(var(--white)/1)];
+                    
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[75vh];
+                    }
                 }
 
                 .__ul {
@@ -88,7 +93,7 @@
         }
 
         &-right {
-            @apply w-[15vh];
+            @apply w-[7.5vh];
 
             // sm breakpoint (>= 640px): small tablets and up
             @include mq.mq($from: sm) {
@@ -112,7 +117,7 @@
                 }
 
                 svg {
-                    @apply w-[5.5vh] h-[5.5vh] stroke-[3] stroke-[rgb(var(--white)/1)];
+                    @apply w-[calc(100%/2)] h-[calc(100%/2)] stroke-[3] stroke-[rgb(var(--white)/1)];
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {

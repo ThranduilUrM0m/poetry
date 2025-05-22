@@ -1,12 +1,12 @@
 'use client';
-import React, { forwardRef, ReactElement, useRef, useState, useEffect } from 'react';
+import React, { forwardRef, ReactElement, useRef, useState, useEffect, useMemo } from 'react';
 import {
     animated,
     useSpring,
     useSpringRef,
     SpringConfig,
     SpringValue,
-    useTrail
+    useTrail,
 } from '@react-spring/web';
 import type { CSSProperties } from 'react';
 import { useGesture } from '@use-gesture/react';
@@ -74,6 +74,7 @@ type AnimationProps = {
         to: React.CSSProperties;
         config?: SpringConfig;
         delay?: number;
+        keys?: string[]; // Add this line
     };
 };
 
@@ -172,11 +173,28 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     }));
 
     // Handle trail animations
+    const trailConfig = useMemo(
+        () => ({
+            from: trail?.from || {},
+            to: trail?.to || {},
+            config: trail?.config,
+            delay: trail?.delay,
+        }),
+        [trail?.from, trail?.to, trail?.config, trail?.delay]
+    );
+
     const trailSprings = useTrail(trail ? trail.items.length : 0, {
-        from: trail?.from || {},
-        to: trail?.to || {},
-        config: trail?.config,
-        delay: trail?.delay,
+        ...trailConfig,
+        // Use optional chaining and provide a default
+        key: trail?.keys?.[0] || 'default-trail',
+        from: {
+            ...trailConfig.from,
+            scale: trailConfig.from?.scale || 1,
+        },
+        to: {
+            ...trailConfig.to,
+            scale: trailConfig.to?.scale || 1,
+        },
     });
 
     // Set initial state on mount.
@@ -224,44 +242,41 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     }, []);
 
     // Handle parent hover animations.
+    const handleParentHover = React.useCallback(
+        (hovering: boolean) => {
+            if (hover) {
+                if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+                const hoverDelay = hover.delay || 0;
+                hoverTimeout.current = setTimeout(() => {
+                    api.start({
+                        ...(hovering ? hover.to : hover.from),
+                        config,
+                        immediate: false,
+                    });
+                }, hoverDelay);
+            }
+        },
+        [hover, api, config]
+    );
+
     useEffect(() => {
         if (parentHoverSelector) {
             const parentElement = document.querySelector(parentHoverSelector);
             if (parentElement) {
-                const handleParentHover = (hovering: boolean) => {
-                    if (hover) {
-                        if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
-                        const hoverDelay = hover.delay || 0;
-                        hoverTimeout.current = setTimeout(() => {
-                            api.start({
-                                ...(hovering ? hover.to : hover.from),
-                                config,
-                                immediate: false,
-                            });
-                        }, hoverDelay);
-                    }
-                };
-                parentElement.addEventListener('mouseenter', () => handleParentHover(true));
-                parentElement.addEventListener('mouseleave', () => handleParentHover(false));
+                // Direct function references
+                const handleMouseEnter = () => handleParentHover(true);
+                const handleMouseLeave = () => handleParentHover(false);
 
-                // Listen for custom startAnimation event.
-                elementRef.current?.addEventListener('startAnimation', () => {
-                    if (hover) {
-                        api.start({ ...hover.to, config, immediate: false });
-                    }
-                });
+                parentElement.addEventListener('mouseenter', handleMouseEnter);
+                parentElement.addEventListener('mouseleave', handleMouseLeave);
+
                 return () => {
-                    parentElement.removeEventListener('mouseenter', () => handleParentHover(true));
-                    parentElement.removeEventListener('mouseleave', () => handleParentHover(false));
-                    elementRef.current?.removeEventListener('startAnimation', () => {
-                        if (hover) {
-                            api.start({ ...hover.to, config, immediate: false });
-                        }
-                    });
+                    parentElement.removeEventListener('mouseenter', handleMouseEnter);
+                    parentElement.removeEventListener('mouseleave', handleMouseLeave);
                 };
             }
         }
-    }, [parentHoverSelector, hover, api, config]);
+    }, [parentHoverSelector, handleParentHover]);
 
     const handleFocus = () => {
         if (focus) {

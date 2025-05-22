@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { config } from '@react-spring/web';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -49,24 +49,58 @@ export default function Header() {
         getItemDelay: (index: number) => index * 100, // New helper function
     };
 
-    const menuItemElements = menuItems.map((item) => {
-        return (
-            <AnimatedWrapper
-                as="li"
-                key={item.href}
-                hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
-                click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
-            >
-                <Link
-                    href={item.href}
-                    className={`${pathname === item.href ? 'active' : ''}`}
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+    const handleMenuClick = useCallback(() => {
+        setIsMenuOpen(false); // Always close menu on click, don't toggle
+    }, []);
+
+    const menuItemElements = useMemo(
+        () =>
+            menuItems.map((item) => (
+                <AnimatedWrapper
+                    as="li"
+                    key={item.href}
+                    // Only keep NON-CONFLICTING animations here
+                    hover={{ from: { scale: 1 }, to: { scale: 1.1 } }}
+                    click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
                 >
-                    {item.label}
-                </Link>
-            </AnimatedWrapper>
-        );
-    });
+                    <Link
+                        href={item.href}
+                        className={`${pathname === item.href ? 'active' : ''}`}
+                        onClick={handleMenuClick}
+                    >
+                        {item.label}
+                    </Link>
+                </AnimatedWrapper>
+            )),
+        [pathname, handleMenuClick]
+    );
+
+    // Updated menu animation config
+    const menuAnimation = useMemo(
+        () => ({
+            from: {
+                opacity: 0,
+                // Animate container properties only
+                transform: 'translateY(-20px)',
+            },
+            to: {
+                opacity: isMenuOpen ? 1 : 0,
+                transform: isMenuOpen ? 'translateY(0)' : 'translateY(-20px)',
+            },
+            config: smoothConfig,
+            trail: {
+                items: menuItemElements,
+                from: { opacity: 0, transform: 'translateX(-50px)' },
+                to: {
+                    opacity: isMenuOpen ? 1 : 0,
+                    transform: isMenuOpen ? 'translateX(0)' : 'translateX(-50px)',
+                },
+                // Add unique keys to prevent conflict with child animations
+                keys: ['menu-trail'],
+            },
+        }),
+        [isMenuOpen, menuItemElements]
+    );
 
     // Show/hide overlay with correct close handler
     useEffect(() => {
@@ -125,32 +159,15 @@ export default function Header() {
                             <AnimatedWrapper
                                 as="ul"
                                 className="__ul"
-                                from={{ opacity: 0 }}
-                                to={{ opacity: isMenuOpen ? 1 : 0 }}
-                                config={smoothConfig}
-                                delay={staggerConfig.backgroundDuration * 0.5} // Start halfway through background animation
-                                trail={{
-                                    items: menuItemElements,
-                                    from: {
-                                        transform: 'translateX(-50px)',
-                                        opacity: 0,
-                                    },
-                                    to: {
-                                        transform: isMenuOpen
-                                            ? 'translateX(0)'
-                                            : 'translateX(-50px)',
-                                        opacity: isMenuOpen ? 1 : 0,
-                                    },
-                                    config: smoothConfig,
-                                    delay: isMenuOpen
-                                        ? staggerConfig.backgroundDuration
-                                        : staggerConfig.backgroundDuration +
-                                          staggerConfig.itemStaggerDelay * (menuItems.length - 1),
+                                {...menuAnimation}
+                                // Add this to prevent child animation conflicts
+                                animationStyle={{
+                                    // Explicitly specify which properties to animate
+                                    opacity: menuAnimation.to.opacity,
+                                    transform: menuAnimation.to.transform,
                                 }}
                             >
-                                {menuItemElements.map((element) => {
-                                    return element;
-                                })}
+                                {menuItemElements}
                             </AnimatedWrapper>
                         </AnimatedWrapper>
                         {/* Hamburger button */}
