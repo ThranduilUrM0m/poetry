@@ -1,7 +1,12 @@
 @use '../abstracts/mq';
 
 .__footerWrapper {
-    @apply bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-10vh)] h-[75vh] m-[5vh];
+    @apply bg-[rgb(var(--white)/1)] absolute bottom-0 left-0 w-[calc(100%-5vh)] h-[90vh] m-[2.5vh] overflow-hidden;
+
+    // sm breakpoint (>= 640px): small tablets and up
+    @include mq.mq($from: sm) {
+        @apply w-[calc(100%-10vh)] h-[75vh] m-[5vh];
+    }
 
     .footer {
         @apply flex flex-col w-full h-full;
@@ -34,7 +39,7 @@
                 }
 
                 h2 {
-                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[2.5vh] pl-[5vh];
+                    @apply self-start text-left text-[rgb(var(--text)/.45)] text-[2.5vh] leading-[1.2] mb-[2.5vh];
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
@@ -47,7 +52,7 @@
                 }
 
                 .newsletter {
-                    @apply relative flex justify-start items-center w-full h-fit pl-[5vh] pr-[5vh];
+                    @apply relative flex justify-start items-center w-full h-fit;
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
@@ -111,11 +116,11 @@
                 }
 
                 h2 {
-                    @apply text-6xl font-abril font-medium text-[rgb(var(--text)/.5)] mb-[5vh];
+                    @apply text-6xl font-abril font-medium text-[rgb(var(--text)/.5)] mb-[2.5vh];
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply text-8xl;
+                        @apply text-8xl mb-[5vh];
                     }
 
                     &::before {
@@ -125,18 +130,18 @@
                 }
 
                 &-links {
-                    @apply relative h-auto w-full mt-auto flex;
+                    @apply relative h-auto w-full mt-auto flex flex-col gap-[1vh];
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply h-full mt-0;
+                        @apply h-full mt-0 flex-row gap-0;
                     }
 
                     div {
                         @apply m-0 basis-1/4;
 
                         h3 {
-                            @apply text-lg font-normal text-[rgb(var(--text)/.5)] mb-[2vh];
+                            @apply text-lg font-normal text-[rgb(var(--text)/.5)];
 
                             // sm breakpoint (>= 640px): small tablets and up
                             @include mq.mq($from: sm) {
@@ -163,11 +168,11 @@
 
                                 li {
                                     a {
-                                        @apply relative;
+                                        @apply relative my-[3.75vh];
 
                                         svg {
                                             @apply stroke-[rgb(var(--text)/.5)] w-[3vh] h-[3vh];
-                                            
+
                                             // sm breakpoint (>= 640px): small tablets and up
                                             @include mq.mq($from: sm) {
                                                 @apply w-[4vh] h-[4vh];
@@ -197,11 +202,11 @@
         }
 
         &__nav {
-            @apply h-[10vh] mx-[2vh] flex items-center justify-between border-t-[.3vh] border-[rgb(var(--text)/.25)];
+            @apply h-[10vh] mx-[2vh] flex flex-col items-center justify-between border-t-[.3vh] border-[rgb(var(--text)/.25)];
 
             // sm breakpoint (>= 640px): small tablets and up
             @include mq.mq($from: sm) {
-                @apply mx-[4vh];
+                @apply mx-[4vh] flex-row;
             }
 
             &-left,
@@ -217,7 +222,7 @@
                     @apply m-0 flex;
 
                     li {
-                        @apply flex items-center h-[15vh];
+                        @apply flex items-center h-fit text-nowrap;
 
                         // sm breakpoint (>= 640px): small tablets and up
                         @include mq.mq($from: sm) {
@@ -251,6 +256,8 @@
                         @include mq.mq($from: sm) {
                             @apply gap-[1vh];
                         }
+
+                        span {}
                     }
                 }
 

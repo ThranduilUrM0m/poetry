@@ -9,6 +9,7 @@ import { config } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import Newsletter from '@/components/ui/Newsletter';
 import { useLoading } from '@/context/LoadingContext';
+import { useMedia } from 'react-use';
 
 const AboutItems = [
     { label: 'About me', href: '/about' },
@@ -30,6 +31,7 @@ const SocialItems = [
 export default function Footer() {
     const { isLoaded } = useLoading();
     const pathname = usePathname();
+    const isSm = useMedia('(min-width: 640px)');
 
     // Define the smooth beautiful configuration
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
@@ -186,7 +188,7 @@ export default function Footer() {
                     >
                         <li>
                             Copyrights <Copyright size={16} />
-                            <span>{format(new Date(), 'yyyy')}</span> - With <Heart size={16} />{' '}
+                            <span>{format(new Date(), 'yyyy')}</span> {isSm && '-'} With <Heart size={16} />{' '}
                             from boutaleb.
                         </li>
                     </AnimatedWrapper>

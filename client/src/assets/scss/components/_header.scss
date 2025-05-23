@@ -3,7 +3,7 @@
 .__headerWrapper,
 .header {
     // Base (mobile/default) styles
-    @apply z-30 fixed top-0 left-0 w-full h-[15vh] bg-[rgb(var(--white)/0)] backdrop-blur-[.75vh];
+    @apply z-30 fixed top-0 left-0 w-[100vw] h-[15vh] bg-[rgb(var(--white)/0)] backdrop-blur-[.75vh];
 
     // sm breakpoint (>= 640px): small tablets and up
     @include mq.mq($from: sm) {
