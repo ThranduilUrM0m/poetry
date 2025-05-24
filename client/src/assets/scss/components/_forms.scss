@@ -66,7 +66,8 @@ form {
 
             // Form Control
             ._formControl {
-                @apply relative z-40 h-full w-full;
+                /* Had to remove the z-40 to not overlap the SimpleBar in the SearchModal */
+                @apply relative h-full w-full;
 
                 ._icon {
                     @apply z-0 pointer-events-none absolute top-[3.5vh] left-0 -translate-y-1/2 mx-[1.75vh] w-[3.5vh] h-[3.5vh] flex items-center justify-center z-50;
@@ -115,7 +116,7 @@ form {
 
                         &>div {
                             ._SimpleBar {
-                                @apply shadow-lg absolute z-10 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+                                @apply shadow-lg absolute z-50 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
 
                                 &::before {
                                     content: '';
@@ -188,7 +189,7 @@ form {
                                 }
 
                                 ._SimpleBar {
-                                    @apply shadow-lg absolute z-10 w-[25vh] translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+                                    @apply shadow-lg absolute z-50 w-[25vh] translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
 
                                     &::before {
                                         content: '';
@@ -331,7 +332,7 @@ form {
 
             // SimpleBar Suggestions
             ._SimpleBar {
-                @apply absolute z-10 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
+                @apply absolute z-50 w-full translate-y-[1vh] bg-[rgb(var(--white)/1)] border-[.25vh] border-[rgb(var(--hoverGray)/.75)];
                 box-shadow: 1.25vh 1.25vh 4.5vh -2.5vh rgb(var(--text)/.25);
 
                 &::before {

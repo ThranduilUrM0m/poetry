@@ -4,6 +4,7 @@ import SimpleBar from 'simplebar-react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import ArticleCard from '@/components/ui/ArticleCard';
 import { Article } from '@/types/article';
+import { useMedia } from 'react-use';
 
 interface SearchResultsProps {
     readonly articleSuggestions: ReadonlyArray<Article>;
@@ -21,6 +22,7 @@ export default function SearchResults({
     articleSuggestions,
     onSearchClose,
 }: Readonly<SearchResultsProps>) {
+    const isSm = useMedia('(min-width: 640px)');
     const router = useRouter();
 
     const handleArticleClick = (article: Article) => {
@@ -42,7 +44,7 @@ export default function SearchResults({
                     className="_SimpleBar"
                     forceVisible="y"
                     autoHide={false}
-                    style={{ maxHeight: '42.5vh' }}
+                    style={{ maxHeight: isSm ? '42.5vh' : '56.5vh' }}
                 >
                     <div className="__articlesGrid-content">
                         {articleSuggestions.map((article, index) => (

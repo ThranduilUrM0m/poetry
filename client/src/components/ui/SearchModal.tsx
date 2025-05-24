@@ -17,6 +17,7 @@ import { SearchSuggestion } from '@/types/search';
 import { Article } from '@/types/article';
 import _ from 'lodash';
 import { useSearchModal } from '@/context/SearchModalContext';
+import { useMedia } from 'react-use';
 
 // Define sort and timeframe options explicitly:
 type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
@@ -220,6 +221,7 @@ const getCompatibleSuggestions = (
 // SearchModal Component
 // -----------------------------------------------------------------------------
 export default function SearchModal(): JSX.Element | null {
+    const isSm = useMedia('(min-width: 640px)');
     const { isOpen, closeModal, filters } = useSearchModal();
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles);
@@ -569,8 +571,16 @@ export default function SearchModal(): JSX.Element | null {
     return (
         <AnimatedWrapper
             className="_modal__search"
-            from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
-            to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
+            from={{
+                opacity: 0,
+                transform: isSm
+                    ? 'translateY(-50px) translateX(-50%)'
+                    : 'translateY(-50px) translateX(0)',
+            }}
+            to={{
+                opacity: 1,
+                transform: isSm ? 'translateY(0) translateX(-50%)' : 'translateY(0) translateX(0)',
+            }}
             config={smoothConfig}
             ref={modalRef}
         >
@@ -619,7 +629,7 @@ export default function SearchModal(): JSX.Element | null {
                             <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
                         </g>
                     </svg>
-                    Esc
+                    {isSm && 'Esc'}
                 </AnimatedWrapper>
             </div>
 
@@ -689,7 +699,7 @@ export default function SearchModal(): JSX.Element | null {
                         <div className="_row">
                             <FormField
                                 control={control}
-                                icon={<ArrowLeftRight />}
+                                icon={isSm && <ArrowLeftRight />}
                                 name="sortOption"
                                 type="select"
                                 options={[
@@ -703,7 +713,7 @@ export default function SearchModal(): JSX.Element | null {
                             />
                             <FormField
                                 control={control}
-                                icon={<Timer />}
+                                icon={isSm && <Timer />}
                                 name="timeFrameOption"
                                 type="select"
                                 options={[
@@ -739,16 +749,26 @@ export default function SearchModal(): JSX.Element | null {
                     </div>
                 </div>
                 <ul className="_pageNumbers">
-                    {_.map(
-                        _.range(1, Math.ceil(articleSuggestions.length / cardsPerPage) + 1),
-                        (number) => (
+                    {(() => {
+                        const totalPages = Math.ceil(articleSuggestions.length / cardsPerPage);
+                        const visiblePages = [];
+
+                        if (currentPage > 1) {
+                            visiblePages.push(currentPage - 1); // Previous
+                        }
+                        visiblePages.push(currentPage); // Current
+                        if (currentPage < totalPages) {
+                            visiblePages.push(currentPage + 1); // Next
+                        }
+
+                        return visiblePages.map((number) => (
                             <li
                                 key={number}
                                 onClick={() => handleClickPage(number)}
                                 className={currentPage === number ? 'current' : ''}
                             />
-                        )
-                    )}
+                        ));
+                    })()}
                 </ul>
             </div>
         </AnimatedWrapper>

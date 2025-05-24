@@ -101,11 +101,11 @@
             }
 
             &-search {
-                @apply h-full w-[15vh] flex items-center justify-center relative overflow-hidden;
+                @apply h-full w-[15vh] flex items-center justify-start relative overflow-hidden;
 
                 // sm breakpoint (>= 640px): small tablets and up
                 @include mq.mq($from: sm) {
-                    @apply w-[10vh];
+                    @apply w-[10vh] justify-center;
                 }
 
                 &.__white svg {

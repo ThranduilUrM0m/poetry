@@ -6,12 +6,14 @@ import { Article } from '@/types/article';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import _ from 'lodash';
 import Link from 'next/link';
+import { useMedia } from 'react-use';
 
 interface ArticleCardProps {
     readonly article: Article;
 }
 
 export default function ArticleCard({ article }: ArticleCardProps) {
+    const isSm = useMedia('(min-width: 640px)');
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
     const extractFirstPhrase = (htmlContent: string) => {
@@ -63,7 +65,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                     )}
 
                     {/* Username span - only shows if username exists */}
-                    {!_.isEmpty(article.author.username) && (
+                    {(!_.isEmpty(article.author.username) && isSm) && (
                         <span
                             lang={containsArabic(article.author.username) ? 'ar' : 'en'}
                             className="username"
