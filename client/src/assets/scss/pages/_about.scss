@@ -1,3 +1,5 @@
+@use "../abstracts/mq";
+
 .about {
     @apply w-full h-full;
 
@@ -12,21 +14,43 @@
 
             &-left,
             &-right {
-                @apply relative basis-1/2;
+                @apply relative;
             }
 
             // Left Column
-            &-left {}
+            &-left {
+                @apply basis-1/2 hidden;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply block;
+                }
+            }
 
             // Right Column
             &-right {
-                @apply z-20 relative h-full flex flex-col items-center justify-between px-[5vh] py-[10vh];
+                @apply z-20 relative w-full h-full flex flex-col items-center justify-between px-[2.5vh] py-[5vh];
+                
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-1/2 px-[5vh] py-[10vh];
+                }
 
                 &-fadedText {
-                    @apply w-full h-fit text-[rgb(var(--text)/.5)] text-right text-[8.5vh] font-[600] leading-[1];
+                    @apply w-full h-fit text-[rgb(var(--text)/.5)] text-right text-[7.25vh] font-[600] leading-[1];
 
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply text-[8.5vh];
+                    }
+                    
                     b {
-                        @apply text-[15vh] leading-[.25];
+                        @apply text-[12.5vh] leading-[.25];
+                            
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply text-[15vh];
+                        }
                     }
 
                     &::before {
@@ -36,7 +60,12 @@
                 }
 
                 &-text {
-                    @apply relative w-3/4 h-fit text-right text-[2.5vh] font-[600] leading-[1.2];
+                    @apply relative w-full h-fit text-right text-[2.25vh] font-[600] leading-[1.2];
+                            
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-3/4 text-[2.5vh];
+                    }
 
                     &::before {
                         content: 'About Me.';
@@ -45,13 +74,23 @@
                 }
 
                 &-read {
-                    @apply w-3/4 h-[5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-sm font-medium translate-y-full;
+                    @apply my-[2.5vh] w-full h-[5vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] gap-2 text-lg font-medium translate-y-full;
+                            
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply my-0 w-3/4 text-sm;
+                    }
 
                     span {
                         @apply flex items-center;
 
                         svg {
-                            @apply w-[20vh] h-[2vh];
+                            @apply w-[10vh] h-[2vh];
+                            
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply w-[20vh];
+                            }
                         }
                     }
                 }
@@ -66,10 +105,20 @@
                 @apply relative basis-1/2;
 
                 ._sliderComments {
-                    @apply relative w-full h-full px-[5vh] overflow-hidden;
+                    @apply relative w-full h-full px-0 overflow-hidden;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply px-[5vh];
+                    }
 
                     .slick-slider {
-                        @apply relative w-full h-full px-[5vh] content-center;
+                        @apply relative w-full h-full px-0 content-center;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply px-[5vh];
+                        }
 
                         .slick-list {
                             height: 100% !important;
@@ -79,13 +128,23 @@
 
                                 .slick-slide {
                                     &>div {
-                                        @apply w-full h-full px-[2vh];
+                                        @apply w-full h-full px-[1vh];
+
+                                        // sm breakpoint (>= 640px): small tablets and up
+                                        @include mq.mq($from: sm) {
+                                            @apply px-[2vh];
+                                        }
 
                                         ._card {
-                                            @apply relative m-0 p-[2.75vh];
+                                            @apply relative m-0 p-[2vh];
                                             transition: all 800ms cubic-bezier(0.4, 0, 0.2, 1);
                                             will-change: opacity,
                                                 transform;
+
+                                            // sm breakpoint (>= 640px): small tablets and up
+                                            @include mq.mq($from: sm) {
+                                                @apply p-[2.75vh];
+                                            }
 
                                             &Body {
                                                 @apply relative overflow-hidden h-full;
@@ -145,6 +204,24 @@
                             }
                         }
                     }
+                }
+            }
+
+            &-left {
+                @apply hidden;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply block;
+                }
+            }
+
+            &-right {
+                @apply basis-full;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-1/2;
                 }
             }
         }
