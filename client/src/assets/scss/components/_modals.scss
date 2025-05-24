@@ -16,7 +16,7 @@
 
         &::before {
             @apply absolute content-[''] w-full h-[1vh] top-0 left-0 -translate-y-full bg-[rgb(var(--primary-dark)/1)] z-10;
-            
+
             // sm breakpoint (>= 640px): small tablets and up
             @include mq.mq($from: sm) {
                 @apply h-[1.5vh];
@@ -139,7 +139,7 @@
                                 @include mq.mq($from: sm) {
                                     @apply ml-[5vh];
                                 }
-                                
+
                                 &:hover {
                                     @apply opacity-75;
                                 }
@@ -266,7 +266,7 @@
                                         @include mq.mq($from: sm) {
                                             @apply p-[2.5vh];
                                         }
-                                        
+
                                         .meta {
                                             @apply flex gap-[1vh] text-[1.75vh] mb-[1vh] text-[rgb(var(--text)/.75)];
 
@@ -371,19 +371,33 @@
     }
 
     &__submit {
-        @apply fixed flex flex-col z-30 top-[10vh] left-1/2 w-1/2 h-1/2 bg-[rgb(var(--white)/1)] p-[2.5vh];
-        line-height: normal;
+        @apply fixed flex flex-col z-30 top-[15vh] left-1/2 w-[90%] h-1/2 bg-[rgb(var(--white)/1)] px-[1.25vh] pt-[1.25vh] pb-[2.5vh] leading-normal;
         box-shadow: 0 1vh 2.5vh 1vh rgb(var(--text)/.1);
+
+        // sm breakpoint (>= 640px): small tablets and up
+        @include mq.mq($from: sm) {
+            @apply top-[10vh] w-1/2 px-[2.5vh] pt-[2.5vh];
+        }
 
         &::before {
             @apply absolute content-[''] w-full h-[1.5vh] top-0 left-0 -translate-y-full bg-[rgb(var(--primary-light)/1)] z-10;
         }
 
         ._header {
-            @apply flex h-[10vh] overflow-visible px-[2.5vh];
+            @apply flex h-[10vh] overflow-visible px-[.75vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply px-[2.5vh];
+            }
 
             ._headerTitle {
-                @apply w-[100vh] mr-auto content-center;
+                @apply w-full mr-auto content-center text-[2vh];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply w-[100vh] text-[2.5vh];
+                }
             }
 
             .__submitClose {
@@ -408,16 +422,31 @@
         }
 
         ._body {
-            @apply flex-grow overflow-hidden p-[2.5vh];
+            @apply flex items-center flex-grow overflow-hidden p-[.75vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply p-[2.5vh];
+            }
 
             h2 {
-                @apply text-xl font-medium text-[rgb(var(--text)/.5)] mb-[3vh];
+                @apply text-3xl font-medium text-[rgb(var(--text)/.5)] mb-[3vh];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply text-xl;
+                }
             }
         }
 
         ._footer {
-            @apply h-fit border-t border-[rgb(var(--hoverGray)/.25)] px-[2.5vh] pt-[2.5vh] flex items-center;
+            @apply h-fit border-t border-[rgb(var(--hoverGray)/.25)] px-[.75vh] pt-[2.5vh] flex items-center;
             @apply flex justify-between items-center;
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply px-[2.5vh];
+            }
 
             ._button {
                 @apply ml-auto w-2/5;
