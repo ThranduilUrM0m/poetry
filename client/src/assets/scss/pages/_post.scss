@@ -1,3 +1,5 @@
+@use "../abstracts/mq";
+
 .post {
     @apply w-full h-full;
 
@@ -7,7 +9,12 @@
 
             &-wrapper {
                 .__breadcrumb {
-                    @apply w-[calc(100%-30vh)] h-[10vh] mx-auto;
+                    @apply w-fit h-[10vh] mx-auto;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[calc(100%-30vh)];
+                    }
 
                     ul {
                         @apply flex h-full items-center;
@@ -27,7 +34,12 @@
                 }
 
                 .__postBox {
-                    @apply w-[calc(100%-30vh)] mx-auto my-[35vh] h-[fit];
+                    @apply w-[calc(100%-2.5vh)] mx-auto mt-[35vh] mb-[15vh] h-[fit];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[calc(100%-30vh)] mt-[35vh] mb-[35vh];
+                    }
 
                     ._card {
                         @apply relative w-full h-[fit];
@@ -37,11 +49,21 @@
 
                             ._form {
                                 .articleCategory {
-                                    @apply relative text-[1.75vh] w-fit h-fit mb-[4vh] ml-[15%] text-[rgb(var(--text)/.5)];
+                                    @apply relative text-[1.75vh] w-fit h-fit mb-[4vh] ml-[2.5%] text-[rgb(var(--text)/.5)];
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply ml-[15%];
+                                    }
                                 }
 
                                 h2 {
-                                    @apply w-fit items-end ml-[15%];
+                                    @apply w-fit items-end ml-[2.5%];
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply ml-[15%];
+                                    }
 
                                     &.articleTitle {
                                         @apply relative font-medium mb-[1vh] text-[6vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[6vh];
@@ -57,11 +79,21 @@
                                     }
 
                                     &.articleAuthorCreation {
-                                        @apply flex mb-[25vh];
+                                        @apply flex mb-[25vh] items-center;
 
+                                        // sm breakpoint (>= 640px): small tablets and up
+                                        @include mq.mq($from: sm) {
+                                            @apply items-end;
+                                        }
+                                        
                                         span {
                                             &:first-of-type {
-                                                @apply text-[rgb(var(--primary)/1)] font-normal text-[3.5vh] leading-[3.5vh];
+                                                @apply text-[rgb(var(--primary)/1)] font-normal text-[2.5vh] leading-[2.5vh];
+
+                                                // sm breakpoint (>= 640px): small tablets and up
+                                                @include mq.mq($from: sm) {
+                                                    @apply text-[3.5vh] leading-[3.5vh];
+                                                }
 
                                                 &:not(:lang(ar)) {
                                                     @apply font-abril;
@@ -69,7 +101,12 @@
                                             }
 
                                             &:last-of-type {
-                                                @apply text-[rgb(var(--text)/.25)] font-normal text-[2.5vh] leading-[3.5vh];
+                                                @apply text-[rgb(var(--text)/.25)] font-normal text-[1.75vh] leading-[1.75vh] text-nowrap;
+
+                                                // sm breakpoint (>= 640px): small tablets and up
+                                                @include mq.mq($from: sm) {
+                                                    @apply text-[3.5vh] leading-[3.5vh];
+                                                }
                                             }
                                         }
 
@@ -87,11 +124,16 @@
                     }
 
                     .articleControl {
-                        @apply flex justify-end gap-[2vh] mt-[5vh] mb-[2vh];
+                        @apply flex justify-end gap-[1.25vh] mt-[5vh] mb-[2vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply gap-[2vh];
+                        }
 
                         button,
                         div {
-                            @apply flex;
+                            @apply flex items-center;
 
                             svg {
                                 @apply ml-[.5vh] w-[5vh] h-[2.75vh] stroke-[2] stroke-[rgb(var(--text)/.5)];
@@ -107,11 +149,21 @@
                 }
 
                 .__comments {
-                    @apply w-[calc(100%-30vh)] h-[50vh] mx-auto flex;
+                    @apply w-[calc(100%-2.5vh)] h-fit mx-auto flex flex-col;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply w-[calc(100%-30vh)] h-[50vh] flex-row;
+                    }
 
                     &-left,
                     &-right {
-                        @apply relative basis-1/2;
+                        @apply relative basis-full;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply basis-1/2;
+                        }
                     }
 
                     &-left {
@@ -119,17 +171,32 @@
                             @apply h-full flex flex-col;
 
                             &Body {
-                                @apply py-[4vh] flex-1;
+                                @apply py-0 flex-auto;
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply py-[4vh] flex-1;
+                                }
 
                                 form {
-                                    @apply gap-[3vh];
+                                    @apply gap-[1.25vh];
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply gap-[3vh];
+                                    }
                                 }
                             }
                         }
                     }
 
                     &-right {
-                        @apply p-[4vh] overflow-hidden;
+                        @apply px-0 pt-[4vh] pb-0 overflow-hidden;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply px-[4vh] pt-[4vh] pb-[4vh];
+                        }
 
                         .__title {
                             @apply flex gap-[2.5vh] text-[3.75vh] leading-[3.5vh] h-[10vh];
@@ -141,7 +208,12 @@
 
                         ._card {
                             &Body {
-                                @apply pb-[4vh] pr-[4vh];
+                                @apply pb-[4vh] pr-0;
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply pb-[4vh] pr-[4vh];
+                                }
 
                                 ._topRow {
                                     @apply flex flex-col;
@@ -189,7 +261,12 @@
                                     }
 
                                     .reply {
-                                        @apply flex ml-[5vh];
+                                        @apply flex ml-auto;
+
+                                        // sm breakpoint (>= 640px): small tablets and up
+                                        @include mq.mq($from: sm) {
+                                            @apply ml-[5vh];
+                                        }
 
                                         button {
                                             @apply flex items-center;

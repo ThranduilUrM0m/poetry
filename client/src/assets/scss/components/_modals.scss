@@ -182,11 +182,11 @@
                 }
 
                 .__filters {
-                    @apply w-full flex flex-row items-end justify-center gap-[1.25vh] pt-[1.25vh];
+                    @apply w-full flex flex-row items-end justify-end gap-[1.25vh] pt-[1.25vh];
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply justify-end w-2/5 py-[5vh] pt-0 gap-[2.5vh];
+                        @apply w-2/5 py-[5vh] pt-0 gap-[2.5vh];
                     }
 
                     ._formGroup {

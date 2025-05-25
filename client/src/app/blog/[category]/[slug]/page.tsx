@@ -56,6 +56,7 @@ import {
 import { extractHTMLContent } from '@/utils/extractHTMLContent';
 import 'quill/dist/quill.snow.css';
 import { VoteStateManager } from '@/utils/voteStateManager';
+import { useMedia } from 'react-use';
 
 interface FormData {
     Parent: string | null;
@@ -270,6 +271,8 @@ const CommentCard: React.FC<CommentCardProps> = ({
 };
 
 export default function ArticlePage() {
+    const isSm = useMedia('(min-width: 640px)');
+
     const params = useParams();
     const category = Array.isArray(params.category) ? params.category[0] : params.category;
     const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
@@ -943,7 +946,7 @@ export default function ArticlePage() {
 
                                                         <button
                                                             type="submit"
-                                                            className="_button __flex1"
+                                                            className={`_button ${isSm && '__flex1'}`}
                                                             id="_buttonComment"
                                                             disabled={isLoading}
                                                         >

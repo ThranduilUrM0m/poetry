@@ -138,7 +138,7 @@
 
                                 .firstPhrase {
                                     @apply text-[2.75vh] leading-[1.2] overflow-hidden text-ellipsis line-clamp-4;
-                                    
+
                                     // sm breakpoint (>= 640px): small tablets and up
                                     @include mq.mq($from: sm) {
                                         @apply text-[3vh] line-clamp-3;
@@ -183,7 +183,7 @@
 
                                 ._button {
                                     @apply ml-auto mr-auto w-3/4;
-                                    
+
                                     // sm breakpoint (>= 640px): small tablets and up
                                     @include mq.mq($from: sm) {
                                         @apply mr-0 w-1/4;
@@ -293,7 +293,7 @@
 
                         &:first-of-type {
                             @apply basis-2/5;
-                        
+
                             .__background {
                                 @apply z-[0] absolute top-0 left-0 w-full h-full;
 
@@ -431,7 +431,7 @@
 
                                                         // sm breakpoint (>= 640px): small tablets and up
                                                         @include mq.mq($from: sm) {
-                                                            @apply gap-[2.5vh] ;
+                                                            @apply gap-[2.5vh];
                                                         }
 
                                                         span {
