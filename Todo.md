@@ -8,6 +8,7 @@ Contact page.tsx :
 
 Blog/[category]/[slug]/page.tsx :
 1. Need to implement sharing to social media
+2. Need to make sure .articleBody accounts for all the .ql- classNames in order to apply the styling of QuillJS's output
 
 Dashboard/articles/page.tsx :
 1. Need to implement sharing to social media

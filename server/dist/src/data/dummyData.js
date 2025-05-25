@@ -100,7 +100,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-12T20:23:26.046Z'),
         updatedAt: new Date('2021-07-17T20:23:26.933Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg"></strong></p><p class="ql-direction-rtl ql-align-center"><br></p><p class="ql-direction-rtl ql-align-right"><strong>نظرة العالم تؤذيني، عفوا ! لا داعي لكل هذا الاستعداد قصد تدميري بجوابك : أنها وعلى العكس لا تعنيك، فأنا أتكلم وذاك الصوت الذي بداخلك، ذلك الصوت نشأ بنظرة العالم.</strong></p>',
+        body: `<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg" class="ql-align-center"></strong></p><p class="ql-direction-rtl ql-align-center"><br></p><p class="ql-direction-rtl ql-align-right"><strong>نظرة العالم تؤذيني، عفوا ! لا داعي لكل هذا الاستعداد قصد تدميري بجوابك : أنها وعلى العكس لا تعنيك، فأنا أتكلم وذاك الصوت الذي بداخلك، ذلك الصوت نشأ بنظرة العالم.</strong></p>`,
         title: '.نظرة العالم تهم',
         slug: (0, slugify_1.default)('.نظرة العالم تهم', { lower: true, strict: true }),
         votes: [],
@@ -118,7 +118,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-13T03:23:57.214Z'),
         updatedAt: new Date('2023-06-25T03:23:57.990Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><span style="color: rgb(38, 38, 38);"><img src="https://i.ibb.co/VpxBJrH/01e803880a6c31f7493c18ec891a15e7a45dc3ed5b.jpg">Le sadisme c’est l’art de penser que pour éduquer un enfant il est nécessaire ou même pire, vertueux, de lui faire endurer le malheur d’être puni physiquement.</span></p>',
+        body: `<p class="ql-align-justify"><img src="https://i.ibb.co/VpxBJrH/01e803880a6c31f7493c18ec891a15e7a45dc3ed5b.jpg" class="ql-align-justify">Le sadisme c’est l’art de penser que pour éduquer un enfant il est nécessaire ou même pire, vertueux, de lui faire endurer le malheur d’être puni physiquement.</p>`,
         title: 'Le Sadisme.',
         slug: (0, slugify_1.default)('Le Sadisme.', { lower: true, strict: true }),
         votes: [new mongoose_1.Types.ObjectId('70b9f123abcd1234ef567892')],
@@ -136,7 +136,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-03-20T20:26:01.988Z'),
         updatedAt: new Date('2021-08-14T20:26:01.295Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><img src="https://i.ibb.co/d2yx68q/ISRAE.jpg" style="display: block; margin: auto;"></p><p>A wise man once said :</p><blockquote><strong>When given the choice between being right </strong>and <strong>being kind, choose kind !</strong></blockquote>',
+        body: `<p class="ql-align-center"><img src="https://i.ibb.co/d2yx68q/ISRAE.jpg" class="ql-align-center"></p><p>A wise man once said :</p><blockquote><strong>When given the choice between being right </strong>and <strong>being kind, choose kind !</strong></blockquote>`,
         title: "Don't teach violence.",
         slug: (0, slugify_1.default)(`Don't teach violence.`, { lower: true, strict: true }),
         votes: [],
@@ -154,7 +154,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-12T20:29:02.322Z'),
         updatedAt: new Date('2021-06-17T20:29:02.005Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><span style="color: rgb(102, 102, 102);"><img src="https://i.ibb.co/wwC2GGP/B0-F334-D0-248-F-40-D1-AD91-63-FD3641-DE89.jpg" width="202"></span><strong style="color: rgb(102, 102, 102);"><u>à force de forger on devient forgeron</u></strong></p>',
+        body: `<p class="ql-align-left"><img src="https://i.ibb.co/wwC2GGP/B0-F334-D0-248-F-40-D1-AD91-63-FD3641-DE89.jpg" class="ql-align-left" width="202"><strong><u>à force de forger on devient forgeron</u></strong></p>`,
         title: 'Tolérer.',
         slug: (0, slugify_1.default)('Tolérer.', { lower: true, strict: true }),
         votes: [],
@@ -172,7 +172,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-13T03:29:04.122Z'),
         updatedAt: new Date('2023-07-01T03:29:04.936Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><span style="color: rgb(38, 38, 38);"><img src="https://i.ibb.co/R0cC8Zh/IMG-2700.jpg" style="display: inline; float: left; margin: 0px 1em 1em 0px;" width="106"></span><u style="color: rgb(38, 38, 38);">N’oublies jamais</u></p>',
+        body: `<p class="ql-align-left"><img src="https://i.ibb.co/R0cC8Zh/IMG-2700.jpg" class="ql-align-left ql-float-left" width="106"><u>N’oublies jamais</u></p>`,
         title: "N'oublies.",
         slug: (0, slugify_1.default)(`N'oublies.`, { lower: true, strict: true }),
         votes: [],
@@ -189,7 +189,7 @@ exports.dummyArticles = [
         _id: new mongoose_1.Types.ObjectId('671d13b291cf6e74fb8bb9ef'),
         title: 'Hello World',
         slug: (0, slugify_1.default)('Hello World', { lower: true, strict: true }),
-        body: '<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg"></strong></p><p>My name is <em><u>Zakariae</u></em></p>',
+        body: `<p class="ql-direction-rtl ql-align-center"><strong><img src="https://i.ibb.co/nPgYCk5/018bb7733a70a2f4a4c2b5c78313f4f5a88293c0da.jpg" class="ql-align-center"></strong></p><p>My name is <em><u>Zakariae</u></em></p>`,
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
         category: 'Community',
         isPrivate: false,
@@ -208,7 +208,7 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-12T20:32:44.599Z'),
         updatedAt: new Date('2023-06-25T20:32:44.412Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><span style="color: rgb(102, 102, 102);"><img src="https://i.ibb.co/WkLgYtT/504170-D3-294-E-4-AFD-9-C5-A-89-C2-D8-B71-A6-B.jpg"></span></p>',
+        body: `<p class="ql-align-left"><img src="https://i.ibb.co/WkLgYtT/504170-D3-294-E-4-AFD-9-C5-A-89-C2-D8.jpg" class="ql-align-left"><strong class="ql-align-left">Some caption or quote</strong></p>`,
         title: 'La naïveté.',
         slug: (0, slugify_1.default)('La naïveté.', { lower: true, strict: true }),
         votes: [],
@@ -226,7 +226,82 @@ exports.dummyArticles = [
         createdAt: new Date('2020-08-09T20:30:14.438Z'),
         updatedAt: new Date('2023-06-25T20:30:14.732Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p style="margin:0;padding:0;"><img src="https://i.ibb.co/wzKvqGW/0160a791fa43629d5fa9928026f9c4a74296ec8043.jpg" style="float: right; width: 38%; margin: 15px 0 25px 4%; border: 8px solid #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.1); transform: rotate(3deg) translateX(4%); border-radius: 3px 30px; shape-outside: polygon(0 0, 100% 0, 100% 100%, 30% 100%); margin-right: -4%;"><div style="margin-left: 2%; padding-right: 42%; position: relative;"><h1 style="font-family: \'Merriweather\', serif; font-size: 2.6rem; color: #2d3436; margin: 0.8em 0 0.4em; line-height: 1.2; position: relative; display: inline-block; padding: 0 15px; background: linear-gradient(to right, #ffeaa7 0%, #ffeaa7 100%) no-repeat 0 85%; background-size: 100% 35%;">From Tamagotchis to Tablets:<br>Educating the AI Generation</h1><div style="columns: 1; margin-bottom: 1.5em;"><p style="margin: 0 0 1em; line-height: 1.7; color: #4a4a4a; break-inside: avoid;">As a 90s kid standing at the classroom chalkboard, I never imagined I\'d one day explain blockchain to students while troubleshooting a smartboard. Our generation bridges the analog-digital divide - we remember library card catalogs but mastered TikTok EduHacks.</p><p style="margin: 0; line-height: 1.7; color: #4a4a4a;">The real magic happens when floppy disk nostalgia meets AI-powered lesson plans. Students gasp at our "ancient" iPods but sit mesmerized by Windows 95 demos. We\'ve become tech-time travelers, making retro tech relevant through augmented reality field trips.</p></div></div><div style="clear: both; margin-top: -5%;"></div><div style="clear: both; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 2em 0;"><div style="background: #f8f9fa; padding: 25px; border-radius: 15px; position: relative; overflow: hidden;"><div style="position: absolute; width: 6px; background: #74b9ff; left: 0; top: 0; bottom: 0;"></div><h3 style="font-family: \'Roboto\', sans-serif; color: #2d3436; margin: 0 0 1em 15px;">Tech Milestones I\'ve Witnessed</h3><ul style="list-style: none; padding: 0; margin: 0 0 0 15px;"><li style="padding: 12px 0; border-bottom: 1px dashed #dfe6e9; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">🕹</div><span style="font-weight: 500;">1998: Oregon Trail in Computer Lab</span></li><li style="padding: 12px 0; border-bottom: 1px dashed #dfe6e9; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">📱</div><span style="font-weight: 500;">2007: First iPhone in Classroom</span></li><li style="padding: 12px 0; display: flex; align-items: center;"><div style="width: 28px; height: 28px; background: #aecbfa; border-radius: 50%; margin-right: 12px; display: flex; align-items: center; justify-content: center;">🤖</div><span style="font-weight: 500;">2023: AI Writing Assistants</span></li></ul></div><div style="background: #fff5f7; padding: 25px; border-radius: 15px; position: relative;"><h3 style="font-family: \'Roboto\', sans-serif; color: #2d3436; margin: 0 0 1em;">Teaching Toolkit Evolution</h3><div style="display: flex; gap: 15px; margin-bottom: 20px;"><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">📼</div><div style="font-size: 0.9em; color: #636e72;">VHS Era</div></div><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">💻</div><div style="font-size: 0.9em; color: #636e72;">Smartboard Days</div></div><div style="flex: 1; text-align: center; padding: 15px; background: white; border-radius: 8px;"><div style="font-size: 2em;">🌐</div><div style="font-size: 0.9em; color: #636e72;">Virtual Reality</div></div></div></div></div><blockquote style="margin: 2.5em 0; padding: 2em; background: #4a69bd; color: white; border-radius: 12px; font-size: 1.3em; line-height: 1.5; text-align: center; box-shadow: 0 10px 30px rgba(74,105,189,0.3);">"We didn\'t just adapt to technology - we became its translators, helping analog parents and digital natives understand each other."</blockquote><div style="columns: 2; column-gap: 40px; margin: 2em 0;"><p style="color: #2d3436; line-height: 1.7; margin-top: 0; break-inside: avoid;">The real classroom magic happens when 90s nostalgia meets Gen Alpha pragmatism. My students laugh at our "ancient" CD-ROMs but sit mesmerized when I show my first GeoCities site. We\'ve created a time-capsule curriculum where TikTok dances coexist with cursive writing workshops.</p><p style="color: #2d3436; line-height: 1.7; margin-top: 0; break-inside: avoid;">Tomorrow\'s challenge? Preparing kids for Mars colonies and quantum computing while keeping paper books "just because they smell nice." Some things never change - the joy of a perfectly organized Trapper Keeper still rivals any productivity app.</p></div>',
+        body: `
+      <p class="ql-reset">
+        <img src="https://i.ibb.co/wzKvqGW/0160a791fa43629d5fa9928026f9c4a74296ec8043.jpg"
+             class="ql-float-right img-responsive img-frame-shadow img-rotate img-rounded shape-polygon">
+      </p>
+
+      <div class="layout-column gap-md padding-right-lg relative">
+        <h1 class="heading--highlight">
+          From Tamagotchis to Tablets:<br>
+          Educating the AI Generation
+        </h1>
+
+        <div class="content-col single-col margin-bottom-lg">
+          <p class="ql-body">
+            As a 90s kid standing at the classroom chalkboard, I never imagined I’d one day explain blockchain to students while troubleshooting a smartboard. Our generation bridges the analog-digital divide – we remember library card catalogs but mastered TikTok EduHacks.
+          </p>
+          <p class="ql-body">
+            The real magic happens when floppy disk nostalgia meets AI-powered lesson plans. Students gasp at our “ancient” iPods but sit mesmerized by Windows 95 demos. We’ve become tech-time travelers, making retro tech relevant through augmented reality field trips.
+          </p>
+        </div>
+      </div>
+
+      <div class="clearfix margin-top-none"></div>
+
+      <div class="grid-two-col gap-xl margin-y-lg">
+        <div class="card card--light padding-lg rounded overflow-hidden relative">
+          <div class="accent-bar accent-primary"></div>
+          <h3 class="card-title indent-sm">Tech Milestones I’ve Witnessed</h3>
+          <ul class="list-reset indent-md">
+            <li class="list-item flex align-center border-dashed">
+              <span class="icon-circle">🕹</span>
+              <span class="list-text">1998: Oregon Trail in Computer Lab</span>
+            </li>
+            <li class="list-item flex align-center border-dashed">
+              <span class="icon-circle">📱</span>
+              <span class="list-text">2007: First iPhone in Classroom</span>
+            </li>
+            <li class="list-item flex align-center">
+              <span class="icon-circle">🤖</span>
+              <span class="list-text">2023: AI Writing Assistants</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card card--alt padding-lg rounded relative">
+          <h3 class="card-title indent-sm">Teaching Toolkit Evolution</h3>
+          <div class="flex gap-md margin-bottom-md">
+            <div class="tool-card">
+              <div class="tool-icon">📼</div>
+              <div class="tool-label">VHS Era</div>
+            </div>
+            <div class="tool-card">
+              <div class="tool-icon">💻</div>
+              <div class="tool-label">Smartboard Days</div>
+            </div>
+            <div class="tool-card">
+              <div class="tool-icon">🌐</div>
+              <div class="tool-label">Virtual Reality</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <blockquote class="blockquote-primary margin-y-lg">
+        "We didn't just adapt to technology – we became its translators, helping analog parents and digital natives understand each other."
+      </blockquote>
+
+      <div class="columns-two gap-lg margin-y-lg">
+        <p class="ql-body">
+          The real classroom magic happens when 90s nostalgia meets Gen Alpha pragmatism. My students laugh at our “ancient” CD-ROMs but sit mesmerized when I show my first GeoCities site. We’ve created a time-capsule curriculum where TikTok dances coexist with cursive writing workshops.
+        </p>
+        <p class="ql-body">
+          Tomorrow’s challenge? Preparing kids for Mars colonies and quantum computing while keeping paper books “just because they smell nice.” Some things never change – the joy of a perfectly organized Trapper Keeper still rivals any productivity app.
+        </p>
+      </div>
+    `,
         title: 'boutaleb.',
         slug: (0, slugify_1.default)('boutaleb.', { lower: true, strict: true }),
         votes: [new mongoose_1.Types.ObjectId('64ebb261f0c23054c88e4800')],
@@ -247,7 +322,13 @@ exports.dummyArticles = [
         createdAt: new Date('2020-04-12T20:15:27.725Z'),
         updatedAt: new Date('2021-05-30T20:15:27.417Z'),
         author: new mongoose_1.Types.ObjectId('64c52786fb1b9964f2e5b06c'),
-        body: '<p><span style="background-color: transparent;"><img src="https://i.ibb.co/ypCzwTW/017b0d5928490b41f9df0c4d362a680a0f41e64cb6.jpg">HIM</span></p>',
+        body: `
+      <p class="ql-align-center">
+        <img src="https://i.ibb.co/ypCzwTW/017b0d5928490b41f9df0c4d362a680a0f41e64cb6.jpg"
+             class="ql-align-center img-responsive">
+        <span class="text-transparent">HIM</span>
+      </p>
+    `,
         title: 'Sweaters Chapter Two.',
         slug: (0, slugify_1.default)('Sweaters Chapter Two.', { lower: true, strict: true }),
         votes: [],

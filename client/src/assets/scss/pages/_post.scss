@@ -1,3 +1,6 @@
+@use "sass:string";
+@use "sass:map";
+@use "../base/quillvars"as *;
 @use "../abstracts/mq";
 
 .post {
@@ -23,7 +26,7 @@
                             @apply flex items-center;
 
                             a {
-                                @apply text-[rgb(var(--text)/.5)]
+                                @apply text-[rgb(var(--text)/.5)];
                             }
 
                             svg {
@@ -70,7 +73,7 @@
 
                                         &::before {
                                             @apply absolute bg-[rgb(var(--text)/.75)] w-[20vh] h-[1.25vh] bottom-0 left-[calc(100%+5vh)] -translate-y-full;
-                                            content: '';
+                                            content: "";
                                         }
 
                                         &:not(:lang(ar)) {
@@ -85,7 +88,7 @@
                                         @include mq.mq($from: sm) {
                                             @apply items-end;
                                         }
-                                        
+
                                         span {
                                             &:first-of-type {
                                                 @apply text-[rgb(var(--primary)/1)] font-normal text-[2.5vh] leading-[2.5vh];
@@ -117,7 +120,259 @@
                                 }
 
                                 .articleBody {
-                                    /* This ought to be relying on the styles made by the user while creating the article */
+                                    @apply w-full overflow-hidden px-[2.5vh] /* prose prose-invert */ max-w-none;
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply px-[15%];
+                                    }
+
+                                    // Font families from _quillvars.scss
+                                    @each $slug,
+                                    $meta in $quill-fonts {
+                                        $label: map.get($meta, "label");
+                                        $category: map.get($meta, "category");
+
+                                        .ql-font-#{$slug} {
+                                            font-family: #{$label} #{$category} !important;
+                                        }
+                                    }
+
+                                    // Font sizes from _quillvars.scss
+                                    @each $pt,
+                                    $_ in $quill-sizes {
+                                        .ql-size-#{$pt} {
+                                            font-size: #{$pt}px !important;
+
+                                            @include mq.mq($from: sm) {
+                                                font-size: #{$pt * 1.2}px !important;
+                                            }
+                                        }
+                                    }
+
+                                    // Base Quill editor styles
+                                    .ql-editor {
+                                        @apply p-0;
+                                    }
+
+                                    // Headers
+                                    h1,
+                                    h2,
+                                    h3,
+                                    h4,
+                                    h5,
+                                    h6 {
+                                        @apply font-medium text-[rgb(var(--text)/1)] mb-[2vh];
+
+                                        &:not(:lang(ar)) {
+                                            @apply font-abril;
+                                        }
+                                    }
+
+                                    h1 {
+                                        @apply text-[4vh] leading-[1.2];
+                                    }
+
+                                    h2 {
+                                        @apply text-[3.5vh] leading-[1.2];
+                                    }
+
+                                    h3 {
+                                        @apply text-[3vh] leading-[1.2];
+                                    }
+
+                                    h4 {
+                                        @apply text-[2.5vh] leading-[1.2];
+                                    }
+
+                                    h5 {
+                                        @apply text-[2vh] leading-[1.2];
+                                    }
+
+                                    h6 {
+                                        @apply text-[1.75vh] leading-[1.2];
+                                    }
+
+                                    // Base text
+                                    p {
+                                        @apply text-[2vh] leading-[1.6] mb-[2vh] text-[rgb(var(--text)/.85)];
+
+                                        @include mq.mq($from: sm) {
+                                            @apply text-[2.25vh] mb-[3vh];
+                                        }
+                                    }
+
+                                    // Lists
+                                    ol {
+                                        @apply list-decimal;
+                                    }
+
+                                    ul {
+                                        @apply list-disc;
+                                    }
+
+                                    ol,
+                                    ul {
+                                        @apply pl-[4vh] mb-[2vh];
+
+                                        li {
+                                            @apply mb-[1vh] text-[2vh] leading-[1.6];
+
+                                            @include mq.mq($from: sm) {
+                                                @apply text-[2.25vh];
+                                            }
+
+                                            &::marker {
+                                                @apply text-[rgb(var(--primary)/1)];
+                                            }
+                                        }
+                                    }
+
+                                    // Text alignment
+                                    .ql-align-center {
+                                        @apply text-center;
+                                    }
+
+                                    .ql-align-right {
+                                        @apply text-right;
+                                    }
+
+                                    .ql-align-justify {
+                                        @apply text-justify;
+                                    }
+
+                                    // Blockquote
+                                    blockquote {
+                                        @apply border-l-[0.5vh] border-[rgb(var(--text)/.1)] pl-[2vh] my-[3vh] italic;
+                                        @apply relative;
+
+                                        &::before {
+                                            @apply absolute left-0 top-0 h-full w-1 bg-[rgb(var(--primary)/1)];
+                                        }
+                                    }
+
+                                    // Better code block styling
+                                    pre.ql-syntax {
+                                        @apply bg-[rgb(var(--text)/0.08)] p-4 rounded-lg border border-[rgb(var(--text)/0.1)];
+
+                                        code {
+                                            @apply bg-transparent p-0;
+                                        }
+                                    }
+
+                                    // Links
+                                    a {
+                                        @apply text-[rgb(var(--primary)/1)] transition-colors duration-200 underline decoration-dashed;
+
+                                        &:hover {
+                                            @apply text-[rgb(var(--primary-dark)/1)] decoration-solid;
+                                        }
+                                    }
+
+                                    // Images
+                                    img {
+                                        @apply max-w-full h-auto my-[2vh] rounded-[1vh] mx-auto shadow-md transition-all duration-300 ease-in-out;
+
+                                        &.ql-align-center {
+                                            @apply block mx-auto;
+                                        }
+
+                                        &.ql-align-right {
+                                            @apply float-right ml-[2vh];
+                                        }
+
+                                        &.ql-align-left {
+                                            @apply float-left mr-[2vh];
+                                        }
+
+                                        &:hover {
+                                            @apply scale-[1.02] shadow-lg;
+                                        }
+                                    }
+
+                                    // Text formatting
+                                    strong {
+                                        @apply font-bold;
+                                    }
+
+                                    em {
+                                        @apply italic;
+                                    }
+
+                                    // Subscript/Superscript
+                                    sub {
+                                        @apply align-sub text-[75%];
+                                    }
+
+                                    sup {
+                                        @apply align-super text-[75%];
+                                    }
+
+                                    // Indent levels
+                                    @for $i from 1 through 8 {
+                                        .ql-indent-#{$i} {
+                                            padding-left: #{$i * 3}vh;
+
+                                            @include mq.mq($from: sm) {
+                                                padding-left: #{$i * 4}vh;
+                                            }
+                                        }
+                                    }
+
+                                    // Better RTL support
+                                    [dir="rtl"] {
+
+                                        ol,
+                                        ul {
+                                            @apply pr-[4vh] pl-0;
+                                        }
+                                    }
+
+                                    // Line height adjustments
+                                    &>* {
+                                        @apply mb-[2vh];
+
+                                        &:last-child {
+                                            @apply mb-0;
+                                        }
+                                    }
+
+                                    // Handle dense content
+                                    *+* {
+                                        @apply mt-[2vh];
+                                    }
+
+                                    // Handle consecutive elements
+                                    li {
+
+                                        >ul,
+                                        >ol {
+                                            @apply mt-[1vh] mb-0;
+                                        }
+                                    }
+
+                                    p:has(img) {
+                                        @apply text-center;
+                                    }
+
+                                    blockquote+blockquote {
+                                        @apply mt-[-1vh];
+                                    }
+
+                                    // Responsive tables (if used)
+                                    table {
+                                        @apply w-full my-4;
+
+                                        td,
+                                        th {
+                                            @apply p-2 border border-[rgb(var(--text)/0.1)];
+                                        }
+                                    }
+
+                                    // MathJax compatibility
+                                    .math-formula {
+                                        @apply my-4 py-2 overflow-x-auto;
+                                    }
                                 }
                             }
                         }
@@ -306,15 +561,15 @@
                             &._cardReply {
                                 @for $i from 1 through 5 {
                                     &-#{$i} {
-                                        padding-left: #{ $i * 10vh };
+                                        padding-left: #{$i * 10vh};
 
                                         ._cardBody ._topRow .author {
                                             @apply relative;
 
                                             &::before {
                                                 @apply content-[''] absolute h-[.25vh] bg-[rgb(var(--primary-light)/1)] top-1/2 left-0 -translate-y-1/2;
-                                                width: #{ $i * 5vh };
-                                                transform: translateX(#{ $i * -6vh })
+                                                width: #{$i * 5vh};
+                                                transform: translateX(#{$i * -6vh});
                                             }
                                         }
                                     }
