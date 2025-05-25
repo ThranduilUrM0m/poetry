@@ -30,14 +30,10 @@
             "rangeStrategy": "bump"
         },
         {
-            "matchManagers": ["npm", "yarn", "pnpm"],
             "groupName": "all dependencies",
             "schedule": ["at any time"]
         }
     ],
-    "monorepo": {
-        "enabled": true
-    },
     "ignoreDeps": [],
     "onboarding": true,
     "platformAutomerge": true,
