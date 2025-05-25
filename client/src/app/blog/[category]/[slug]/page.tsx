@@ -57,6 +57,7 @@ import { extractHTMLContent } from '@/utils/extractHTMLContent';
 import 'quill/dist/quill.snow.css';
 import { VoteStateManager } from '@/utils/voteStateManager';
 import { useMedia } from 'react-use';
+import { SocialShare } from '@/components/ui/SocialShare';
 
 interface FormData {
     Parent: string | null;
@@ -830,6 +831,12 @@ export default function ArticlePage() {
                                             <Eye /> {article?.views?.length || 0}
                                         </div>
                                     </div>
+
+                                    {/* SocialShare */}
+                                    <SocialShare
+                                        title={article.title}
+                                        description={extractHTMLContent(article.body).slice(0, 150)}
+                                    />
                                 </div>
 
                                 {/* Comments Section */}
@@ -946,7 +953,9 @@ export default function ArticlePage() {
 
                                                         <button
                                                             type="submit"
-                                                            className={`_button ${isSm && '__flex1'}`}
+                                                            className={`_button ${
+                                                                isSm && '__flex1'
+                                                            }`}
                                                             id="_buttonComment"
                                                             disabled={isLoading}
                                                         >

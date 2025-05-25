@@ -37,6 +37,12 @@ const contactMeItems = [
     { label: 'Follow me on X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
 ];
 
+interface WaLinkProps {
+    phone: string; // e.g. "+14155552671"
+    message?: string; // optional default text
+    children: React.ReactNode;
+}
+
 interface FormData {
     email: string;
     phone: string;
@@ -76,6 +82,21 @@ const validationSchema = Yup.object().shape({
         ),
     message: Yup.string().default('').required('Please provide a message.'),
 });
+
+const WaLink: React.FC<WaLinkProps> = ({ phone, message, children }) => {
+    // Remove non-digits to normalize E.164
+    const normalized = phone.replace(/[^\d+]/g, '');
+    const params = message ? `?text=${encodeURIComponent(message)}` : '';
+
+    const href = `https://wa.me/${normalized}${params}`;
+
+    return (
+        <Link href={href} target="_blank" rel="noopener noreferrer">
+            <FaWhatsapp />
+            {children}
+        </Link>
+    );
+};
 
 export default function ContactPage() {
     const isSm = useMedia('(min-width: 640px)');
@@ -139,7 +160,7 @@ export default function ContactPage() {
                 phone: '',
                 firstname: '',
                 lastname: '',
-                message: ''
+                message: '',
             });
             setFormReset(true); // Trigger FormField reset
             setTimeout(() => setFormReset(false), 100); // Reset trigger
@@ -449,10 +470,12 @@ export default function ContactPage() {
                                             }}
                                             config={config.wobbly}
                                         >
-                                            <Link href="">
-                                                <FaWhatsapp />
+                                            <WaLink
+                                                phone="+212654528492"
+                                                message="Bonjour, j’ai besoin d’aide !"
+                                            >
                                                 <u>+212 6 54 52 84 92</u>
-                                            </Link>
+                                            </WaLink>
                                         </AnimatedWrapper>
                                     </AnimatedWrapper>
                                 </div>

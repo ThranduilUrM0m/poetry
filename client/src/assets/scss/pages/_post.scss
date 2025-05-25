@@ -41,7 +41,7 @@
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply w-[calc(100%-30vh)] mt-[35vh] mb-[35vh];
+                        @apply w-[calc(100%-30vh)] mt-[35vh] mb-[25vh];
                     }
 
                     ._card {
@@ -120,7 +120,9 @@
                                 }
 
                                 .articleBody {
-                                    @apply w-full overflow-hidden px-[2.5vh] /* prose prose-invert */ max-w-none;
+                                    @apply w-full overflow-hidden px-[2.5vh]
+                                    /* prose prose-invert */
+                                    max-w-none;
 
                                     // sm breakpoint (>= 640px): small tablets and up
                                     @include mq.mq($from: sm) {
@@ -379,7 +381,7 @@
                     }
 
                     .articleControl {
-                        @apply flex justify-end gap-[1.25vh] mt-[5vh] mb-[2vh];
+                        @apply flex justify-end gap-[1vh] mt-[5vh] mb-[2vh];
 
                         // sm breakpoint (>= 640px): small tablets and up
                         @include mq.mq($from: sm) {
@@ -400,6 +402,11 @@
                                 }
                             }
                         }
+                    }
+
+                    // Add the new SocialShare styles
+                    .social-share {
+                        @apply w-fit ml-auto flex flex-row gap-[2vh];
                     }
                 }
 
