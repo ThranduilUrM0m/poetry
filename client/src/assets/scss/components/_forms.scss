@@ -1,6 +1,8 @@
 @use 'sass:string';
 @use 'sass:map';
 
+@use "../abstracts/mq";
+
 @use '../base/quillvars'as *;
 @use '../abstracts/functions'as fn;
 
@@ -27,10 +29,20 @@ form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
 
     ._row {
-        @apply flex gap-[1vh];
+        @apply flex flex-col gap-[1vh];
+
+        // sm breakpoint (>= 640px): small tablets and up
+        @include mq.mq($from: sm) {
+            @apply flex-row;
+        }
 
         ._formGroup {
-            @apply relative h-[var(--input-height)] w-full bg-[rgb(var(--white)/1)] flex-1;
+            @apply relative h-[var(--input-height)] w-full bg-[rgb(var(--white)/1)];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply flex-1;
+            }
 
             &.hasIcon {
                 ._formControl {

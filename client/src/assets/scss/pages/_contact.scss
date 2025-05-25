@@ -1,46 +1,88 @@
+@use "../abstracts/mq";
+
 .contact {
     @apply w-full h-full;
 
     // Global Section Styles
     &__section {
         &-1 {
-            @apply flex justify-stretch;
+            @apply flex justify-stretch min-h-[100vh];
 
             ._formContainer {
                 @apply relative flex flex-col items-center justify-center w-full h-full;
 
                 &_corps {
-                    @apply flex w-full h-full;
+                    @apply flex flex-col w-full h-full gap-[1vh];
 
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply flex-row gap-0;
+                    }
+                    
                     &-left,
                     &-right {
-                        @apply relative h-[calc(100%-4vh)] mx-[2vh] my-[2vh] p-[2.5vh];
+                        @apply relative h-1/2 m-0 p-[.5vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply h-[calc(100%-4vh)] m-[2vh] p-[2.5vh];
+                        }
                     }
 
                     // Left Column
                     &-left {
-                        @apply flex flex-col items-center justify-center basis-3/4 mx-[5vh] px-[5vh] bg-[rgb(var(--white)/1)];
+                        @apply flex flex-col items-center justify-center basis-1/2 mx-[1.25vh] mb-[1.25vh] px-[1.25vh] pb-[1.25vh] bg-[rgb(var(--white)/1)];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply basis-3/4 mx-[5vh] mb-[1.25vh] px-[5vh] pb-0;
+                        }
 
                         form {
-                            @apply gap-[3.75vh];
+                            @apply gap-[2.25vh];
 
+                            // sm breakpoint (>= 640px): small tablets and up
+                            @include mq.mq($from: sm) {
+                                @apply gap-[3.75vh];
+                            }
+                            
                             ._row {
-                                @apply flex gap-[4vh] w-full;
+                                @apply flex gap-[2vh] w-full;
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply gap-[4vh];
+                                }
 
                                 &.__header {
                                     @apply flex-col gap-0;
 
                                     h2 {
-                                        @apply text-[7vh] font-medium text-[rgb(var(--text)/.5)];
+                                        @apply text-[4vh] font-medium text-[rgb(var(--text)/.5)];
+
+                                        // sm breakpoint (>= 640px): small tablets and up
+                                        @include mq.mq($from: sm) {
+                                            @apply text-[7vh];
+                                        }
                                     }
 
                                     p {
-                                        @apply text-[rgb(var(--text)/.5)];
+                                        @apply text-lg text-[rgb(var(--text)/.5)];
+
+                                        // sm breakpoint (>= 640px): small tablets and up
+                                        @include mq.mq($from: sm) {
+                                            @apply text-sm;
+                                        }
                                     }
                                 }
 
                                 ._button {
-                                    @apply w-1/4 ml-auto;
+                                    @apply w-1/2 ml-auto;
+                                
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply w-1/4;
+                                    }
                                 }
                             }
                         }
@@ -48,10 +90,14 @@
 
                     // Right Column
                     &-right {
-                        @apply relative basis-1/4 flex flex-col justify-center gap-[5vh];
+                        @apply relative basis-1/2 flex flex-col justify-center gap-[2vh] mx-[1.25vh] px-[1.25vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply basis-1/4 gap-[5vh] mx-0 px-0;
+                        }
 
                         .__group {
-
                             h3 {
                                 @apply text-xl font-medium text-[rgb(var(--text)/.95)];
                             }

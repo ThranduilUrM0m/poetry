@@ -12,8 +12,7 @@ Blog/[category]/[slug]/page.tsx :
 Dashboard/articles/page.tsx :
 1. Need to implement sharing to social media
 
-Favicon
-Logo
+Dependabot
 
 Domain
 Google Analytics

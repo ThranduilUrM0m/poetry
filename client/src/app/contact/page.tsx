@@ -21,6 +21,7 @@ import {
     selectSuccessMessage,
     clearContactState,
 } from '@/slices/contactSlice';
+import { useMedia } from 'react-use';
 
 const contactMeItems = [
     {
@@ -77,6 +78,8 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function ContactPage() {
+    const isSm = useMedia('(min-width: 640px)');
+
     // Redux state selectors (restore these)
     const dispatch = useDispatch<AppDispatch>();
     const isLoading = useSelector(selectIsLoading);
@@ -169,7 +172,7 @@ export default function ContactPage() {
     return (
         <main className="contact">
             <SectionObserver theme="dark">
-                <section className="contact__section-1">
+                <section className={`contact__section-1 ${!isSm && '!h-full !pb-0'}`}>
                     <AnimatedWrapper
                         as="div"
                         className="_formContainer"

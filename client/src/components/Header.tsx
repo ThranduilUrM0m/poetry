@@ -9,7 +9,7 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useOverlay } from '@/context/OverlayContext';
 import { useSearchModal } from '@/context/SearchModalContext';
 import { useHeaderTheme } from '@/context/HeaderThemeContext';
-import logo from '@/assets/images/b_white_orange..svg';
+import logo from '@/assets/images/_logo.png';
 
 const menuItems = [
     { label: 'Home', href: '/' },
@@ -231,7 +231,7 @@ export default function Header() {
                         </AnimatedWrapper>
                     </div>
                     <Link href="/" className="header__nav-left-logo">
-                        <Image src={logo} alt="Logo" width={32} height={32} />
+                        <Image src={logo} alt="Logo" width={64} height={64} />
                     </Link>
                 </div>
                 <div className="header__nav-right">
