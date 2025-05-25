@@ -17,6 +17,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
 import Slider from 'react-slick';
+import { useMedia } from 'react-use';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -87,6 +88,8 @@ function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
 }
 
 export default function BlogPage() {
+    const isSm = useMedia('(min-width: 640px)');
+
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles) || [];
@@ -277,7 +280,7 @@ export default function BlogPage() {
     return (
         <main className="blog">
             <SectionObserver theme="dark">
-                <section className="blog__section-1 !pb-0">
+                <section className={`blog__section-1 !pb-0 ${!isSm && '!h-full'}`}>
                     <AnimatedWrapper
                         as="div"
                         className="blog__section-1-left"
@@ -341,7 +344,6 @@ export default function BlogPage() {
                                                     }
                                                 >
                                                     {bestArticle.title}
-                                                    <b className="__dot">.</b>
                                                 </h2>
 
                                                 <div className="tags">
@@ -672,7 +674,7 @@ export default function BlogPage() {
             </SectionObserver>
 
             <SectionObserver theme="dark">
-                <section className="blog__section-2 !h-full">
+                <section className={`blog__section-2 !h-full ${!isSm && '!py-0'}`}>
                     <div className="blog__section-2-left">
                         <AnimatedWrapper
                             as="div"
@@ -760,12 +762,16 @@ export default function BlogPage() {
                                                                 )}
                                                             </b>
                                                             <Clock9 />
-                                                            <b>
-                                                                {format(
-                                                                    new Date(_article.updatedAt!),
-                                                                    'HH:mm'
-                                                                )}
-                                                            </b>
+                                                            {isSm && (
+                                                                <b>
+                                                                    {format(
+                                                                        new Date(
+                                                                            _article.updatedAt!
+                                                                        ),
+                                                                        'HH:mm'
+                                                                    )}
+                                                                </b>
+                                                            )}
                                                         </span>
                                                     </div>
                                                 </form>

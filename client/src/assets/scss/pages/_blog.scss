@@ -1,9 +1,16 @@
+@use "../abstracts/mq";
+
 .blog {
     @apply w-full h-full;
 
     &__section {
         &-1 {
-            @apply flex justify-stretch;
+            @apply flex flex-col justify-stretch min-h-[100vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply flex-row gap-0;
+            }
 
             &-left,
             &-right {
@@ -13,11 +20,16 @@
                     @apply flex flex-row h-[6vh] w-full;
 
                     .__title {
-                        @apply relative m-0 px-[2.75vh] mx-[2.75vh] py-[1.25vh] w-fit;
+                        @apply relative m-0 px-[1.25vh] mx-0 py-[1.25vh] w-fit;
                         @apply bg-gradient-to-r;
                         --tw-gradient-from: rgb(var(--primary-light)/.5);
                         --tw-gradient-to: rgb(var(--primary-light)/0);
                         --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply px-[2.75vh] mx-[2.75vh];
+                        }
 
                         &::before {
                             @apply absolute bg-[rgb(var(--primary)/.5)] w-[.5vh] h-full top-0 left-0;
@@ -26,8 +38,13 @@
                     }
 
                     .__viewMore {
-                        @apply flex-1 mx-[2.75vh];
+                        @apply flex-1 mx-0;
                         @apply w-fit h-[6vh] flex items-center justify-end text-[rgb(var(--primary-light)/1)] text-sm font-medium;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply mx-[2.75vh];
+                        }
 
                         span {
                             @apply flex items-center;
@@ -38,17 +55,32 @@
 
             // Left Column
             &-left {
-                @apply relative basis-3/5 px-[5vh] flex flex-col;
+                @apply relative basis-full px-[1.25vh] flex flex-col;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-3/5 px-[5vh];
+                }
 
                 .__bestOfWeek {
-                    @apply h-[60vh] py-[1.25vh];
+                    @apply h-fit py-[1.25vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply h-[60vh];
+                    }
 
                     .__title {
-                        @apply relative flex items-center m-0 px-[2.75vh] mx-[2.75vh] py-[1.25vh] w-fit h-[6vh];
+                        @apply relative flex items-center m-0 px-[1.25vh] mx-0 py-[1.25vh] w-fit h-[6vh];
                         @apply bg-gradient-to-r;
                         --tw-gradient-from: rgb(var(--primary-light)/.5);
                         --tw-gradient-to: rgb(var(--primary-light)/0);
                         --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply px-[2.75vh] mx-[2.75vh];
+                        }
 
                         &::before {
                             @apply absolute bg-[rgb(var(--primary)/.5)] w-[.5vh] h-full top-0 left-0;
@@ -57,13 +89,23 @@
                     }
 
                     ._card {
-                        @apply shadow-lg rounded-md bg-[rgb(var(--white)/.5)] relative m-0 p-[2.75vh] mx-[2.75vh] mt-[1.25vh] h-[50.25vh];
+                        @apply shadow-lg rounded-md bg-[rgb(var(--white)/.5)] relative m-0 p-[1.25vh] mx-0 mt-[1.25vh] h-[50.25vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply p-[2.75vh] mx-[2.75vh];
+                        }
 
                         &Body {
                             @apply relative h-full overflow-visible;
 
                             .__background {
-                                @apply z-[0] absolute -top-[2.75vh] -left-[2.75vh] w-[calc(100%+5.5vh)] h-[calc(100%+5.5vh)];
+                                @apply z-[0] absolute -top-[1.25vh] -left-[1.25vh] w-[calc(100%+2.5vh)] h-[calc(100%+2.5vh)];
+
+                                // sm breakpoint (>= 640px): small tablets and up
+                                @include mq.mq($from: sm) {
+                                    @apply -top-[2.75vh] -left-[2.75vh] w-[calc(100%+5.5vh)] h-[calc(100%+5.5vh)];
+                                }
 
                                 img {
                                     @apply w-full h-full;
@@ -95,11 +137,21 @@
                                 }
 
                                 .firstPhrase {
-                                    @apply text-[3vh] leading-[1.2] flex-1 overflow-hidden text-ellipsis line-clamp-3;
+                                    @apply text-[2.75vh] leading-[1.2] overflow-hidden text-ellipsis line-clamp-4;
+                                    
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply text-[3vh] line-clamp-3;
+                                    }
                                 }
 
                                 h2 {
-                                    @apply relative font-medium text-[4vh] text-[rgb(var(--text)/1)] mt-[2vh] leading-[1.2];
+                                    @apply relative font-medium text-[3.25vh] text-[rgb(var(--text)/1)] mt-[1.25vh] leading-[1.2];
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply text-[4vh] mt-[2vh];
+                                    }
 
                                     &:not(:lang(ar)) {
                                         @apply font-abril;
@@ -111,9 +163,12 @@
                                 }
 
                                 .tags {
-                                    @apply flex gap-[1vh] mb-[1vh] mt-auto mr-auto w-[60%] truncate justify-start;
-                                    min-height: min-content;
-                                    max-height: 6vh;
+                                    @apply flex gap-[1vh] mb-[1vh] mt-auto mr-auto w-full min-h-min max-h-[6vh] truncate justify-start;
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply w-[60%];
+                                    }
 
                                     .tag {
                                         @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
@@ -127,11 +182,21 @@
                                 }
 
                                 ._button {
-                                    @apply ml-auto w-1/4;
+                                    @apply ml-auto mr-auto w-3/4;
+                                    
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply mr-0 w-1/4;
+                                    }
                                 }
 
                                 .information {
-                                    @apply flex items-center justify-end w-fit gap-[2vh] text-[1.75vh] my-[1.25vh] text-[rgb(var(--text)/.5)] self-end;
+                                    @apply flex items-center justify-between w-full gap-[2vh] text-[1.75vh] mt-[1.25vh] mb-0 text-[rgb(var(--text)/.5)] self-center;
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply justify-end w-fit mb-[1.25vh] self-end;
+                                    }
 
                                     b {
                                         @apply flex items-center;
@@ -152,10 +217,20 @@
 
 
                 .__topRated {
-                    @apply h-[30vh] py-[1.25vh];
+                    @apply h-fit py-[1.25vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply h-[30vh];
+                    }
 
                     ul {
-                        @apply relative flex m-0 px-[2.75vh] pt-[1.25vh] gap-[6.75vh] h-[20.25vh];
+                        @apply relative flex flex-col m-0 px-0 pt-[1.25vh] gap-[2.75vh] h-[66.25vh];
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply flex-row px-[2.75vh] gap-[6.75vh] h-[20.25vh];
+                        }
 
                         li {
                             @apply relative basis-1/3;
@@ -198,17 +273,27 @@
 
             // Right Column
             &-right {
-                @apply flex flex-col basis-2/5 px-[5vh] py-[2.5vh];
+                @apply flex flex-col basis-full px-[1.25vh] py-[2.5vh];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-2/5 px-[5vh];
+                }
 
                 ul {
-                    @apply relative flex-auto flex flex-col m-0 px-[2.75vh] pt-[2.75vh] gap-[2.5vh];
+                    @apply relative flex-auto flex flex-col m-0 px-0 pt-[1.25vh] gap-[2.5vh];
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply px-[2.75vh] pt-[2.75vh];
+                    }
 
                     li {
                         @apply relative basis-1/5;
 
                         &:first-of-type {
-                            @apply basis-2/5 flex items-end;
-
+                            @apply basis-2/5;
+                        
                             .__background {
                                 @apply z-[0] absolute top-0 left-0 w-full h-full;
 
@@ -218,7 +303,12 @@
 
                                 &::after {
                                     content: '';
-                                    @apply absolute bottom-0 left-0 w-full h-1/2 bg-[rgb(var(--white)/.75)] backdrop-blur-[.5vh];
+                                    @apply absolute bottom-0 left-0 w-full h-full bg-[rgb(var(--white)/.75)] backdrop-blur-[.5vh];
+
+                                    // sm breakpoint (>= 640px): small tablets and up
+                                    @include mq.mq($from: sm) {
+                                        @apply h-1/2;
+                                    }
                                 }
                             }
 
@@ -272,17 +362,32 @@
         }
 
         &-2 {
-            @apply flex justify-stretch min-h-[100vh];
+            @apply flex flex-col justify-stretch min-h-[100vh];
+
+            // sm breakpoint (>= 640px): small tablets and up
+            @include mq.mq($from: sm) {
+                @apply flex-row gap-0;
+            }
 
             &-left,
             &-right {
                 @apply relative;
 
                 ._sliderArticles {
-                    @apply relative p-[5vh] w-full h-full;
+                    @apply relative p-0 w-full h-full;
+
+                    // sm breakpoint (>= 640px): small tablets and up
+                    @include mq.mq($from: sm) {
+                        @apply p-[5vh];
+                    }
 
                     .slick-slider {
-                        @apply relative p-[5vh] w-full h-full;
+                        @apply relative p-0 w-full h-full;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply p-[5vh];
+                        }
 
                         .slick-list {
                             .slick-track {
@@ -322,7 +427,12 @@
                                                     }
 
                                                     .information {
-                                                        @apply flex items-center justify-end gap-[2.5vh] mt-[.25vh] w-full text-[1.75vh] text-[rgb(var(--text)/.5)] self-end;
+                                                        @apply flex items-center justify-end gap-[1.25vh] mt-[.25vh] w-full text-[1.75vh] text-[rgb(var(--text)/.5)] self-end;
+
+                                                        // sm breakpoint (>= 640px): small tablets and up
+                                                        @include mq.mq($from: sm) {
+                                                            @apply gap-[2.5vh] ;
+                                                        }
 
                                                         span {
                                                             @apply flex gap-[1vh] items-center;
@@ -401,7 +511,12 @@
             }
 
             &-left {
-                @apply relative basis-2/5 px-[5vh] flex;
+                @apply relative basis-full px-[1.25vh] flex;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-2/5 px-[5vh];
+                }
 
                 ._sliderArticles {
                     .slick-slider {
@@ -421,7 +536,12 @@
             }
 
             &-right {
-                @apply relative basis-3/5 px-[5vh] flex;
+                @apply relative basis-full px-[1.25vh] flex;
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply basis-3/5 px-[5vh];
+                }
 
                 ._sliderArticles {
                     @apply h-fit;
