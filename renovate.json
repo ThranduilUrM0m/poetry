@@ -1,0 +1,45 @@
+{
+    "extends": ["config:base"],
+    "dependencyDashboard": true,
+    "labels": ["dependencies"],
+    "prHourlyLimit": 1,
+    "prConcurrentLimit": 2,
+    "rebaseWhen": "conflicted",
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["minor", "patch", "lockFileMaintenance"],
+            "automerge": true,
+            "automergeType": "branch"
+        },
+        {
+            "matchUpdateTypes": ["major"],
+            "automerge": false,
+            "addLabels": ["major update", "manual review"],
+            "reviewers": ["@ThranduilUrM0m"]
+        },
+        {
+            "matchDepTypes": ["deprecated"],
+            "automerge": false,
+            "addLabels": ["deprecated", "manual review"],
+            "reviewers": ["@ThranduilUrM0m"]
+        },
+        {
+            "matchPackagePatterns": ["^react", "^react-"],
+            "groupName": "react and related",
+            "schedule": ["at any time"],
+            "rangeStrategy": "bump"
+        },
+        {
+            "matchManagers": ["npm", "yarn", "pnpm"],
+            "groupName": "all dependencies",
+            "schedule": ["at any time"]
+        }
+    ],
+    "monorepo": {
+        "enabled": true
+    },
+    "ignoreDeps": [],
+    "onboarding": true,
+    "platformAutomerge": true,
+    "commitMessagePrefix": "chore(deps): "
+}
