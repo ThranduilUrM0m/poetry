@@ -1,4 +1,5 @@
 ﻿/* import type { Metadata } from 'next'; */
+import Head from 'next/head';
 import LayoutWrapper from './LayoutWrapper';
 import Providers from '@/components/providers';
 import '@/assets/scss/globals.scss';
@@ -18,6 +19,22 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
+            <Head>
+                <meta property="og:title" content="About Qasida | Poetry Website" />
+                <meta
+                    property="og:description"
+                    content="Learn more about Qasida and our poetry community."
+                />
+                <meta property="og:image" content="/images/og-image.jpg" />
+                <meta property="og:type" content="website" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="About Qasida | Poetry Website" />
+                <meta
+                    name="twitter:description"
+                    content="Learn more about Qasida and our poetry community."
+                />
+                <meta name="twitter:image" content="/images/og-image.jpg" />
+            </Head>
             <body>
                 <Providers>
                     <LayoutWrapper>{children}</LayoutWrapper>
