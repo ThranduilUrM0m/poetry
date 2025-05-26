@@ -4,8 +4,6 @@ About page.tsx :
 Dashboard/articles/page.tsx :
 1. Need to implement sharing to social media
 
-Dependabot
-
 Domain
 Google Analytics
 SEO

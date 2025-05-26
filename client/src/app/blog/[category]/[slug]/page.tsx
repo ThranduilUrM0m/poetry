@@ -1,4 +1,5 @@
 'use client';
+import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -684,259 +685,351 @@ export default function ArticlePage() {
     );
 
     return (
-        <main className="post">
-            <SectionObserver theme="dark">
-                <section className="post__section-1 !h-full">
-                    <AnimatedWrapper
-                        as="div"
-                        className="post__section-1-wrapper"
-                        from={{ transform: 'translateY(-100%)', opacity: 0 }}
-                        to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                        delay={1000}
-                    >
-                        {!_.isEmpty(article) && (
-                            <>
-                                {/* Article Header */}
-                                <nav className="__breadcrumb">
-                                    <ul>
-                                        <li>
-                                            <Link href="/">Home</Link>
-                                            <ChevronRight />
-                                        </li>
-                                        <li>
-                                            <Link href="/blog">Blog</Link>
-                                            <ChevronRight />
-                                        </li>
-                                        <li>
-                                            <Link href={`/blog/${article.category.toLowerCase()}`}>
-                                                {article.category}
-                                            </Link>
-                                            <ChevronRight />
-                                        </li>
-                                        <li aria-current="page">
-                                            <span>{article.title}</span>
-                                        </li>
-                                    </ul>
-                                </nav>
-
-                                {/* Main Article Content */}
-                                <div className="__postBox">
-                                    <div className="_card">
-                                        <div className="_cardBody">
-                                            <form className="_form">
-                                                <span
-                                                    lang={
-                                                        containsArabic(article.category)
-                                                            ? 'ar'
-                                                            : 'en'
-                                                    }
-                                                    className="articleCategory"
+        <>
+            <Head>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'Article',
+                            headline: article?.title,
+                            author: {
+                                '@type': 'Person',
+                                name: article?.author,
+                            },
+                            datePublished: article?.createdAt,
+                            dateModified: article?.updatedAt,
+                        }),
+                    }}
+                />
+                <title>{article?.title} | Poetry Website</title>
+                <meta name="description" content={`${article?.title}.`} />
+            </Head>
+            <main className="post">
+                <SectionObserver theme="dark">
+                    <section className="post__section-1 !h-full">
+                        <AnimatedWrapper
+                            as="div"
+                            className="post__section-1-wrapper"
+                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                            delay={1000}
+                        >
+                            {!_.isEmpty(article) && (
+                                <>
+                                    {/* Article Header */}
+                                    <nav className="__breadcrumb">
+                                        <ul>
+                                            <li>
+                                                <Link href="/">Home</Link>
+                                                <ChevronRight />
+                                            </li>
+                                            <li>
+                                                <Link href="/blog">Blog</Link>
+                                                <ChevronRight />
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    href={`/blog/${article.category.toLowerCase()}`}
                                                 >
                                                     {article.category}
-                                                </span>
+                                                </Link>
+                                                <ChevronRight />
+                                            </li>
+                                            <li aria-current="page">
+                                                <span>{article.title}</span>
+                                            </li>
+                                        </ul>
+                                    </nav>
 
-                                                <h2
-                                                    lang={
-                                                        containsArabic(article.title) ? 'ar' : 'en'
-                                                    }
-                                                    className="articleTitle"
-                                                >
-                                                    {article.title}
-                                                </h2>
-
-                                                <h2 className="articleAuthorCreation">
+                                    {/* Main Article Content */}
+                                    <div className="__postBox">
+                                        <div className="_card">
+                                            <div className="_cardBody">
+                                                <form className="_form">
                                                     <span
                                                         lang={
-                                                            containsArabic(
-                                                                _.isEmpty(
-                                                                    article.author.lastName
-                                                                ) &&
-                                                                    _.isEmpty(
-                                                                        article.author.firstName
-                                                                    )
-                                                                    ? article.author.username
-                                                                    : !_.isEmpty(
-                                                                          article.author.lastName
-                                                                      )
-                                                                    ? `${article.author.lastName} ${
-                                                                          article.author
-                                                                              .firstName ?? ''
-                                                                      }`.trim()
-                                                                    : article.author.firstName ?? ''
-                                                            )
+                                                            containsArabic(article.category)
                                                                 ? 'ar'
                                                                 : 'en'
                                                         }
+                                                        className="articleCategory"
                                                     >
-                                                        {_.isEmpty(article.author.lastName) &&
-                                                        _.isEmpty(article.author.firstName)
-                                                            ? article.author.username
-                                                            : !_.isEmpty(article.author.lastName)
-                                                            ? `${article.author.lastName} ${
-                                                                  article.author.firstName ?? ''
-                                                              }`.trim()
-                                                            : article.author.firstName ?? ''}
+                                                        {article.category}
                                                     </span>
-                                                    <Squircle />
-                                                    <span>
-                                                        {formatDistanceToNow(
-                                                            new Date(article.updatedAt!),
-                                                            {
-                                                                addSuffix: true,
-                                                            }
-                                                        )}
-                                                    </span>
-                                                </h2>
 
-                                                <div
-                                                    lang={
-                                                        containsArabic(article.body) ? 'ar' : 'en'
-                                                    }
-                                                    className="articleBody ql-snow"
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: extractHTMLContent(article.body),
-                                                    }}
-                                                />
-                                            </form>
+                                                    <h2
+                                                        lang={
+                                                            containsArabic(article.title)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleTitle"
+                                                    >
+                                                        {article.title}
+                                                    </h2>
+
+                                                    <h2 className="articleAuthorCreation">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(
+                                                                    _.isEmpty(
+                                                                        article.author.lastName
+                                                                    ) &&
+                                                                        _.isEmpty(
+                                                                            article.author.firstName
+                                                                        )
+                                                                        ? article.author.username
+                                                                        : !_.isEmpty(
+                                                                              article.author
+                                                                                  .lastName
+                                                                          )
+                                                                        ? `${
+                                                                              article.author
+                                                                                  .lastName
+                                                                          } ${
+                                                                              article.author
+                                                                                  .firstName ?? ''
+                                                                          }`.trim()
+                                                                        : article.author
+                                                                              .firstName ?? ''
+                                                                )
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                        >
+                                                            {_.isEmpty(article.author.lastName) &&
+                                                            _.isEmpty(article.author.firstName)
+                                                                ? article.author.username
+                                                                : !_.isEmpty(
+                                                                      article.author.lastName
+                                                                  )
+                                                                ? `${article.author.lastName} ${
+                                                                      article.author.firstName ?? ''
+                                                                  }`.trim()
+                                                                : article.author.firstName ?? ''}
+                                                        </span>
+                                                        <Squircle />
+                                                        <span>
+                                                            {formatDistanceToNow(
+                                                                new Date(article.updatedAt!),
+                                                                {
+                                                                    addSuffix: true,
+                                                                }
+                                                            )}
+                                                        </span>
+                                                    </h2>
+
+                                                    <div
+                                                        lang={
+                                                            containsArabic(article.body)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className="articleBody ql-snow"
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: extractHTMLContent(
+                                                                article.body
+                                                            ),
+                                                        }}
+                                                    />
+                                                </form>
+                                            </div>
                                         </div>
+
+                                        {/* Voting Section */}
+                                        <div className="articleControl">
+                                            <button
+                                                onClick={() => handleArticleVote('up')}
+                                                className={userVote === 'up' ? 'active' : ''}
+                                            >
+                                                <ThumbsUp />{' '}
+                                                {_.size(
+                                                    article?.votes?.filter(
+                                                        (vote: Vote) => vote.direction === 'up'
+                                                    ) || []
+                                                )}
+                                            </button>
+                                            <button
+                                                onClick={() => handleArticleVote('down')}
+                                                className={userVote === 'down' ? 'active' : ''}
+                                            >
+                                                <ThumbsDown />{' '}
+                                                {_.size(
+                                                    article?.votes?.filter(
+                                                        (vote: Vote) => vote.direction === 'down'
+                                                    ) || []
+                                                )}
+                                            </button>
+                                            <div>
+                                                {/* It won't show anything correct as long as the article isn't in the database */}
+                                                <Eye /> {article?.views?.length || 0}
+                                            </div>
+                                        </div>
+
+                                        {/* SocialShare */}
+                                        <SocialShare
+                                            title={article.title}
+                                            description={extractHTMLContent(article.body).slice(
+                                                0,
+                                                150
+                                            )}
+                                        />
                                     </div>
 
-                                    {/* Voting Section */}
-                                    <div className="articleControl">
-                                        <button
-                                            onClick={() => handleArticleVote('up')}
-                                            className={userVote === 'up' ? 'active' : ''}
-                                        >
-                                            <ThumbsUp />{' '}
-                                            {_.size(
-                                                article?.votes?.filter(
-                                                    (vote: Vote) => vote.direction === 'up'
-                                                ) || []
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleArticleVote('down')}
-                                            className={userVote === 'down' ? 'active' : ''}
-                                        >
-                                            <ThumbsDown />{' '}
-                                            {_.size(
-                                                article?.votes?.filter(
-                                                    (vote: Vote) => vote.direction === 'down'
-                                                ) || []
-                                            )}
-                                        </button>
-                                        <div>
-                                            {/* It won't show anything correct as long as the article isn't in the database */}
-                                            <Eye /> {article?.views?.length || 0}
-                                        </div>
-                                    </div>
-
-                                    {/* SocialShare */}
-                                    <SocialShare
-                                        title={article.title}
-                                        description={extractHTMLContent(article.body).slice(0, 150)}
-                                    />
-                                </div>
-
-                                {/* Comments Section */}
-                                <div className="__comments">
-                                    <div className="__comments-left">
-                                        <div className="_card">
-                                            <div className="_cardBody">
-                                                <form
-                                                    className="_form"
-                                                    onSubmit={handleSubmit(onSubmit)}
-                                                >
-                                                    <div className="_row">
-                                                        <FormField
-                                                            label="Email"
-                                                            name="_comment_email"
-                                                            value={
-                                                                currentComment?._comment_email || ''
-                                                            }
-                                                            type="text"
-                                                            control={control}
-                                                            error={errors._comment_email?.message}
-                                                            rules={{
-                                                                required: 'Email is required',
-                                                            }}
-                                                            onClear={() =>
-                                                                handleClearField('_comment_email')
-                                                            }
-                                                            icon={<AtSign />}
-                                                            forceReset={formReset}
-                                                        />
-                                                        <FormField
-                                                            label="Full name"
-                                                            name="_comment_author"
-                                                            value={
-                                                                currentComment?._comment_author ||
-                                                                ''
-                                                            }
-                                                            type="text"
-                                                            control={control}
-                                                            error={errors._comment_author?.message}
-                                                            rules={{
-                                                                required: 'Full Name is required',
-                                                            }}
-                                                            onClear={() =>
-                                                                handleClearField('_comment_author')
-                                                            }
-                                                            icon={<User />}
-                                                            forceReset={formReset}
-                                                        />
-                                                    </div>
-                                                    <div className="_row __textarea">
-                                                        <FormField
-                                                            label="Add comment..."
-                                                            name="_comment_body"
-                                                            value={watchedBody}
-                                                            type="textarea"
-                                                            control={control}
-                                                            error={errors._comment_body?.message}
-                                                            rules={{
-                                                                required: 'Message is required',
-                                                            }}
-                                                            onClear={() =>
-                                                                handleClearField('_comment_body')
-                                                            }
-                                                            icon={<MessageSquareText />}
-                                                            forceReset={formReset}
-                                                            immediateSync={true}
-                                                        />
-                                                    </div>
-                                                    <div className="_row">
-                                                        {currentComment ||
-                                                        watch('_comment_body').startsWith('@') ? (
-                                                            <button
-                                                                type="button"
-                                                                className="_button __cancelButton"
-                                                                id="_buttonCancel"
-                                                                onClick={() => {
-                                                                    dispatch(clearCurrentComment());
-                                                                    reset({
-                                                                        Parent: null,
-                                                                        _comment_author: '',
-                                                                        _comment_email: '',
-                                                                        _comment_body: '',
-                                                                        _comment_fingerprint:
-                                                                            fingerprint,
-                                                                        article:
-                                                                            article ||
-                                                                            ({} as Article),
-                                                                    });
+                                    {/* Comments Section */}
+                                    <div className="__comments">
+                                        <div className="__comments-left">
+                                            <div className="_card">
+                                                <div className="_cardBody">
+                                                    <form
+                                                        className="_form"
+                                                        onSubmit={handleSubmit(onSubmit)}
+                                                    >
+                                                        <div className="_row">
+                                                            <FormField
+                                                                label="Email"
+                                                                name="_comment_email"
+                                                                value={
+                                                                    currentComment?._comment_email ||
+                                                                    ''
+                                                                }
+                                                                type="text"
+                                                                control={control}
+                                                                error={
+                                                                    errors._comment_email?.message
+                                                                }
+                                                                rules={{
+                                                                    required: 'Email is required',
                                                                 }}
+                                                                onClear={() =>
+                                                                    handleClearField(
+                                                                        '_comment_email'
+                                                                    )
+                                                                }
+                                                                icon={<AtSign />}
+                                                                forceReset={formReset}
+                                                            />
+                                                            <FormField
+                                                                label="Full name"
+                                                                name="_comment_author"
+                                                                value={
+                                                                    currentComment?._comment_author ||
+                                                                    ''
+                                                                }
+                                                                type="text"
+                                                                control={control}
+                                                                error={
+                                                                    errors._comment_author?.message
+                                                                }
+                                                                rules={{
+                                                                    required:
+                                                                        'Full Name is required',
+                                                                }}
+                                                                onClear={() =>
+                                                                    handleClearField(
+                                                                        '_comment_author'
+                                                                    )
+                                                                }
+                                                                icon={<User />}
+                                                                forceReset={formReset}
+                                                            />
+                                                        </div>
+                                                        <div className="_row __textarea">
+                                                            <FormField
+                                                                label="Add comment..."
+                                                                name="_comment_body"
+                                                                value={watchedBody}
+                                                                type="textarea"
+                                                                control={control}
+                                                                error={
+                                                                    errors._comment_body?.message
+                                                                }
+                                                                rules={{
+                                                                    required: 'Message is required',
+                                                                }}
+                                                                onClear={() =>
+                                                                    handleClearField(
+                                                                        '_comment_body'
+                                                                    )
+                                                                }
+                                                                icon={<MessageSquareText />}
+                                                                forceReset={formReset}
+                                                                immediateSync={true}
+                                                            />
+                                                        </div>
+                                                        <div className="_row">
+                                                            {currentComment ||
+                                                            watch('_comment_body').startsWith(
+                                                                '@'
+                                                            ) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    className="_button __cancelButton"
+                                                                    id="_buttonCancel"
+                                                                    onClick={() => {
+                                                                        dispatch(
+                                                                            clearCurrentComment()
+                                                                        );
+                                                                        reset({
+                                                                            Parent: null,
+                                                                            _comment_author: '',
+                                                                            _comment_email: '',
+                                                                            _comment_body: '',
+                                                                            _comment_fingerprint:
+                                                                                fingerprint,
+                                                                            article:
+                                                                                article ||
+                                                                                ({} as Article),
+                                                                        });
+                                                                    }}
+                                                                >
+                                                                    <AnimatedWrapper
+                                                                        as="div"
+                                                                        className="buttonContent"
+                                                                        hover={{
+                                                                            from: {
+                                                                                color: 'rgb(var(--text)/1)',
+                                                                            },
+                                                                            to: {
+                                                                                color: 'rgb(var(--redNo)/1)',
+                                                                            },
+                                                                        }}
+                                                                        config={{
+                                                                            mass: 1,
+                                                                            tension: 170,
+                                                                            friction: 26,
+                                                                        }}
+                                                                        parentHoverSelector="#_buttonCancel"
+                                                                    >
+                                                                        Cancel
+                                                                        <b className="__dot">.</b>
+                                                                    </AnimatedWrapper>
+                                                                </button>
+                                                            ) : null}
+
+                                                            <button
+                                                                type="submit"
+                                                                className={`_button ${
+                                                                    isSm && '__flex1'
+                                                                }`}
+                                                                id="_buttonComment"
+                                                                disabled={isLoading}
                                                             >
+                                                                {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
                                                                 <AnimatedWrapper
-                                                                    as="div"
-                                                                    className="buttonContent"
+                                                                    as="span"
+                                                                    className="buttonBackground"
                                                                     hover={{
                                                                         from: {
-                                                                            color: 'rgb(var(--text)/1)',
+                                                                            clipPath:
+                                                                                'inset(0 100% 0 0)',
                                                                         },
                                                                         to: {
-                                                                            color: 'rgb(var(--redNo)/1)',
+                                                                            clipPath:
+                                                                                'inset(0 0 0 0)',
                                                                         },
                                                                     }}
                                                                     config={{
@@ -944,209 +1037,179 @@ export default function ArticlePage() {
                                                                         tension: 170,
                                                                         friction: 26,
                                                                     }}
-                                                                    parentHoverSelector="#_buttonCancel"
+                                                                    parentHoverSelector="#_buttonComment"
+                                                                ></AnimatedWrapper>
+                                                                <div className="buttonBorders">
+                                                                    {/* Top border: animate width */}
+                                                                    <AnimatedWrapper
+                                                                        as="div"
+                                                                        className="borderTop"
+                                                                        hover={{
+                                                                            from: { width: '0%' },
+                                                                            to: { width: '100%' },
+                                                                            delay: 0,
+                                                                        }}
+                                                                        parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
+                                                                        onRest={() => {
+                                                                            // Trigger the next animation after this one completes
+                                                                            document
+                                                                                .querySelector(
+                                                                                    '.borderRight'
+                                                                                )
+                                                                                ?.dispatchEvent(
+                                                                                    new Event(
+                                                                                        'startAnimation'
+                                                                                    )
+                                                                                );
+                                                                        }}
+                                                                    />
+                                                                    {/* Right border: animate height */}
+                                                                    <AnimatedWrapper
+                                                                        as="div"
+                                                                        className="borderRight"
+                                                                        hover={{
+                                                                            from: { height: '0%' },
+                                                                            to: { height: '100%' },
+                                                                            delay: 0, // Start immediately after the previous animation
+                                                                        }}
+                                                                        parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
+                                                                        onRest={() => {
+                                                                            // Trigger the next animation after this one completes
+                                                                            document
+                                                                                .querySelector(
+                                                                                    '.borderBottom'
+                                                                                )
+                                                                                ?.dispatchEvent(
+                                                                                    new Event(
+                                                                                        'startAnimation'
+                                                                                    )
+                                                                                );
+                                                                        }}
+                                                                    />
+                                                                    {/* Bottom border: animate width */}
+                                                                    <AnimatedWrapper
+                                                                        as="div"
+                                                                        className="borderBottom"
+                                                                        hover={{
+                                                                            from: { width: '0%' },
+                                                                            to: { width: '100%' },
+                                                                            delay: 0, // Start immediately after the previous animation
+                                                                        }}
+                                                                        parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
+                                                                        onRest={() => {
+                                                                            // Trigger the next animation after this one completes
+                                                                            document
+                                                                                .querySelector(
+                                                                                    '.borderLeft'
+                                                                                )
+                                                                                ?.dispatchEvent(
+                                                                                    new Event(
+                                                                                        'startAnimation'
+                                                                                    )
+                                                                                );
+                                                                        }}
+                                                                    />
+                                                                    {/* Left border: animate height */}
+                                                                    <AnimatedWrapper
+                                                                        as="div"
+                                                                        className="borderLeft"
+                                                                        hover={{
+                                                                            from: { height: '0%' },
+                                                                            to: { height: '100%' },
+                                                                            delay: 0, // Start immediately after the previous animation
+                                                                        }}
+                                                                        parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
+                                                                    />
+                                                                </div>
+                                                                <AnimatedWrapper
+                                                                    as="span"
+                                                                    className="buttonContent"
+                                                                    hover={{
+                                                                        from: {
+                                                                            color: 'rgb(var(--text)/1)',
+                                                                        },
+                                                                        to: {
+                                                                            color: 'rgb(var(--white)/1)',
+                                                                        },
+                                                                    }}
+                                                                    config={{
+                                                                        mass: 1,
+                                                                        tension: 170,
+                                                                        friction: 26,
+                                                                    }}
+                                                                    parentHoverSelector="#_buttonComment"
                                                                 >
-                                                                    Cancel<b className="__dot">.</b>
+                                                                    {isLoading
+                                                                        ? 'Submitting...'
+                                                                        : 'Submit'}
+                                                                    <b className="__dot">.</b>
                                                                 </AnimatedWrapper>
                                                             </button>
-                                                        ) : null}
-
-                                                        <button
-                                                            type="submit"
-                                                            className={`_button ${
-                                                                isSm && '__flex1'
-                                                            }`}
-                                                            id="_buttonComment"
-                                                            disabled={isLoading}
-                                                        >
-                                                            {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
-                                                            <AnimatedWrapper
-                                                                as="span"
-                                                                className="buttonBackground"
-                                                                hover={{
-                                                                    from: {
-                                                                        clipPath:
-                                                                            'inset(0 100% 0 0)',
-                                                                    },
-                                                                    to: {
-                                                                        clipPath: 'inset(0 0 0 0)',
-                                                                    },
-                                                                }}
-                                                                config={{
-                                                                    mass: 1,
-                                                                    tension: 170,
-                                                                    friction: 26,
-                                                                }}
-                                                                parentHoverSelector="#_buttonComment"
-                                                            ></AnimatedWrapper>
-                                                            <div className="buttonBorders">
-                                                                {/* Top border: animate width */}
-                                                                <AnimatedWrapper
-                                                                    as="div"
-                                                                    className="borderTop"
-                                                                    hover={{
-                                                                        from: { width: '0%' },
-                                                                        to: { width: '100%' },
-                                                                        delay: 0,
-                                                                    }}
-                                                                    parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
-                                                                    onRest={() => {
-                                                                        // Trigger the next animation after this one completes
-                                                                        document
-                                                                            .querySelector(
-                                                                                '.borderRight'
-                                                                            )
-                                                                            ?.dispatchEvent(
-                                                                                new Event(
-                                                                                    'startAnimation'
-                                                                                )
-                                                                            );
-                                                                    }}
-                                                                />
-                                                                {/* Right border: animate height */}
-                                                                <AnimatedWrapper
-                                                                    as="div"
-                                                                    className="borderRight"
-                                                                    hover={{
-                                                                        from: { height: '0%' },
-                                                                        to: { height: '100%' },
-                                                                        delay: 0, // Start immediately after the previous animation
-                                                                    }}
-                                                                    parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
-                                                                    onRest={() => {
-                                                                        // Trigger the next animation after this one completes
-                                                                        document
-                                                                            .querySelector(
-                                                                                '.borderBottom'
-                                                                            )
-                                                                            ?.dispatchEvent(
-                                                                                new Event(
-                                                                                    'startAnimation'
-                                                                                )
-                                                                            );
-                                                                    }}
-                                                                />
-                                                                {/* Bottom border: animate width */}
-                                                                <AnimatedWrapper
-                                                                    as="div"
-                                                                    className="borderBottom"
-                                                                    hover={{
-                                                                        from: { width: '0%' },
-                                                                        to: { width: '100%' },
-                                                                        delay: 0, // Start immediately after the previous animation
-                                                                    }}
-                                                                    parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
-                                                                    onRest={() => {
-                                                                        // Trigger the next animation after this one completes
-                                                                        document
-                                                                            .querySelector(
-                                                                                '.borderLeft'
-                                                                            )
-                                                                            ?.dispatchEvent(
-                                                                                new Event(
-                                                                                    'startAnimation'
-                                                                                )
-                                                                            );
-                                                                    }}
-                                                                />
-                                                                {/* Left border: animate height */}
-                                                                <AnimatedWrapper
-                                                                    as="div"
-                                                                    className="borderLeft"
-                                                                    hover={{
-                                                                        from: { height: '0%' },
-                                                                        to: { height: '100%' },
-                                                                        delay: 0, // Start immediately after the previous animation
-                                                                    }}
-                                                                    parentHoverSelector="#_buttonComment" // <-- Updated parent hover selector
-                                                                />
-                                                            </div>
-                                                            <AnimatedWrapper
-                                                                as="span"
-                                                                className="buttonContent"
-                                                                hover={{
-                                                                    from: {
-                                                                        color: 'rgb(var(--text)/1)',
-                                                                    },
-                                                                    to: {
-                                                                        color: 'rgb(var(--white)/1)',
-                                                                    },
-                                                                }}
-                                                                config={{
-                                                                    mass: 1,
-                                                                    tension: 170,
-                                                                    friction: 26,
-                                                                }}
-                                                                parentHoverSelector="#_buttonComment"
-                                                            >
-                                                                {isLoading
-                                                                    ? 'Submitting...'
-                                                                    : 'Submit'}
-                                                                <b className="__dot">.</b>
-                                                            </AnimatedWrapper>
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="__comments-right">
-                                        <div className="__title">
-                                            Comments
-                                            <p>
-                                                {_.size(_.filter(comments, (c) => c._comment_isOK))}
-                                            </p>
+                                        <div className="__comments-right">
+                                            <div className="__title">
+                                                Comments
+                                                <p>
+                                                    {_.size(
+                                                        _.filter(comments, (c) => c._comment_isOK)
+                                                    )}
+                                                </p>
+                                            </div>
+                                            <SimpleBar
+                                                style={{ maxHeight: '40vh' }}
+                                                forceVisible="y"
+                                                autoHide={false}
+                                            >
+                                                {nestedComments.map((comment) => (
+                                                    <CommentCard
+                                                        key={comment._id}
+                                                        comment={comment}
+                                                        fingerprint={fingerprint}
+                                                        currentComment={currentComment}
+                                                        handleReply={handleReply}
+                                                        handleEditComment={handleEditComment}
+                                                        handleCommentVote={handleCommentVote}
+                                                        handleDeleteComment={handleDeleteComment}
+                                                    />
+                                                ))}
+                                            </SimpleBar>
                                         </div>
-                                        <SimpleBar
-                                            style={{ maxHeight: '40vh' }}
-                                            forceVisible="y"
-                                            autoHide={false}
-                                        >
-                                            {nestedComments.map((comment) => (
-                                                <CommentCard
-                                                    key={comment._id}
-                                                    comment={comment}
-                                                    fingerprint={fingerprint}
-                                                    currentComment={currentComment}
-                                                    handleReply={handleReply}
-                                                    handleEditComment={handleEditComment}
-                                                    handleCommentVote={handleCommentVote}
-                                                    handleDeleteComment={handleDeleteComment}
-                                                />
-                                            ))}
-                                        </SimpleBar>
                                     </div>
-                                </div>
-                            </>
-                        )}
-                    </AnimatedWrapper>
-                </section>
-            </SectionObserver>
+                                </>
+                            )}
+                        </AnimatedWrapper>
+                    </section>
+                </SectionObserver>
 
-            <SectionObserver theme="light">
-                <section className="post__section-4"></section>
-            </SectionObserver>
+                <SectionObserver theme="light">
+                    <section className="post__section-4"></section>
+                </SectionObserver>
 
-            <SubmitModal
-                isSubmitOpen={isSubmitOpen}
-                onSubmitClose={() => {
-                    setIsSubmitOpen(false);
-                    dispatch(clearCurrentComment());
-                    dispatch(clearCommentState());
-                    reset({
-                        Parent: null,
-                        _comment_author: '',
-                        _comment_email: '',
-                        _comment_body: '',
-                        _comment_fingerprint: fingerprint,
-                        article: article!,
-                    });
-                }}
-                header={submitHeader}
-                message={submitMessage}
-                isSuccess={isSuccess}
-            />
-        </main>
+                <SubmitModal
+                    isSubmitOpen={isSubmitOpen}
+                    onSubmitClose={() => {
+                        setIsSubmitOpen(false);
+                        dispatch(clearCurrentComment());
+                        dispatch(clearCommentState());
+                        reset({
+                            Parent: null,
+                            _comment_author: '',
+                            _comment_email: '',
+                            _comment_body: '',
+                            _comment_fingerprint: fingerprint,
+                            article: article!,
+                        });
+                    }}
+                    header={submitHeader}
+                    message={submitMessage}
+                    isSuccess={isSuccess}
+                />
+            </main>
+        </>
     );
 }

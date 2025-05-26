@@ -1,4 +1,5 @@
 'use client';
+import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
@@ -191,243 +192,282 @@ export default function ContactPage() {
     }, [error]);
 
     return (
-        <main className="contact">
-            <SectionObserver theme="dark">
-                <section className={`contact__section-1 ${!isSm && '!h-full !pb-0'}`}>
-                    <AnimatedWrapper
-                        as="div"
-                        className="_formContainer"
-                        from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
-                        to={{
-                            transform: isReady ? 'translateX(0%)' : 'translateX(100%)',
-                            opacity: isReady ? 1 : 0,
-                        }}
-                        config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
-                        delay={200} // Delay in milliseconds
-                    >
-                        <div className="_formContainer_corps">
-                            <AnimatedWrapper
-                                as="div"
-                                className="_formContainer_corps-left"
-                                from={{ transform: 'translateX(-100%)', opacity: 0 }} // Initial state
-                                to={{
-                                    transform: isLoaded ? 'translateX(0%)' : 'translateX(-100%)',
-                                    opacity: isLoaded ? 1 : 0,
-                                }}
-                                config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
-                                delay={200} // Delay in milliseconds
-                            >
-                                {/* The focus state for the Floating label is not working perfect, maybe after I submit the email it stays focused but it never changes back */}
-                                <form className="_form" onSubmit={handleSubmit(onSubmit)}>
-                                    <div className="_row __header">
-                                        <h2>Reach out to me</h2>
-                                        <p>
-                                            It would be my great pleasure to read what you have to
-                                            say about my work
-                                        </p>
-                                    </div>
-                                    <div className="_row">
-                                        <FormField
-                                            label="First Name"
-                                            name="firstname"
-                                            type="text"
-                                            control={control}
-                                            error={errors.firstname?.message}
-                                            rules={{ required: 'First Name is required' }}
-                                            onClear={() => handleClearField('firstname')}
-                                            icon={<User />}
-                                            immediateSync={false} // Add this to prevent unnecessary Redux updates
-                                            forceReset={formReset}
-                                        />
-                                        <FormField
-                                            label="Last Name"
-                                            name="lastname"
-                                            type="text"
-                                            control={control}
-                                            error={errors.lastname?.message}
-                                            rules={{ required: 'Last Name is required' }}
-                                            onClear={() => handleClearField('lastname')}
-                                            icon={<User />}
-                                            forceReset={formReset}
-                                        />
-                                    </div>
-                                    <div className="_row">
-                                        <FormField
-                                            label="Email"
-                                            name="email"
-                                            type="email"
-                                            control={control}
-                                            error={errors.email?.message}
-                                            rules={{ required: 'Email is required' }}
-                                            onClear={() => handleClearField('email')}
-                                            icon={<AtSign />}
-                                            immediateSync={true}
-                                            forceReset={formReset}
-                                        />
-                                        <FormField
-                                            label="Phone"
-                                            name="phone"
-                                            type="text"
-                                            control={control}
-                                            error={errors.phone?.message}
-                                            rules={{ required: 'Phone is required' }}
-                                            onClear={() => handleClearField('phone')}
-                                            icon={<Phone />}
-                                            forceReset={formReset}
-                                        />
-                                    </div>
-                                    <div className="_row __textarea">
-                                        <FormField
-                                            label="Message"
-                                            name="message"
-                                            type="textarea"
-                                            control={control}
-                                            error={errors.message?.message}
-                                            rules={{ required: 'Message is required' }}
-                                            onClear={() => handleClearField('message')}
-                                            icon={<MessageSquare />}
-                                            forceReset={formReset}
-                                        />
-                                    </div>
-                                    <div className="_row">
-                                        <button
-                                            type="submit"
-                                            className="_button"
-                                            id="_buttonContact"
-                                            disabled={isLoading}
-                                        >
-                                            {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
-                                            <AnimatedWrapper
-                                                as="span"
-                                                className="buttonBackground"
-                                                hover={{
-                                                    from: { clipPath: 'inset(0 100% 0 0)' },
-                                                    to: { clipPath: 'inset(0 0 0 0)' },
-                                                }}
-                                                config={{ mass: 1, tension: 170, friction: 26 }}
-                                                parentHoverSelector="#_buttonContact"
-                                            ></AnimatedWrapper>
-                                            <div className="buttonBorders">
-                                                {/* Top border: animate width */}
-                                                <AnimatedWrapper
-                                                    as="div"
-                                                    className="borderTop"
-                                                    hover={{
-                                                        from: { width: '0%' },
-                                                        to: { width: '100%' },
-                                                        delay: 0,
-                                                    }}
-                                                    parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
-                                                    onRest={() => {
-                                                        // Trigger the next animation after this one completes
-                                                        document
-                                                            .querySelector('.borderRight')
-                                                            ?.dispatchEvent(
-                                                                new Event('startAnimation')
-                                                            );
-                                                    }}
-                                                />
-                                                {/* Right border: animate height */}
-                                                <AnimatedWrapper
-                                                    as="div"
-                                                    className="borderRight"
-                                                    hover={{
-                                                        from: { height: '0%' },
-                                                        to: { height: '100%' },
-                                                        delay: 0, // Start immediately after the previous animation
-                                                    }}
-                                                    parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
-                                                    onRest={() => {
-                                                        // Trigger the next animation after this one completes
-                                                        document
-                                                            .querySelector('.borderBottom')
-                                                            ?.dispatchEvent(
-                                                                new Event('startAnimation')
-                                                            );
-                                                    }}
-                                                />
-                                                {/* Bottom border: animate width */}
-                                                <AnimatedWrapper
-                                                    as="div"
-                                                    className="borderBottom"
-                                                    hover={{
-                                                        from: { width: '0%' },
-                                                        to: { width: '100%' },
-                                                        delay: 0, // Start immediately after the previous animation
-                                                    }}
-                                                    parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
-                                                    onRest={() => {
-                                                        // Trigger the next animation after this one completes
-                                                        document
-                                                            .querySelector('.borderLeft')
-                                                            ?.dispatchEvent(
-                                                                new Event('startAnimation')
-                                                            );
-                                                    }}
-                                                />
-                                                {/* Left border: animate height */}
-                                                <AnimatedWrapper
-                                                    as="div"
-                                                    className="borderLeft"
-                                                    hover={{
-                                                        from: { height: '0%' },
-                                                        to: { height: '100%' },
-                                                        delay: 0, // Start immediately after the previous animation
-                                                    }}
-                                                    parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
-                                                />
-                                            </div>
-                                            <AnimatedWrapper
-                                                as="span"
-                                                className="buttonContent"
-                                                hover={{
-                                                    from: {
-                                                        color: 'rgb(var(--text)/1)',
-                                                    },
-                                                    to: {
-                                                        color: 'rgb(var(--white)/1)',
-                                                    },
-                                                }}
-                                                config={{
-                                                    mass: 1,
-                                                    tension: 170,
-                                                    friction: 26,
-                                                }}
-                                                parentHoverSelector="#_buttonContact"
+        <>
+            <Head>
+                <title>Contact Us | Poetry Website</title>
+                <meta name="description" content={`Get in touch with us for any inquiries or feedback.`} />
+            </Head>
+            <main className="contact">
+                <SectionObserver theme="dark">
+                    <section className={`contact__section-1 ${!isSm && '!h-full !pb-0'}`}>
+                        <AnimatedWrapper
+                            as="div"
+                            className="_formContainer"
+                            from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
+                            to={{
+                                transform: isReady ? 'translateX(0%)' : 'translateX(100%)',
+                                opacity: isReady ? 1 : 0,
+                            }}
+                            config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
+                            delay={200} // Delay in milliseconds
+                        >
+                            <div className="_formContainer_corps">
+                                <AnimatedWrapper
+                                    as="div"
+                                    className="_formContainer_corps-left"
+                                    from={{ transform: 'translateX(-100%)', opacity: 0 }} // Initial state
+                                    to={{
+                                        transform: isLoaded
+                                            ? 'translateX(0%)'
+                                            : 'translateX(-100%)',
+                                        opacity: isLoaded ? 1 : 0,
+                                    }}
+                                    config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
+                                    delay={200} // Delay in milliseconds
+                                >
+                                    {/* The focus state for the Floating label is not working perfect, maybe after I submit the email it stays focused but it never changes back */}
+                                    <form className="_form" onSubmit={handleSubmit(onSubmit)}>
+                                        <div className="_row __header">
+                                            <h2>Reach out to me</h2>
+                                            <p>
+                                                It would be my great pleasure to read what you have
+                                                to say about my work
+                                            </p>
+                                        </div>
+                                        <div className="_row">
+                                            <FormField
+                                                label="First Name"
+                                                name="firstname"
+                                                type="text"
+                                                control={control}
+                                                error={errors.firstname?.message}
+                                                rules={{ required: 'First Name is required' }}
+                                                onClear={() => handleClearField('firstname')}
+                                                icon={<User />}
+                                                immediateSync={false} // Add this to prevent unnecessary Redux updates
+                                                forceReset={formReset}
+                                            />
+                                            <FormField
+                                                label="Last Name"
+                                                name="lastname"
+                                                type="text"
+                                                control={control}
+                                                error={errors.lastname?.message}
+                                                rules={{ required: 'Last Name is required' }}
+                                                onClear={() => handleClearField('lastname')}
+                                                icon={<User />}
+                                                forceReset={formReset}
+                                            />
+                                        </div>
+                                        <div className="_row">
+                                            <FormField
+                                                label="Email"
+                                                name="email"
+                                                type="email"
+                                                control={control}
+                                                error={errors.email?.message}
+                                                rules={{ required: 'Email is required' }}
+                                                onClear={() => handleClearField('email')}
+                                                icon={<AtSign />}
+                                                immediateSync={true}
+                                                forceReset={formReset}
+                                            />
+                                            <FormField
+                                                label="Phone"
+                                                name="phone"
+                                                type="text"
+                                                control={control}
+                                                error={errors.phone?.message}
+                                                rules={{ required: 'Phone is required' }}
+                                                onClear={() => handleClearField('phone')}
+                                                icon={<Phone />}
+                                                forceReset={formReset}
+                                            />
+                                        </div>
+                                        <div className="_row __textarea">
+                                            <FormField
+                                                label="Message"
+                                                name="message"
+                                                type="textarea"
+                                                control={control}
+                                                error={errors.message?.message}
+                                                rules={{ required: 'Message is required' }}
+                                                onClear={() => handleClearField('message')}
+                                                icon={<MessageSquare />}
+                                                forceReset={formReset}
+                                            />
+                                        </div>
+                                        <div className="_row">
+                                            <button
+                                                type="submit"
+                                                className="_button"
+                                                id="_buttonContact"
+                                                disabled={isLoading}
                                             >
-                                                {isLoading ? 'Submitting...' : 'Submit'}
-                                                <b className="__dot">.</b>
-                                            </AnimatedWrapper>
-                                        </button>
-                                    </div>
-                                </form>
-                            </AnimatedWrapper>
+                                                {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                                                <AnimatedWrapper
+                                                    as="span"
+                                                    className="buttonBackground"
+                                                    hover={{
+                                                        from: { clipPath: 'inset(0 100% 0 0)' },
+                                                        to: { clipPath: 'inset(0 0 0 0)' },
+                                                    }}
+                                                    config={{ mass: 1, tension: 170, friction: 26 }}
+                                                    parentHoverSelector="#_buttonContact"
+                                                ></AnimatedWrapper>
+                                                <div className="buttonBorders">
+                                                    {/* Top border: animate width */}
+                                                    <AnimatedWrapper
+                                                        as="div"
+                                                        className="borderTop"
+                                                        hover={{
+                                                            from: { width: '0%' },
+                                                            to: { width: '100%' },
+                                                            delay: 0,
+                                                        }}
+                                                        parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
+                                                        onRest={() => {
+                                                            // Trigger the next animation after this one completes
+                                                            document
+                                                                .querySelector('.borderRight')
+                                                                ?.dispatchEvent(
+                                                                    new Event('startAnimation')
+                                                                );
+                                                        }}
+                                                    />
+                                                    {/* Right border: animate height */}
+                                                    <AnimatedWrapper
+                                                        as="div"
+                                                        className="borderRight"
+                                                        hover={{
+                                                            from: { height: '0%' },
+                                                            to: { height: '100%' },
+                                                            delay: 0, // Start immediately after the previous animation
+                                                        }}
+                                                        parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
+                                                        onRest={() => {
+                                                            // Trigger the next animation after this one completes
+                                                            document
+                                                                .querySelector('.borderBottom')
+                                                                ?.dispatchEvent(
+                                                                    new Event('startAnimation')
+                                                                );
+                                                        }}
+                                                    />
+                                                    {/* Bottom border: animate width */}
+                                                    <AnimatedWrapper
+                                                        as="div"
+                                                        className="borderBottom"
+                                                        hover={{
+                                                            from: { width: '0%' },
+                                                            to: { width: '100%' },
+                                                            delay: 0, // Start immediately after the previous animation
+                                                        }}
+                                                        parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
+                                                        onRest={() => {
+                                                            // Trigger the next animation after this one completes
+                                                            document
+                                                                .querySelector('.borderLeft')
+                                                                ?.dispatchEvent(
+                                                                    new Event('startAnimation')
+                                                                );
+                                                        }}
+                                                    />
+                                                    {/* Left border: animate height */}
+                                                    <AnimatedWrapper
+                                                        as="div"
+                                                        className="borderLeft"
+                                                        hover={{
+                                                            from: { height: '0%' },
+                                                            to: { height: '100%' },
+                                                            delay: 0, // Start immediately after the previous animation
+                                                        }}
+                                                        parentHoverSelector="#_buttonContact" // <-- Updated parent hover selector
+                                                    />
+                                                </div>
+                                                <AnimatedWrapper
+                                                    as="span"
+                                                    className="buttonContent"
+                                                    hover={{
+                                                        from: {
+                                                            color: 'rgb(var(--text)/1)',
+                                                        },
+                                                        to: {
+                                                            color: 'rgb(var(--white)/1)',
+                                                        },
+                                                    }}
+                                                    config={{
+                                                        mass: 1,
+                                                        tension: 170,
+                                                        friction: 26,
+                                                    }}
+                                                    parentHoverSelector="#_buttonContact"
+                                                >
+                                                    {isLoading ? 'Submitting...' : 'Submit'}
+                                                    <b className="__dot">.</b>
+                                                </AnimatedWrapper>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </AnimatedWrapper>
 
-                            <AnimatedWrapper
-                                as="div"
-                                className="_formContainer_corps-right"
-                                from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
-                                to={{
-                                    transform: isLoaded ? 'translateX(0%)' : 'translateX(100%)',
-                                    opacity: isLoaded ? 1 : 0,
-                                }}
-                                config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
-                                delay={200} // Delay in milliseconds
-                            >
-                                <div className="__group">
-                                    <h3>Chat with me</h3>
-                                    <p>Get in contact and let&apos;s talk about Poetry</p>
-                                    <AnimatedWrapper
-                                        as="ul"
-                                        className="__ul-contactMe"
-                                        from={{ opacity: 0 }}
-                                        to={{ opacity: isLoaded ? 1 : 0 }}
-                                        config={smoothConfig}
-                                    >
-                                        {contactMeItems.map((item) => (
+                                <AnimatedWrapper
+                                    as="div"
+                                    className="_formContainer_corps-right"
+                                    from={{ transform: 'translateX(100%)', opacity: 0 }} // Initial state
+                                    to={{
+                                        transform: isLoaded ? 'translateX(0%)' : 'translateX(100%)',
+                                        opacity: isLoaded ? 1 : 0,
+                                    }}
+                                    config={{ mass: 1, tension: 210, friction: 20 }} // Adjusted spring configuration
+                                    delay={200} // Delay in milliseconds
+                                >
+                                    <div className="__group">
+                                        <h3>Chat with me</h3>
+                                        <p>Get in contact and let&apos;s talk about Poetry</p>
+                                        <AnimatedWrapper
+                                            as="ul"
+                                            className="__ul-contactMe"
+                                            from={{ opacity: 0 }}
+                                            to={{ opacity: isLoaded ? 1 : 0 }}
+                                            config={smoothConfig}
+                                        >
+                                            {contactMeItems.map((item) => (
+                                                <AnimatedWrapper
+                                                    as="li"
+                                                    key={item.href}
+                                                    hover={{
+                                                        from: { transform: 'translateX(0vh)' },
+                                                        to: { transform: 'translateX(0.5vh)' },
+                                                    }}
+                                                    click={{
+                                                        from: { scale: 1 },
+                                                        to: { scale: 0.9 },
+                                                    }}
+                                                    config={config.wobbly}
+                                                >
+                                                    <Link href={item.href}>
+                                                        <item.icon />
+                                                        <u>{item.label}</u>
+                                                    </Link>
+                                                </AnimatedWrapper>
+                                            ))}
+                                        </AnimatedWrapper>
+                                    </div>
+
+                                    <div className="__group">
+                                        <h3>Contact me</h3>
+                                        <p>Connect with me on WhatsApp for work-related matters.</p>
+                                        <AnimatedWrapper
+                                            as="ul"
+                                            className="__ul-contactMe"
+                                            from={{ opacity: 0 }}
+                                            to={{ opacity: isLoaded ? 1 : 0 }}
+                                            config={smoothConfig}
+                                        >
                                             <AnimatedWrapper
                                                 as="li"
-                                                key={item.href}
+                                                key=""
                                                 hover={{
                                                     from: { transform: 'translateX(0vh)' },
                                                     to: { transform: 'translateX(0.5vh)' },
@@ -438,68 +478,37 @@ export default function ContactPage() {
                                                 }}
                                                 config={config.wobbly}
                                             >
-                                                <Link href={item.href}>
-                                                    <item.icon />
-                                                    <u>{item.label}</u>
-                                                </Link>
+                                                <WaLink
+                                                    phone="+212654528492"
+                                                    message="Bonjour, j’ai besoin d’aide !"
+                                                >
+                                                    <u>+212 6 54 52 84 92</u>
+                                                </WaLink>
                                             </AnimatedWrapper>
-                                        ))}
-                                    </AnimatedWrapper>
-                                </div>
-
-                                <div className="__group">
-                                    <h3>Contact me</h3>
-                                    <p>Connect with me on WhatsApp for work-related matters.</p>
-                                    <AnimatedWrapper
-                                        as="ul"
-                                        className="__ul-contactMe"
-                                        from={{ opacity: 0 }}
-                                        to={{ opacity: isLoaded ? 1 : 0 }}
-                                        config={smoothConfig}
-                                    >
-                                        <AnimatedWrapper
-                                            as="li"
-                                            key=""
-                                            hover={{
-                                                from: { transform: 'translateX(0vh)' },
-                                                to: { transform: 'translateX(0.5vh)' },
-                                            }}
-                                            click={{
-                                                from: { scale: 1 },
-                                                to: { scale: 0.9 },
-                                            }}
-                                            config={config.wobbly}
-                                        >
-                                            <WaLink
-                                                phone="+212654528492"
-                                                message="Bonjour, j’ai besoin d’aide !"
-                                            >
-                                                <u>+212 6 54 52 84 92</u>
-                                            </WaLink>
                                         </AnimatedWrapper>
-                                    </AnimatedWrapper>
-                                </div>
-                            </AnimatedWrapper>
-                        </div>
+                                    </div>
+                                </AnimatedWrapper>
+                            </div>
 
-                        <SubmitModal
-                            isSubmitOpen={isSubmitOpen}
-                            onSubmitClose={() => {
-                                setIsSubmitOpen(false);
-                                dispatch(clearContactState());
-                                reset(); // Reset form when modal closes
-                            }}
-                            header={submitHeader}
-                            message={submitMessage}
-                            isSuccess={isSuccess}
-                        />
-                    </AnimatedWrapper>
-                </section>
-            </SectionObserver>
+                            <SubmitModal
+                                isSubmitOpen={isSubmitOpen}
+                                onSubmitClose={() => {
+                                    setIsSubmitOpen(false);
+                                    dispatch(clearContactState());
+                                    reset(); // Reset form when modal closes
+                                }}
+                                header={submitHeader}
+                                message={submitMessage}
+                                isSuccess={isSuccess}
+                            />
+                        </AnimatedWrapper>
+                    </section>
+                </SectionObserver>
 
-            <SectionObserver theme="light">
-                <section className="contact__section-4"></section>
-            </SectionObserver>
-        </main>
+                <SectionObserver theme="light">
+                    <section className="contact__section-4"></section>
+                </SectionObserver>
+            </main>
+        </>
     );
 }

@@ -1,4 +1,5 @@
 'use client';
+import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
@@ -102,7 +103,7 @@ export default function AboutPage() {
                     if (!comment.createdAt) {
                         return true; // Include comments without dates
                     }
-                    
+
                     const createdAt = new Date(comment.createdAt);
                     if (isNaN(createdAt.getTime())) {
                         return true; // Include comments with invalid dates
@@ -120,10 +121,10 @@ export default function AboutPage() {
         })
         .map((comment: Comment) => {
             const votes = comment._comment_votes || [];
-            
+
             const upvotes = votes.filter((vote) => vote.direction === 'up').length;
             const downvotes = votes.filter((vote) => vote.direction === 'down').length;
-            
+
             return { ...comment, score: 3 * upvotes - 2 * downvotes };
         })
         .orderBy(['score'], ['desc'])
@@ -203,290 +204,311 @@ export default function AboutPage() {
     const containsArabic = (text: string) => /[\u0600-\u06FF]+/.test(text);
 
     return (
-        <main className="about">
-            <SectionObserver theme="dark">
-                <section className="about__section-1">
-                    <AnimatedWrapper
-                        as={AboutSection1}
-                        className="about__section-1-image"
-                        from={{ transform: 'translateY(-10vh) translateX(-100%)', opacity: 0 }}
-                        to={
-                            isLoaded
-                                ? { transform: 'translateY(-10vh) translateX(0)', opacity: 1 }
-                                : {}
-                        }
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                    ></AnimatedWrapper>
-                    <AnimatedWrapper
-                        as="div"
-                        className="about__section-1-left"
-                        from={{ transform: 'translateX(100%)', opacity: 0 }}
-                        to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                    ></AnimatedWrapper>
-                    <AnimatedWrapper
-                        as="div"
-                        className="about__section-1-right"
-                        from={{ transform: 'translateX(-100%)', opacity: 0 }}
-                        to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                    >
-                        <div className="about__section-1-right-fadedText">
-                            <p>
-                                About
-                                <br />
-                                <b className="__dot">me.</b>
-                            </p>
-                        </div>
-                        <div className="about__section-1-right-text">
-                            <h2>
-                                Born into a lineage of poets, I am deeply rooted in the rich
-                                tapestry of Moroccan Amazigh traditions. My poetry is a harmonious
-                                blend of influences from Moroccan dialects, French, and Spanish,
-                                reflecting the diverse cultural heritage that has shaped my
-                                perspective. Drawing inspiration from the evocative rhythms of
-                                Ahwach, the soulful expressions of Tamawayt, and the poignant
-                                narratives of Aita, I endeavor to weave verses that resonate with
-                                themes of tradition, longing, and the enduring connection to
-                                one&apos;s homeland. Through my work, I aim to celebrate the beauty
-                                of our shared histories and the timeless traditions that bind us
-                                across generations.
-                            </h2>
-                        </div>
-                        <Link
-                            href={`/blog/biography/##slugToBio`}
-                            className="about__section-1-right-read"
+        <>
+            <Head>
+                <title>About Qasida | Poetry Website</title>
+                <meta
+                    name="description"
+                    content="Learn more about Qasida and our poetry community."
+                />
+            </Head>
+            <main className="about">
+                <SectionObserver theme="dark">
+                    <section className="about__section-1">
+                        <AnimatedWrapper
+                            as={AboutSection1}
+                            className="about__section-1-image"
+                            from={{ transform: 'translateY(-10vh) translateX(-100%)', opacity: 0 }}
+                            to={
+                                isLoaded
+                                    ? { transform: 'translateY(-10vh) translateX(0)', opacity: 1 }
+                                    : {}
+                            }
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                        ></AnimatedWrapper>
+                        <AnimatedWrapper
+                            as="div"
+                            className="about__section-1-left"
+                            from={{ transform: 'translateX(100%)', opacity: 0 }}
+                            to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                        ></AnimatedWrapper>
+                        <AnimatedWrapper
+                            as="div"
+                            className="about__section-1-right"
+                            from={{ transform: 'translateX(-100%)', opacity: 0 }}
+                            to={isLoaded ? { transform: 'translateX(0)', opacity: 1 } : {}}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
                         >
-                            <AnimatedWrapper
-                                as="span"
-                                hover={{
-                                    from: { transform: 'translateX(0px)' },
-                                    to: { transform: 'translateX(10px)' },
-                                }}
-                                config={config.wobbly}
+                            <div className="about__section-1-right-fadedText">
+                                <p>
+                                    About
+                                    <br />
+                                    <b className="__dot">me.</b>
+                                </p>
+                            </div>
+                            <div className="about__section-1-right-text">
+                                <h2>
+                                    Born into a lineage of poets, I am deeply rooted in the rich
+                                    tapestry of Moroccan Amazigh traditions. My poetry is a
+                                    harmonious blend of influences from Moroccan dialects, French,
+                                    and Spanish, reflecting the diverse cultural heritage that has
+                                    shaped my perspective. Drawing inspiration from the evocative
+                                    rhythms of Ahwach, the soulful expressions of Tamawayt, and the
+                                    poignant narratives of Aita, I endeavor to weave verses that
+                                    resonate with themes of tradition, longing, and the enduring
+                                    connection to one&apos;s homeland. Through my work, I aim to
+                                    celebrate the beauty of our shared histories and the timeless
+                                    traditions that bind us across generations.
+                                </h2>
+                            </div>
+                            <Link
+                                href={`/blog/biography/##slugToBio`}
+                                className="about__section-1-right-read"
                             >
-                                Read the full Bio.
                                 <AnimatedWrapper
-                                    as={LongArrow}
+                                    as="span"
                                     hover={{
                                         from: { transform: 'translateX(0px)' },
-                                        to: { transform: 'translateX(20px)' },
+                                        to: { transform: 'translateX(10px)' },
                                     }}
                                     config={config.wobbly}
-                                />
-                            </AnimatedWrapper>
-                        </Link>
-                    </AnimatedWrapper>
-                </section>
-            </SectionObserver>
-            <SectionObserver theme="dark">
-                <section className="about__section-2">
-                    <div className="about__section-2-left">
-                        <AnimatedWrapper
-                            as="div"
-                            className="_sliderComments"
-                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
-                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
-                            config={{ mass: 1, tension: 170, friction: 26 }}
-                            delay={1000}
-                        >
-                            {isLoading && <p>Loading comments...</p>}
-                            {error && <p className="text-red-500">Error: {error}</p>}
-                            {!_.isEmpty(displayCommentsUpdated) && (
-                                <Slider {..._slider1CommentsSettings}>
-                                    {_.map(displayCommentsUpdated, (comment, index) => {
-                                        const opacity = computeOpacity(
-                                            index,
-                                            currentSlide1,
-                                            displayCommentsUpdated.length,
-                                            _slider1CommentsSettings.rtl || false
-                                        );
-                                        // Apply the extra class only to every 3rd item
-                                        const extraClass =
-                                            index % 3 === 0 ? '__differentSlide' : '';
-                                        return (
-                                            <AnimatedWrapper
-                                                key={index}
-                                                animationStyle={{ opacity }}
-                                                config={{
-                                                    mass: 1,
-                                                    tension: 120,
-                                                    friction: 14,
-                                                    precision: 0.01,
-                                                    duration: 400,
-                                                }}
-                                            >
-                                                <div
-                                                    className={`_card _card-${index} ${extraClass}`}
-                                                >
-                                                    <div className="_cardBody">
-                                                        <form className="_form">
-                                                            <h2 className="_comment_author">
-                                                                by{' '}
-                                                                <span
-                                                                    lang={
-                                                                        containsArabic(
-                                                                            comment._comment_author
-                                                                        )
-                                                                            ? 'ar'
-                                                                            : 'en'
-                                                                    }
-                                                                >
-                                                                    {comment._comment_author}
-                                                                </span>
-                                                            </h2>
-                                                            <span
-                                                                lang={
-                                                                    containsArabic(
-                                                                        comment._comment_body
-                                                                    )
-                                                                        ? 'ar'
-                                                                        : 'en'
-                                                                }
-                                                                className="_comment_body"
-                                                            >
-                                                                {comment._comment_body}
-                                                            </span>
-                                                            <h2 className="_article__title">
-                                                                <span
-                                                                    lang={
-                                                                        containsArabic(
-                                                                            comment.article?.title || ''
-                                                                        )
-                                                                            ? 'ar'
-                                                                            : 'en'
-                                                                    }
-                                                                >
-                                                                    {comment.article?.title}
-                                                                </span>
-                                                            </h2>
-                                                            <div className="information">
-                                                                <span>
-                                                                    <b>
-                                                                        {_.get(
-                                                                            comment,
-                                                                            '_comment_votes.length',
-                                                                            0
-                                                                        )}{' '}
-                                                                    </b>
-                                                                    Votes
-                                                                </span>
-                                                                <Squircle />
-                                                                <span>
-                                                                    {formatDistanceToNow(
-                                                                        new Date(comment.createdAt!)
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                    {extraClass && <BiSolidQuoteAltLeft />}
-                                                </div>
-                                            </AnimatedWrapper>
-                                        );
-                                    })}
-                                </Slider>
-                            )}
+                                >
+                                    Read the full Bio.
+                                    <AnimatedWrapper
+                                        as={LongArrow}
+                                        hover={{
+                                            from: { transform: 'translateX(0px)' },
+                                            to: { transform: 'translateX(20px)' },
+                                        }}
+                                        config={config.wobbly}
+                                    />
+                                </AnimatedWrapper>
+                            </Link>
                         </AnimatedWrapper>
-                    </div>
-                    <div className="about__section-2-right">
-                        <AnimatedWrapper
-                            as="div"
-                            className="_sliderComments"
-                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
-                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
-                            config={{ mass: 1, tension: 170, friction: 26 }}
-                            delay={1000}
-                        >
-                            {isLoading && <p>Loading comments...</p>}
-                            {error && <p className="text-red-500">Error: {error}</p>}
-                            {!_.isEmpty(displayCommentsUpdated) && (
-                                <Slider {..._slider2CommentsSettings}>
-                                    {[...displayCommentsUpdated].reverse().map((comment, index) => {
-                                        const opacity = computeOpacity(
-                                            index,
-                                            currentSlide2,
-                                            displayCommentsUpdated.length,
-                                            _slider2CommentsSettings.rtl || false
-                                        );
-                                        const extraClass =
-                                            index % 3 === 0 ? '__differentSlide' : '';
-                                        return (
-                                            <AnimatedWrapper
-                                                key={index}
-                                                animationStyle={{ opacity }}
-                                                config={{
-                                                    mass: 1,
-                                                    tension: 120,
-                                                    friction: 14,
-                                                    precision: 0.01,
-                                                    duration: 400,
-                                                }}
-                                            >
-                                                <div
-                                                    className={`_card _card-${index} ${extraClass}`}
+                    </section>
+                </SectionObserver>
+                <SectionObserver theme="dark">
+                    <section className="about__section-2">
+                        <div className="about__section-2-left">
+                            <AnimatedWrapper
+                                as="div"
+                                className="_sliderComments"
+                                from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                                to={
+                                    isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined
+                                }
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                                delay={1000}
+                            >
+                                {isLoading && <p>Loading comments...</p>}
+                                {error && <p className="text-red-500">Error: {error}</p>}
+                                {!_.isEmpty(displayCommentsUpdated) && (
+                                    <Slider {..._slider1CommentsSettings}>
+                                        {_.map(displayCommentsUpdated, (comment, index) => {
+                                            const opacity = computeOpacity(
+                                                index,
+                                                currentSlide1,
+                                                displayCommentsUpdated.length,
+                                                _slider1CommentsSettings.rtl || false
+                                            );
+                                            // Apply the extra class only to every 3rd item
+                                            const extraClass =
+                                                index % 3 === 0 ? '__differentSlide' : '';
+                                            return (
+                                                <AnimatedWrapper
+                                                    key={index}
+                                                    animationStyle={{ opacity }}
+                                                    config={{
+                                                        mass: 1,
+                                                        tension: 120,
+                                                        friction: 14,
+                                                        precision: 0.01,
+                                                        duration: 400,
+                                                    }}
                                                 >
-                                                    <div className="_cardBody">
-                                                        <form className="_form">
-                                                            <h2 className="_comment_author">
-                                                                by{' '}
-                                                                <span>
-                                                                    {comment._comment_author}
+                                                    <div
+                                                        className={`_card _card-${index} ${extraClass}`}
+                                                    >
+                                                        <div className="_cardBody">
+                                                            <form className="_form">
+                                                                <h2 className="_comment_author">
+                                                                    by{' '}
+                                                                    <span
+                                                                        lang={
+                                                                            containsArabic(
+                                                                                comment._comment_author
+                                                                            )
+                                                                                ? 'ar'
+                                                                                : 'en'
+                                                                        }
+                                                                    >
+                                                                        {comment._comment_author}
+                                                                    </span>
+                                                                </h2>
+                                                                <span
+                                                                    lang={
+                                                                        containsArabic(
+                                                                            comment._comment_body
+                                                                        )
+                                                                            ? 'ar'
+                                                                            : 'en'
+                                                                    }
+                                                                    className="_comment_body"
+                                                                >
+                                                                    {comment._comment_body}
                                                                 </span>
-                                                            </h2>
-                                                            <span className="_comment_body">
-                                                                {comment._comment_body}
-                                                            </span>
-                                                            <h2
-                                                                className={`_article__title ${
-                                                                    /[\u0600-\u06FF]/.test(
-                                                                        comment.article?.title || ''
-                                                                    )
-                                                                        ? '_article__title__arabic'
-                                                                        : ''
-                                                                }`}
-                                                            >
-                                                                <span>
-                                                                    {comment.article?.title}
-                                                                </span>
-                                                            </h2>
-                                                            <div className="information">
-                                                                <span>
-                                                                    <b>
-                                                                        {_.get(
-                                                                            comment,
-                                                                            '_comment_upvotes.length',
-                                                                            0
+                                                                <h2 className="_article__title">
+                                                                    <span
+                                                                        lang={
+                                                                            containsArabic(
+                                                                                comment.article
+                                                                                    ?.title || ''
+                                                                            )
+                                                                                ? 'ar'
+                                                                                : 'en'
+                                                                        }
+                                                                    >
+                                                                        {comment.article?.title}
+                                                                    </span>
+                                                                </h2>
+                                                                <div className="information">
+                                                                    <span>
+                                                                        <b>
+                                                                            {_.get(
+                                                                                comment,
+                                                                                '_comment_votes.length',
+                                                                                0
+                                                                            )}{' '}
+                                                                        </b>
+                                                                        Votes
+                                                                    </span>
+                                                                    <Squircle />
+                                                                    <span>
+                                                                        {formatDistanceToNow(
+                                                                            new Date(
+                                                                                comment.createdAt!
+                                                                            )
                                                                         )}
-                                                                    </b>{' '}
-                                                                    Likes
-                                                                </span>
-                                                                <Squircle />
-                                                                <span>
-                                                                    {formatDistanceToNow(
-                                                                        new Date(
-                                                                            comment.createdAt!
-                                                                        ),
-                                                                        { addSuffix: true }
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                        </form>
+                                                                    </span>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        {extraClass && <BiSolidQuoteAltLeft />}
                                                     </div>
-                                                    {extraClass && <BiSolidQuoteAltLeft />}
-                                                </div>
-                                            </AnimatedWrapper>
-                                        );
-                                    })}
-                                </Slider>
-                            )}
-                        </AnimatedWrapper>
-                    </div>
-                </section>
-            </SectionObserver>
-            <SectionObserver theme="light">
-                <section className="about__section-4"></section>
-            </SectionObserver>
-        </main>
+                                                </AnimatedWrapper>
+                                            );
+                                        })}
+                                    </Slider>
+                                )}
+                            </AnimatedWrapper>
+                        </div>
+                        <div className="about__section-2-right">
+                            <AnimatedWrapper
+                                as="div"
+                                className="_sliderComments"
+                                from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                                to={
+                                    isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined
+                                }
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                                delay={1000}
+                            >
+                                {isLoading && <p>Loading comments...</p>}
+                                {error && <p className="text-red-500">Error: {error}</p>}
+                                {!_.isEmpty(displayCommentsUpdated) && (
+                                    <Slider {..._slider2CommentsSettings}>
+                                        {[...displayCommentsUpdated]
+                                            .reverse()
+                                            .map((comment, index) => {
+                                                const opacity = computeOpacity(
+                                                    index,
+                                                    currentSlide2,
+                                                    displayCommentsUpdated.length,
+                                                    _slider2CommentsSettings.rtl || false
+                                                );
+                                                const extraClass =
+                                                    index % 3 === 0 ? '__differentSlide' : '';
+                                                return (
+                                                    <AnimatedWrapper
+                                                        key={index}
+                                                        animationStyle={{ opacity }}
+                                                        config={{
+                                                            mass: 1,
+                                                            tension: 120,
+                                                            friction: 14,
+                                                            precision: 0.01,
+                                                            duration: 400,
+                                                        }}
+                                                    >
+                                                        <div
+                                                            className={`_card _card-${index} ${extraClass}`}
+                                                        >
+                                                            <div className="_cardBody">
+                                                                <form className="_form">
+                                                                    <h2 className="_comment_author">
+                                                                        by{' '}
+                                                                        <span>
+                                                                            {
+                                                                                comment._comment_author
+                                                                            }
+                                                                        </span>
+                                                                    </h2>
+                                                                    <span className="_comment_body">
+                                                                        {comment._comment_body}
+                                                                    </span>
+                                                                    <h2
+                                                                        className={`_article__title ${
+                                                                            /[\u0600-\u06FF]/.test(
+                                                                                comment.article
+                                                                                    ?.title || ''
+                                                                            )
+                                                                                ? '_article__title__arabic'
+                                                                                : ''
+                                                                        }`}
+                                                                    >
+                                                                        <span>
+                                                                            {comment.article?.title}
+                                                                        </span>
+                                                                    </h2>
+                                                                    <div className="information">
+                                                                        <span>
+                                                                            <b>
+                                                                                {_.get(
+                                                                                    comment,
+                                                                                    '_comment_upvotes.length',
+                                                                                    0
+                                                                                )}
+                                                                            </b>{' '}
+                                                                            Likes
+                                                                        </span>
+                                                                        <Squircle />
+                                                                        <span>
+                                                                            {formatDistanceToNow(
+                                                                                new Date(
+                                                                                    comment.createdAt!
+                                                                                ),
+                                                                                { addSuffix: true }
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
+                                                            {extraClass && <BiSolidQuoteAltLeft />}
+                                                        </div>
+                                                    </AnimatedWrapper>
+                                                );
+                                            })}
+                                    </Slider>
+                                )}
+                            </AnimatedWrapper>
+                        </div>
+                    </section>
+                </SectionObserver>
+                <SectionObserver theme="light">
+                    <section className="about__section-4"></section>
+                </SectionObserver>
+            </main>
+        </>
     );
 }

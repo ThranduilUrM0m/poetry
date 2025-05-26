@@ -1,4 +1,5 @@
 'use client';
+import Head from 'next/head';
 import { useEffect, useState, JSX } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from '@/store';
@@ -278,271 +279,364 @@ export default function BlogPage() {
     ).slice(0, 100);
 
     return (
-        <main className="blog">
-            <SectionObserver theme="dark">
-                <section className={`blog__section-1 !pb-0 ${!isSm && '!h-full'}`}>
-                    <AnimatedWrapper
-                        as="div"
-                        className="blog__section-1-left"
-                        from={{ transform: 'translateX(-100%)', opacity: 0 }}
-                        to={isReady ? { transform: 'translateX(0)', opacity: 1 } : undefined}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                        delay={1000}
-                    >
-                        <div className="__bestOfWeek">
-                            <h1 className="__title">Best of the week</h1>
-                            <div className="_card">
-                                <div className="_cardBody">
-                                    {bestArticle ? (
-                                        <>
-                                            <div className="__background">
-                                                {extractFirstImage(bestArticle.body)}
-                                            </div>
+        <>
+            <Head>
+                <title>Blog | Poetry Website</title>
+                <meta
+                    name="description"
+                    content="View poems from Qasida and our poetry community."
+                />
+            </Head>
+            <main className="blog">
+                <SectionObserver theme="dark">
+                    <section className={`blog__section-1 !pb-0 ${!isSm && '!h-full'}`}>
+                        <AnimatedWrapper
+                            as="div"
+                            className="blog__section-1-left"
+                            from={{ transform: 'translateX(-100%)', opacity: 0 }}
+                            to={isReady ? { transform: 'translateX(0)', opacity: 1 } : undefined}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                            delay={1000}
+                        >
+                            <div className="__bestOfWeek">
+                                <h1 className="__title">Best of the week</h1>
+                                <div className="_card">
+                                    <div className="_cardBody">
+                                        {bestArticle ? (
+                                            <>
+                                                <div className="__background">
+                                                    {extractFirstImage(bestArticle.body)}
+                                                </div>
 
-                                            <form className="_form">
-                                                <div className="__top">
+                                                <form className="_form">
+                                                    <div className="__top">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(bestArticle.category)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="__articleCategory"
+                                                        >
+                                                            {_.upperFirst(bestArticle.category)}
+                                                        </span>
+                                                        <span className="__articleDate">
+                                                            {formatDistanceToNow(
+                                                                new Date(bestArticle.updatedAt!),
+                                                                {
+                                                                    addSuffix: true,
+                                                                }
+                                                            )}
+                                                        </span>
+                                                    </div>
+
                                                     <span
                                                         lang={
-                                                            containsArabic(bestArticle.category)
+                                                            containsArabic(bestArticle.body)
                                                                 ? 'ar'
                                                                 : 'en'
                                                         }
-                                                        className="__articleCategory"
+                                                        className="firstPhrase"
                                                     >
-                                                        {_.upperFirst(bestArticle.category)}
+                                                        {bestArticle.body &&
+                                                            extractFirstPhrase(bestArticle.body)}
+                                                    </span>
+
+                                                    <h2
+                                                        className={`${
+                                                            containsArabic(bestArticle.title) &&
+                                                            '__ar'
+                                                        }`}
+                                                        lang={
+                                                            containsArabic(bestArticle.title)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                    >
+                                                        {bestArticle.title}
+                                                    </h2>
+
+                                                    <div className="tags">
+                                                        {_.map(bestArticle.tags, (tag, index) => (
+                                                            <span
+                                                                lang={
+                                                                    containsArabic(tag)
+                                                                        ? 'ar'
+                                                                        : 'en'
+                                                                }
+                                                                key={index}
+                                                                className="tag"
+                                                            >
+                                                                <Hash />
+                                                                {_.upperFirst(tag)}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="_row">
+                                                        <Link
+                                                            href={`/blog/${bestArticle.category.toLowerCase()}/${
+                                                                bestArticle.slug
+                                                            }`}
+                                                            className="_button"
+                                                            id="_buttonArticle"
+                                                        >
+                                                            {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                                                            <AnimatedWrapper
+                                                                as="span"
+                                                                className="buttonBackground"
+                                                                hover={{
+                                                                    from: {
+                                                                        clipPath:
+                                                                            'inset(0 100% 0 0)',
+                                                                    },
+                                                                    to: {
+                                                                        clipPath: 'inset(0 0 0 0)',
+                                                                    },
+                                                                }}
+                                                                config={{
+                                                                    mass: 1,
+                                                                    tension: 170,
+                                                                    friction: 26,
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle"
+                                                            ></AnimatedWrapper>
+                                                            <div className="buttonBorders">
+                                                                {/* Top border: animate width */}
+                                                                <AnimatedWrapper
+                                                                    as="div"
+                                                                    className="borderTop"
+                                                                    hover={{
+                                                                        from: { width: '0%' },
+                                                                        to: { width: '100%' },
+                                                                        delay: 0,
+                                                                    }}
+                                                                    parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                    onRest={() => {
+                                                                        // Trigger the next animation after this one completes
+                                                                        document
+                                                                            .querySelector(
+                                                                                '.borderRight'
+                                                                            )
+                                                                            ?.dispatchEvent(
+                                                                                new Event(
+                                                                                    'startAnimation'
+                                                                                )
+                                                                            );
+                                                                    }}
+                                                                />
+                                                                {/* Right border: animate height */}
+                                                                <AnimatedWrapper
+                                                                    as="div"
+                                                                    className="borderRight"
+                                                                    hover={{
+                                                                        from: { height: '0%' },
+                                                                        to: { height: '100%' },
+                                                                        delay: 0, // Start immediately after the previous animation
+                                                                    }}
+                                                                    parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                    onRest={() => {
+                                                                        // Trigger the next animation after this one completes
+                                                                        document
+                                                                            .querySelector(
+                                                                                '.borderBottom'
+                                                                            )
+                                                                            ?.dispatchEvent(
+                                                                                new Event(
+                                                                                    'startAnimation'
+                                                                                )
+                                                                            );
+                                                                    }}
+                                                                />
+                                                                {/* Bottom border: animate width */}
+                                                                <AnimatedWrapper
+                                                                    as="div"
+                                                                    className="borderBottom"
+                                                                    hover={{
+                                                                        from: { width: '0%' },
+                                                                        to: { width: '100%' },
+                                                                        delay: 0, // Start immediately after the previous animation
+                                                                    }}
+                                                                    parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                    onRest={() => {
+                                                                        // Trigger the next animation after this one completes
+                                                                        document
+                                                                            .querySelector(
+                                                                                '.borderLeft'
+                                                                            )
+                                                                            ?.dispatchEvent(
+                                                                                new Event(
+                                                                                    'startAnimation'
+                                                                                )
+                                                                            );
+                                                                    }}
+                                                                />
+                                                                {/* Left border: animate height */}
+                                                                <AnimatedWrapper
+                                                                    as="div"
+                                                                    className="borderLeft"
+                                                                    hover={{
+                                                                        from: { height: '0%' },
+                                                                        to: { height: '100%' },
+                                                                        delay: 0, // Start immediately after the previous animation
+                                                                    }}
+                                                                    parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                                                />
+                                                            </div>
+                                                            <AnimatedWrapper
+                                                                as="span"
+                                                                className="buttonContent"
+                                                                hover={{
+                                                                    from: {
+                                                                        color: 'rgb(var(--text)/1)',
+                                                                    },
+                                                                    to: {
+                                                                        color: 'rgb(var(--white)/1)',
+                                                                    },
+                                                                }}
+                                                                config={{
+                                                                    mass: 1,
+                                                                    tension: 170,
+                                                                    friction: 26,
+                                                                }}
+                                                                parentHoverSelector="#_buttonArticle"
+                                                            >
+                                                                Read More About it
+                                                                <b className="__dot">.</b>
+                                                            </AnimatedWrapper>
+                                                        </Link>
+                                                    </div>
+
+                                                    <div className="information">
+                                                        <b>
+                                                            {_.size(bestArticle.comments)}{' '}
+                                                            <LuMessageSquareMore />
+                                                        </b>
+                                                        <b>
+                                                            {
+                                                                // Use the unified vote model to show the number of upvotes
+                                                                _.size(
+                                                                    bestArticle.votes?.filter(
+                                                                        (vote: Vote) =>
+                                                                            vote.direction === 'up'
+                                                                    ) || []
+                                                                )
+                                                            }{' '}
+                                                            <LuThumbsUp />
+                                                        </b>
+                                                        <b>
+                                                            {_.size(bestArticle.views)} <LuEye />
+                                                        </b>
+                                                        <LuSquircle />
+                                                        <b>
+                                                            by{' '}
+                                                            {_.isEmpty(
+                                                                bestArticle.author.lastName
+                                                            ) &&
+                                                            _.isEmpty(bestArticle.author.firstName)
+                                                                ? bestArticle.author.username
+                                                                : !_.isEmpty(
+                                                                      bestArticle.author.lastName
+                                                                  )
+                                                                ? `${bestArticle.author.lastName} ${bestArticle.author.firstName}`
+                                                                : bestArticle.author.firstName ??
+                                                                  bestArticle.author.username}
+                                                        </b>
+                                                    </div>
+                                                </form>
+                                            </>
+                                        ) : (
+                                            // Render a fallback UI or message indicating no articles are available
+                                            <p>Loading articles...</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="__topRated">
+                                <div className="__header">
+                                    <h2 className="__title">Top Rated</h2>
+                                    <button
+                                        className="__viewMore"
+                                        onClick={() =>
+                                            openModal({
+                                                sortOption: 'topRated',
+                                                timeFrameOption: 'all',
+                                            })
+                                        }
+                                    >
+                                        <AnimatedWrapper
+                                            as="span" // Use a span to wrap the text and arrow
+                                            hover={{
+                                                from: { transform: 'translateX(0px)' },
+                                                to: { transform: 'translateX(-5px)' },
+                                            }}
+                                            config={config.wobbly}
+                                        >
+                                            View more
+                                        </AnimatedWrapper>
+                                    </button>
+                                </div>
+                                <ul>
+                                    {topRatedArticles.map((article) => (
+                                        <li key={article._id}>
+                                            <Link
+                                                href={`/blog/${article.category.toLowerCase()}/${
+                                                    article.slug
+                                                }`}
+                                            >
+                                                <div className="__top">
+                                                    <span
+                                                        lang={
+                                                            containsArabic(article.title)
+                                                                ? 'ar'
+                                                                : 'en'
+                                                        }
+                                                        className={`__articleTitle ${
+                                                            containsArabic(bestArticle.title) &&
+                                                            '__ar'
+                                                        }`}
+                                                    >
+                                                        {_.upperFirst(article.title)}
                                                     </span>
                                                     <span className="__articleDate">
                                                         {formatDistanceToNow(
-                                                            new Date(bestArticle.updatedAt!),
+                                                            new Date(article.updatedAt!),
                                                             {
                                                                 addSuffix: true,
                                                             }
                                                         )}
                                                     </span>
                                                 </div>
-
-                                                <span
+                                                <p
                                                     lang={
-                                                        containsArabic(bestArticle.body)
-                                                            ? 'ar'
-                                                            : 'en'
+                                                        containsArabic(article.body) ? 'ar' : 'en'
                                                     }
                                                     className="firstPhrase"
                                                 >
-                                                    {bestArticle.body &&
-                                                        extractFirstPhrase(bestArticle.body)}
-                                                </span>
-
-                                                <h2
-                                                    className={`${
-                                                        containsArabic(bestArticle.title) && '__ar'
-                                                    }`}
-                                                    lang={
-                                                        containsArabic(bestArticle.title)
-                                                            ? 'ar'
-                                                            : 'en'
-                                                    }
-                                                >
-                                                    {bestArticle.title}
-                                                </h2>
-
-                                                <div className="tags">
-                                                    {_.map(bestArticle.tags, (tag, index) => (
-                                                        <span
-                                                            lang={containsArabic(tag) ? 'ar' : 'en'}
-                                                            key={index}
-                                                            className="tag"
-                                                        >
-                                                            <Hash />
-                                                            {_.upperFirst(tag)}
-                                                        </span>
-                                                    ))}
-                                                </div>
-
-                                                <div className="_row">
-                                                    <Link
-                                                        href={`/blog/${bestArticle.category.toLowerCase()}/${
-                                                            bestArticle.slug
-                                                        }`}
-                                                        className="_button"
-                                                        id="_buttonArticle"
-                                                    >
-                                                        {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
-                                                        <AnimatedWrapper
-                                                            as="span"
-                                                            className="buttonBackground"
-                                                            hover={{
-                                                                from: {
-                                                                    clipPath: 'inset(0 100% 0 0)',
-                                                                },
-                                                                to: {
-                                                                    clipPath: 'inset(0 0 0 0)',
-                                                                },
-                                                            }}
-                                                            config={{
-                                                                mass: 1,
-                                                                tension: 170,
-                                                                friction: 26,
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle"
-                                                        ></AnimatedWrapper>
-                                                        <div className="buttonBorders">
-                                                            {/* Top border: animate width */}
-                                                            <AnimatedWrapper
-                                                                as="div"
-                                                                className="borderTop"
-                                                                hover={{
-                                                                    from: { width: '0%' },
-                                                                    to: { width: '100%' },
-                                                                    delay: 0,
-                                                                }}
-                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                                onRest={() => {
-                                                                    // Trigger the next animation after this one completes
-                                                                    document
-                                                                        .querySelector(
-                                                                            '.borderRight'
-                                                                        )
-                                                                        ?.dispatchEvent(
-                                                                            new Event(
-                                                                                'startAnimation'
-                                                                            )
-                                                                        );
-                                                                }}
-                                                            />
-                                                            {/* Right border: animate height */}
-                                                            <AnimatedWrapper
-                                                                as="div"
-                                                                className="borderRight"
-                                                                hover={{
-                                                                    from: { height: '0%' },
-                                                                    to: { height: '100%' },
-                                                                    delay: 0, // Start immediately after the previous animation
-                                                                }}
-                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                                onRest={() => {
-                                                                    // Trigger the next animation after this one completes
-                                                                    document
-                                                                        .querySelector(
-                                                                            '.borderBottom'
-                                                                        )
-                                                                        ?.dispatchEvent(
-                                                                            new Event(
-                                                                                'startAnimation'
-                                                                            )
-                                                                        );
-                                                                }}
-                                                            />
-                                                            {/* Bottom border: animate width */}
-                                                            <AnimatedWrapper
-                                                                as="div"
-                                                                className="borderBottom"
-                                                                hover={{
-                                                                    from: { width: '0%' },
-                                                                    to: { width: '100%' },
-                                                                    delay: 0, // Start immediately after the previous animation
-                                                                }}
-                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                                onRest={() => {
-                                                                    // Trigger the next animation after this one completes
-                                                                    document
-                                                                        .querySelector(
-                                                                            '.borderLeft'
-                                                                        )
-                                                                        ?.dispatchEvent(
-                                                                            new Event(
-                                                                                'startAnimation'
-                                                                            )
-                                                                        );
-                                                                }}
-                                                            />
-                                                            {/* Left border: animate height */}
-                                                            <AnimatedWrapper
-                                                                as="div"
-                                                                className="borderLeft"
-                                                                hover={{
-                                                                    from: { height: '0%' },
-                                                                    to: { height: '100%' },
-                                                                    delay: 0, // Start immediately after the previous animation
-                                                                }}
-                                                                parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                                            />
-                                                        </div>
-                                                        <AnimatedWrapper
-                                                            as="span"
-                                                            className="buttonContent"
-                                                            hover={{
-                                                                from: {
-                                                                    color: 'rgb(var(--text)/1)',
-                                                                },
-                                                                to: {
-                                                                    color: 'rgb(var(--white)/1)',
-                                                                },
-                                                            }}
-                                                            config={{
-                                                                mass: 1,
-                                                                tension: 170,
-                                                                friction: 26,
-                                                            }}
-                                                            parentHoverSelector="#_buttonArticle"
-                                                        >
-                                                            Read More About it
-                                                            <b className="__dot">.</b>
-                                                        </AnimatedWrapper>
-                                                    </Link>
-                                                </div>
-
-                                                <div className="information">
-                                                    <b>
-                                                        {_.size(bestArticle.comments)}{' '}
-                                                        <LuMessageSquareMore />
-                                                    </b>
-                                                    <b>
-                                                        {
-                                                            // Use the unified vote model to show the number of upvotes
-                                                            _.size(
-                                                                bestArticle.votes?.filter(
-                                                                    (vote: Vote) =>
-                                                                        vote.direction === 'up'
-                                                                ) || []
-                                                            )
-                                                        }{' '}
-                                                        <LuThumbsUp />
-                                                    </b>
-                                                    <b>
-                                                        {_.size(bestArticle.views)} <LuEye />
-                                                    </b>
-                                                    <LuSquircle />
-                                                    <b>
-                                                        by{' '}
-                                                        {_.isEmpty(bestArticle.author.lastName) &&
-                                                        _.isEmpty(bestArticle.author.firstName)
-                                                            ? bestArticle.author.username
-                                                            : !_.isEmpty(
-                                                                  bestArticle.author.lastName
-                                                              )
-                                                            ? `${bestArticle.author.lastName} ${bestArticle.author.firstName}`
-                                                            : bestArticle.author.firstName ??
-                                                              bestArticle.author.username}
-                                                    </b>
-                                                </div>
-                                            </form>
-                                        </>
-                                    ) : (
-                                        // Render a fallback UI or message indicating no articles are available
-                                        <p>Loading articles...</p>
-                                    )}
-                                </div>
+                                                    {extractFirstPhrase(article.body)}
+                                                </p>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                        </div>
-                        <div className="__topRated">
+                        </AnimatedWrapper>
+
+                        <AnimatedWrapper
+                            as="div"
+                            className="blog__section-1-right"
+                            from={{ transform: 'translateX(100%)', opacity: 0 }}
+                            to={isReady ? { transform: 'translateX(0)', opacity: 1 } : undefined}
+                            config={{ mass: 1, tension: 170, friction: 26 }}
+                            delay={1000}
+                        >
                             <div className="__header">
-                                <h2 className="__title">Top Rated</h2>
+                                <h1 className="__title">Most viewed</h1>
                                 <button
                                     className="__viewMore"
                                     onClick={() =>
                                         openModal({
-                                            sortOption: 'topRated',
+                                            sortOption: 'mostViewed',
                                             timeFrameOption: 'all',
                                         })
                                     }
@@ -560,8 +654,13 @@ export default function BlogPage() {
                                 </button>
                             </div>
                             <ul>
-                                {topRatedArticles.map((article) => (
+                                {mostViewedArticles.map((article, index) => (
                                     <li key={article._id}>
+                                        {index === 0 && (
+                                            <div className="__background">
+                                                {extractFirstImage(article.body)}
+                                            </div>
+                                        )}
                                         <Link
                                             href={`/blog/${article.category.toLowerCase()}/${
                                                 article.slug
@@ -597,172 +696,227 @@ export default function BlogPage() {
                                     </li>
                                 ))}
                             </ul>
-                        </div>
-                    </AnimatedWrapper>
+                        </AnimatedWrapper>
+                    </section>
+                </SectionObserver>
 
-                    <AnimatedWrapper
-                        as="div"
-                        className="blog__section-1-right"
-                        from={{ transform: 'translateX(100%)', opacity: 0 }}
-                        to={isReady ? { transform: 'translateX(0)', opacity: 1 } : undefined}
-                        config={{ mass: 1, tension: 170, friction: 26 }}
-                        delay={1000}
-                    >
-                        <div className="__header">
-                            <h1 className="__title">Most viewed</h1>
-                            <button
-                                className="__viewMore"
-                                onClick={() =>
-                                    openModal({
-                                        sortOption: 'mostViewed',
-                                        timeFrameOption: 'all',
-                                    })
+                <SectionObserver theme="dark">
+                    <section className={`blog__section-2 !h-full ${!isSm && '!py-0'}`}>
+                        <div className="blog__section-2-left">
+                            <AnimatedWrapper
+                                as="div"
+                                className="_sliderArticles"
+                                from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                                to={
+                                    isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined
                                 }
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                                delay={1000}
                             >
-                                <AnimatedWrapper
-                                    as="span" // Use a span to wrap the text and arrow
-                                    hover={{
-                                        from: { transform: 'translateX(0px)' },
-                                        to: { transform: 'translateX(-5px)' },
-                                    }}
-                                    config={config.wobbly}
-                                >
-                                    View more
-                                </AnimatedWrapper>
-                            </button>
+                                {!_.isEmpty(articles) && (
+                                    <Slider {...sliderSettings__1}>
+                                        {_.map(latestArticles, (_article, index) => (
+                                            <div
+                                                key={_article._id}
+                                                className={`_card _card-${index}`}
+                                            >
+                                                <Link
+                                                    className="_cardBody"
+                                                    href={`/blog/${_article.category.toLowerCase()}/${
+                                                        _article.slug
+                                                    }`}
+                                                >
+                                                    <div className="__background">
+                                                        {extractFirstImage(_article.body)}
+                                                    </div>
+
+                                                    <form className="_form">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.category)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="articleCategory"
+                                                        >
+                                                            {_article.category}
+                                                        </span>
+
+                                                        <h2
+                                                            lang={
+                                                                containsArabic(_article.title)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="articleTitle"
+                                                        >
+                                                            {_article.title}
+                                                        </h2>
+
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.body)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="firstPhrase"
+                                                        >
+                                                            {_article.body &&
+                                                                extractFirstPhrase(_article.body)}
+                                                        </span>
+
+                                                        <div className="information">
+                                                            <span>
+                                                                <MessagesSquare />
+                                                                <b>
+                                                                    {_.size(_article.comments)}
+                                                                </b>{' '}
+                                                            </span>
+                                                            <span>
+                                                                <ThumbsUp />
+                                                                <b>
+                                                                    {_.size(
+                                                                        _article.votes?.filter(
+                                                                            (vote) =>
+                                                                                vote.direction ===
+                                                                                'up'
+                                                                        )
+                                                                    )}
+                                                                </b>{' '}
+                                                            </span>
+                                                            <span>
+                                                                <Eye />
+                                                                <b>{_.size(_article.views)}</b>{' '}
+                                                            </span>
+
+                                                            <span>
+                                                                <b>
+                                                                    {format(
+                                                                        new Date(
+                                                                            _article.updatedAt!
+                                                                        ),
+                                                                        'dd MMMM yyyy'
+                                                                    )}
+                                                                </b>
+                                                                <Clock9 />
+                                                                {isSm && (
+                                                                    <b>
+                                                                        {format(
+                                                                            new Date(
+                                                                                _article.updatedAt!
+                                                                            ),
+                                                                            'HH:mm'
+                                                                        )}
+                                                                    </b>
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    </form>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </Slider>
+                                )}
+                            </AnimatedWrapper>
                         </div>
-                        <ul>
-                            {mostViewedArticles.map((article, index) => (
-                                <li key={article._id}>
-                                    {index === 0 && (
-                                        <div className="__background">
-                                            {extractFirstImage(article.body)}
-                                        </div>
-                                    )}
-                                    <Link
-                                        href={`/blog/${article.category.toLowerCase()}/${
-                                            article.slug
-                                        }`}
-                                    >
-                                        <div className="__top">
-                                            <span
-                                                lang={containsArabic(article.title) ? 'ar' : 'en'}
-                                                className={`__articleTitle ${
-                                                    containsArabic(bestArticle.title) && '__ar'
-                                                }`}
+
+                        <div className="blog__section-2-right">
+                            <AnimatedWrapper
+                                as="div"
+                                className="_sliderArticles"
+                                from={{ transform: 'translateY(-100%)', opacity: 0 }}
+                                to={
+                                    isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined
+                                }
+                                config={{ mass: 1, tension: 170, friction: 26 }}
+                                delay={1000}
+                            >
+                                {!_.isEmpty(articles) && (
+                                    <Slider {...sliderSettings__2}>
+                                        {_.map(commentedArticles, (_article, index) => (
+                                            <div
+                                                key={_article._id}
+                                                className={`_card _card-${index}`}
                                             >
-                                                {_.upperFirst(article.title)}
-                                            </span>
-                                            <span className="__articleDate">
-                                                {formatDistanceToNow(new Date(article.updatedAt!), {
-                                                    addSuffix: true,
-                                                })}
-                                            </span>
-                                        </div>
-                                        <p
-                                            lang={containsArabic(article.body) ? 'ar' : 'en'}
-                                            className="firstPhrase"
-                                        >
-                                            {extractFirstPhrase(article.body)}
-                                        </p>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </AnimatedWrapper>
-                </section>
-            </SectionObserver>
+                                                <Link
+                                                    className="_cardBody"
+                                                    href={`/blog/${_article.category.toLowerCase()}/${
+                                                        _article.slug
+                                                    }`}
+                                                >
+                                                    <div className="__background">
+                                                        {extractFirstImage(_article.body)}
+                                                    </div>
 
-            <SectionObserver theme="dark">
-                <section className={`blog__section-2 !h-full ${!isSm && '!py-0'}`}>
-                    <div className="blog__section-2-left">
-                        <AnimatedWrapper
-                            as="div"
-                            className="_sliderArticles"
-                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
-                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
-                            config={{ mass: 1, tension: 170, friction: 26 }}
-                            delay={1000}
-                        >
-                            {!_.isEmpty(articles) && (
-                                <Slider {...sliderSettings__1}>
-                                    {_.map(latestArticles, (_article, index) => (
-                                        <div key={_article._id} className={`_card _card-${index}`}>
-                                            <Link
-                                                className="_cardBody"
-                                                href={`/blog/${_article.category.toLowerCase()}/${
-                                                    _article.slug
-                                                }`}
-                                            >
-                                                <div className="__background">
-                                                    {extractFirstImage(_article.body)}
-                                                </div>
-
-                                                <form className="_form">
-                                                    <span
-                                                        lang={
-                                                            containsArabic(_article.category)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="articleCategory"
-                                                    >
-                                                        {_article.category}
-                                                    </span>
-
-                                                    <h2
-                                                        lang={
-                                                            containsArabic(_article.title)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="articleTitle"
-                                                    >
-                                                        {_article.title}
-                                                    </h2>
-
-                                                    <span
-                                                        lang={
-                                                            containsArabic(_article.body)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="firstPhrase"
-                                                    >
-                                                        {_article.body &&
-                                                            extractFirstPhrase(_article.body)}
-                                                    </span>
-
-                                                    <div className="information">
-                                                        <span>
-                                                            <MessagesSquare />
-                                                            <b>{_.size(_article.comments)}</b>{' '}
-                                                        </span>
-                                                        <span>
-                                                            <ThumbsUp />
-                                                            <b>
-                                                                {_.size(
-                                                                    _article.votes?.filter(
-                                                                        (vote) =>
-                                                                            vote.direction === 'up'
-                                                                    )
-                                                                )}
-                                                            </b>{' '}
-                                                        </span>
-                                                        <span>
-                                                            <Eye />
-                                                            <b>{_.size(_article.views)}</b>{' '}
+                                                    <form className="_form">
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.category)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="articleCategory"
+                                                        >
+                                                            {_article.category}
                                                         </span>
 
-                                                        <span>
-                                                            <b>
-                                                                {format(
-                                                                    new Date(_article.updatedAt!),
-                                                                    'dd MMMM yyyy'
-                                                                )}
-                                                            </b>
-                                                            <Clock9 />
-                                                            {isSm && (
+                                                        <h2
+                                                            lang={
+                                                                containsArabic(_article.title)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="articleTitle"
+                                                        >
+                                                            {_article.title}
+                                                        </h2>
+
+                                                        <span
+                                                            lang={
+                                                                containsArabic(_article.body)
+                                                                    ? 'ar'
+                                                                    : 'en'
+                                                            }
+                                                            className="firstPhrase"
+                                                        >
+                                                            {_article.body &&
+                                                                extractFirstPhrase(_article.body)}
+                                                        </span>
+
+                                                        <div className="information">
+                                                            <span>
+                                                                <MessagesSquare />
+                                                                <b>
+                                                                    {_.size(_article.comments)}
+                                                                </b>{' '}
+                                                            </span>
+                                                            <span>
+                                                                <ThumbsUp />
+                                                                <b>
+                                                                    {_.size(
+                                                                        _article.votes?.filter(
+                                                                            (vote) =>
+                                                                                vote.direction ===
+                                                                                'up'
+                                                                        )
+                                                                    )}
+                                                                </b>{' '}
+                                                            </span>
+                                                            <span>
+                                                                <Eye />
+                                                                <b>{_.size(_article.views)}</b>{' '}
+                                                            </span>
+
+                                                            <span>
+                                                                <b>
+                                                                    {format(
+                                                                        new Date(
+                                                                            _article.updatedAt!
+                                                                        ),
+                                                                        'dd MMMM yyyy'
+                                                                    )}
+                                                                </b>
+                                                                <Clock9 />
                                                                 <b>
                                                                     {format(
                                                                         new Date(
@@ -771,127 +925,23 @@ export default function BlogPage() {
                                                                         'HH:mm'
                                                                     )}
                                                                 </b>
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                </form>
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </Slider>
-                            )}
-                        </AnimatedWrapper>
-                    </div>
+                                                            </span>
+                                                        </div>
+                                                    </form>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </Slider>
+                                )}
+                            </AnimatedWrapper>
+                        </div>
+                    </section>
+                </SectionObserver>
 
-                    <div className="blog__section-2-right">
-                        <AnimatedWrapper
-                            as="div"
-                            className="_sliderArticles"
-                            from={{ transform: 'translateY(-100%)', opacity: 0 }}
-                            to={isReady ? { transform: 'translateY(0)', opacity: 1 } : undefined}
-                            config={{ mass: 1, tension: 170, friction: 26 }}
-                            delay={1000}
-                        >
-                            {!_.isEmpty(articles) && (
-                                <Slider {...sliderSettings__2}>
-                                    {_.map(commentedArticles, (_article, index) => (
-                                        <div key={_article._id} className={`_card _card-${index}`}>
-                                            <Link
-                                                className="_cardBody"
-                                                href={`/blog/${_article.category.toLowerCase()}/${
-                                                    _article.slug
-                                                }`}
-                                            >
-                                                <div className="__background">
-                                                    {extractFirstImage(_article.body)}
-                                                </div>
-
-                                                <form className="_form">
-                                                    <span
-                                                        lang={
-                                                            containsArabic(_article.category)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="articleCategory"
-                                                    >
-                                                        {_article.category}
-                                                    </span>
-
-                                                    <h2
-                                                        lang={
-                                                            containsArabic(_article.title)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="articleTitle"
-                                                    >
-                                                        {_article.title}
-                                                    </h2>
-
-                                                    <span
-                                                        lang={
-                                                            containsArabic(_article.body)
-                                                                ? 'ar'
-                                                                : 'en'
-                                                        }
-                                                        className="firstPhrase"
-                                                    >
-                                                        {_article.body &&
-                                                            extractFirstPhrase(_article.body)}
-                                                    </span>
-
-                                                    <div className="information">
-                                                        <span>
-                                                            <MessagesSquare />
-                                                            <b>{_.size(_article.comments)}</b>{' '}
-                                                        </span>
-                                                        <span>
-                                                            <ThumbsUp />
-                                                            <b>
-                                                                {_.size(
-                                                                    _article.votes?.filter(
-                                                                        (vote) =>
-                                                                            vote.direction === 'up'
-                                                                    )
-                                                                )}
-                                                            </b>{' '}
-                                                        </span>
-                                                        <span>
-                                                            <Eye />
-                                                            <b>{_.size(_article.views)}</b>{' '}
-                                                        </span>
-
-                                                        <span>
-                                                            <b>
-                                                                {format(
-                                                                    new Date(_article.updatedAt!),
-                                                                    'dd MMMM yyyy'
-                                                                )}
-                                                            </b>
-                                                            <Clock9 />
-                                                            <b>
-                                                                {format(
-                                                                    new Date(_article.updatedAt!),
-                                                                    'HH:mm'
-                                                                )}
-                                                            </b>
-                                                        </span>
-                                                    </div>
-                                                </form>
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </Slider>
-                            )}
-                        </AnimatedWrapper>
-                    </div>
-                </section>
-            </SectionObserver>
-
-            <SectionObserver theme="dark">
-                <section className="blog__section-4"></section>
-            </SectionObserver>
-        </main>
+                <SectionObserver theme="dark">
+                    <section className="blog__section-4"></section>
+                </SectionObserver>
+            </main>
+        </>
     );
 }
