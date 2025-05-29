@@ -35,6 +35,7 @@ export class AnalyticsService {
     }
 
     async fetchLiveGAData() {
+        console.log('GA_PROPERTY_ID raw:', JSON.stringify(process.env.GA_PROPERTY_ID));
         const propertyId = process.env.GA_PROPERTY_ID;
         if (!propertyId) {
             throw new InternalServerErrorException('GA_PROPERTY_ID env var is not defined');
