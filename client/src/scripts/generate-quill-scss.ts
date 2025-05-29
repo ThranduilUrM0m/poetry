@@ -17,9 +17,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function main() {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY;
+    const apiKey = process.env.GOOGLE_FONTS_API_KEY;
     if (!apiKey) {
-        console.error('❌ Missing NEXT_PUBLIC_GOOGLE_FONTS_API_KEY in env');
+        console.error('❌ Missing GOOGLE_FONTS_API_KEY in env');
         process.exit(1);
     }
 
