@@ -62,6 +62,7 @@ export default function HomePage() {
     // Fetch articles on mount
     useEffect(() => {
         dispatch(fetchArticles());
+        console.log('GA4 ID →', process.env.NEXT_PUBLIC_GA_ID);
     }, [dispatch]);
 
     // Set ready state when articles are loaded and page is loaded
