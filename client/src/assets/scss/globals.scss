@@ -42,7 +42,13 @@ body {
 
     .__mainWrapper,
     main {
+        /* The w-full is prone to cause some issues on the responsive front, but w-100vw is also prone to disregard the scrollbar and go past it */
         @apply p-0 min-h-[100vh] w-[100vw];
+            
+        // sm breakpoint (>= 640px): small tablets and up
+        @include mq.mq($from: sm) {
+            @apply w-full;
+        }
 
         section {
             @apply relative h-[100vh] py-[15vh];
