@@ -23,8 +23,8 @@ import { ReturningUsers } from '@/components/ui/HeroImage';
 // Import prerequisite data slices
 import { selectArticles } from '@/slices/articleSlice';
 
-// Import aggregated analytics thunk and selectors.
-import { selectAnalyticsCalculating, selectAnalytics } from '@/slices/analyticsSlice';
+// Import aggregated analytics selectors
+import { selectAnalyticsLoading, selectAnalytics } from '@/slices/analyticsSlice';
 
 // Import Recharts components.
 import {
@@ -110,8 +110,8 @@ export default function DashboardPage() {
 
     const articles = useSelector(selectArticles);
 
-    // Retrieve aggregated analytics data.
-    const isAnalyticsCalculating = useSelector(selectAnalyticsCalculating);
+    // Retrieve aggregated analytics loading state
+    const isAnalyticsLoading = useSelector(selectAnalyticsLoading);
 
     // Local state for chart controls.
     const [showAxisNumbers] = useState<boolean>(false); // Axis numbers hidden by default
@@ -318,7 +318,7 @@ export default function DashboardPage() {
                     <p>Error loading analytics: {loadError}</p>
                 </div>
             )}
-            {isAnalyticsCalculating ? (
+            {isAnalyticsLoading ? (
                 <div className="dashboard__main-home-loader">Calculating Analytics...</div>
             ) : (
                 <div className="dashboard__main-home-grid">

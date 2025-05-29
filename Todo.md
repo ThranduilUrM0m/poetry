@@ -5,6 +5,4 @@ Dashboard/articles/page.tsx :
 1. Need to implement sharing to social media
 
 Domain
-Google Analytics
-SEO
-Metadata
+Google Analytics (Already STarted but can't make sure it's working until the website is actually running good)

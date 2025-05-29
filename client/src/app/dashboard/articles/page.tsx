@@ -39,7 +39,7 @@ import {
 // Redux and store-related imports
 import { AppDispatch } from '@/store';
 import { useDashboard } from '@/context/DashboardContext';
-import { selectAnalyticsCalculating } from '@/slices/analyticsSlice';
+import { selectAnalyticsLoading } from '@/slices/analyticsSlice';
 import {
     clearCurrentArticle,
     deleteArticle,
@@ -340,7 +340,7 @@ export default function DashboardPage() {
     // Redux hooks
     const dispatch = useDispatch<AppDispatch>();
     const { loadError } = useDashboard();
-    const isAnalyticsCalculating = useSelector(selectAnalyticsCalculating);
+    const isAnalyticsLoading = useSelector(selectAnalyticsLoading);
     const articles = useSelector(selectArticles);
     const comments = useSelector(selectComments);
 
@@ -1154,7 +1154,7 @@ export default function DashboardPage() {
                     <p>Error loading analytics: {loadError}</p>
                 </div>
             )}
-            {isAnalyticsCalculating || isLoading ? (
+            {isAnalyticsLoading || isLoading ? (
                 <div className="dashboard__main-articles-loader">Calculating Analytics...</div>
             ) : (
                 <div className="dashboard__main-articles-grid">

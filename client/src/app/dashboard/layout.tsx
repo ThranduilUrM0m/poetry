@@ -17,7 +17,11 @@ import { fetchViews } from '@/slices/viewSlice';
 import { fetchSubscribers } from '@/slices/subscriberSlice';
 
 // Import aggregated analytics thunk and selectors.
-import { calculateAnalyticsThunk } from '@/slices/analyticsSlice';
+import {
+    loadDummyAnalytics,
+    fetchAnalyticsLive,
+    selectAnalytics
+} from '@/slices/analyticsSlice';
 
 // Interface for local chart data state (only including the data used here)
 interface TimeSeriesDataItem {
@@ -48,6 +52,8 @@ interface ChartData {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch<AppDispatch>();
+    const analytics = useSelector(selectAnalytics);
+
     const router = useRouter();
 
     // Retrieve auth-related data.
@@ -100,14 +106,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     await dispatch(fetchViews()).unwrap();
                     await dispatch(fetchSubscribers()).unwrap();
 
-                    const aggregated = await dispatch(calculateAnalyticsThunk()).unwrap();
+                    // Fetch GA analytics from backend
+                    // 1️⃣ Show dummy immediately
+                    dispatch(loadDummyAnalytics());
+                    // 2️⃣ Then fetch real-time GA4 data
+                    dispatch(fetchAnalyticsLive()).catch(console.error);
 
+                    // Use analytics from the slice (which now contains backend GA data)
                     setChartData({
-                        pageViews: aggregated.pageViews || [],
-                        subscriberStats: aggregated.subscribers || [],
-                        categoryStats: aggregated.articleStats || [],
-                        voteStats: aggregated.votes || [],
-                        commentStats: aggregated.comments || [],
+                        pageViews: analytics.pageViews || [],
+                        subscriberStats: analytics.subscribers || [],
+                        categoryStats: analytics.articleStats || [],
+                        voteStats: analytics.votes || [],
+                        commentStats: analytics.comments || [],
                     });
 
                     setIsReady(true);
@@ -119,7 +130,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             };
             loadData();
         }
-    }, [dispatch, isAuthLoading]);
+        // Add analytics as a dependency so chartData updates when analytics updates
+    }, [dispatch, isAuthLoading, analytics]);
 
     return (
         <main className="dashboard">
