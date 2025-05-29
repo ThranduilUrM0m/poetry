@@ -14,6 +14,7 @@ import { OpenAIModule } from './modules/openai.module';
 import { NotificationModule } from './modules/notification.module';
 import { AuthModule } from './auth/auth.module';
 import { FontsModule } from './fonts/fonts.module';
+import { AnalyticsModule } from './modules/analytics.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { FontsModule } from './fonts/fonts.module';
             inject: [ConfigService],
         }),
         ArticleModule,
+        AnalyticsModule,
         CommentModule,
         ViewModule,
         VoteModule,

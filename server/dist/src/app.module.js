@@ -23,6 +23,7 @@ const openai_module_1 = require("./modules/openai.module");
 const notification_module_1 = require("./modules/notification.module");
 const auth_module_1 = require("./auth/auth.module");
 const fonts_module_1 = require("./fonts/fonts.module");
+const analytics_module_1 = require("./modules/analytics.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,6 +41,7 @@ exports.AppModule = AppModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
             article_module_1.ArticleModule,
+            analytics_module_1.AnalyticsModule,
             comment_module_1.CommentModule,
             view_module_1.ViewModule,
             vote_module_1.VoteModule,
