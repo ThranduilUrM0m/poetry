@@ -9,8 +9,6 @@ import 'simplebar/dist/simplebar.min.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-import ClientAnalytics from '@/components/ui/ClientAnalytics';
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="en">
@@ -50,8 +48,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </head>
             <body>
                 <Providers>
-                    {/* This client component will fire pageview() on every route change */}
-                    <ClientAnalytics />
                     <LayoutWrapper>{children}</LayoutWrapper>
                 </Providers>
             </body>

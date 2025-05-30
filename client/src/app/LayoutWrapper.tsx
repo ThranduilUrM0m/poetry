@@ -17,6 +17,8 @@ import Overlay from '@/components/ui/Overlay';
 import { createPortal } from 'react-dom';
 import 'nprogress/nprogress.css';
 
+import ClientAnalytics from '@/components/ui/ClientAnalytics';
+
 function GlobalOverlay() {
     const { overlayState, hideOverlay } = useOverlay();
     if (!overlayState.isVisible) return null;
@@ -62,6 +64,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <LoadingContext.Provider value={{ isLoaded }}>
+            <ClientAnalytics />
             <HeaderThemeProvider>
                 <SearchModalProvider>
                     <OverlayProvider>
