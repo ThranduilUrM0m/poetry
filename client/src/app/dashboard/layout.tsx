@@ -10,20 +10,17 @@ import Header from './Header';
 import SectionObserver from '@/components/SectionObserver';
 import { selectToken, selectAuthIsLoading, clearAuth, setToken } from '@/slices/authSlice';
 import { fetchUserProfile } from '@/slices/userSlice';
-
-// Import prerequisite data slices
 import { fetchArticles } from '@/slices/articleSlice';
 import { fetchViews } from '@/slices/viewSlice';
 import { fetchSubscribers } from '@/slices/subscriberSlice';
-
-// Import aggregated analytics thunk and selectors.
 import {
     loadDummyAnalytics,
     fetchAnalyticsLive,
-    selectAnalytics
+    selectAnalytics,
+    /* selectAnalyticsLoading, */
 } from '@/slices/analyticsSlice';
+import { fillMissingDates } from '@/utils/dateHelpers';
 
-// Interface for local chart data state (only including the data used here)
 interface TimeSeriesDataItem {
     date: string | Date;
     views?: number;
@@ -53,18 +50,12 @@ interface ChartData {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch<AppDispatch>();
     const analytics = useSelector(selectAnalytics);
-
+    /* const isAnalyticsLoading = useSelector(selectAnalyticsLoading); */
     const router = useRouter();
-
-    // Retrieve auth-related data.
     const token = useSelector(selectToken);
     const isAuthLoading = useSelector(selectAuthIsLoading);
-
-    // Retrieve aggregated analytics data.
     const [loadError, setLoadError] = useState<string | null>(null);
     const [isReady, setIsReady] = useState<boolean>(false);
-
-    // Local state for computed chart data (only required fields for this page)
     const [chartData, setChartData] = useState<ChartData>({
         pageViews: [],
         subscriberStats: [],
@@ -73,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         commentStats: [],
     });
 
-    // Shared authentication check for all dashboard pages
+    // Authentication check
     useEffect(() => {
         const checkAuth = async () => {
             const savedToken = localStorage.getItem('token');
@@ -81,9 +72,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 router.push('/login');
                 return;
             }
+
             if (!token && savedToken) {
                 dispatch(setToken(savedToken));
             }
+
             try {
                 await dispatch(fetchUserProfile()).unwrap();
             } catch (error) {
@@ -96,42 +89,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         checkAuth();
     }, [dispatch, router, token]);
 
-    // Load prerequisite data and calculate analytics.
+    // Main data loading effect
     useEffect(() => {
         if (!isAuthLoading) {
-            const loadData = async (): Promise<void> => {
+            const loadData = async () => {
                 try {
                     setLoadError(null);
+
+                    // Load prerequisite data
                     await dispatch(fetchArticles()).unwrap();
                     await dispatch(fetchViews()).unwrap();
                     await dispatch(fetchSubscribers()).unwrap();
 
-                    // Fetch GA analytics from backend
-                    // 1️⃣ Show dummy immediately
+                    // Load analytics
                     dispatch(loadDummyAnalytics());
-                    // 2️⃣ Then fetch real-time GA4 data
-                    dispatch(fetchAnalyticsLive()).catch(console.error);
-
-                    // Use analytics from the slice (which now contains backend GA data)
-                    setChartData({
-                        pageViews: analytics.pageViews || [],
-                        subscriberStats: analytics.subscribers || [],
-                        categoryStats: analytics.articleStats || [],
-                        voteStats: analytics.votes || [],
-                        commentStats: analytics.comments || [],
-                    });
-
-                    setIsReady(true);
-                } catch (error) {
-                    console.error('[Layout] Data loading error:', error);
+                    await dispatch(fetchAnalyticsLive()).unwrap();
+                } catch (err) {
+                    console.error('[Layout] Data loading error:', err);
                     setLoadError('Failed to load data');
-                    setIsReady(false);
                 }
             };
+
             loadData();
         }
-        // Add analytics as a dependency so chartData updates when analytics updates
-    }, [dispatch, isAuthLoading, analytics]);
+    }, [dispatch, isAuthLoading]);
+
+    // Update chart data when analytics changes
+    useEffect(() => {
+        if (analytics) {
+            setChartData({
+                pageViews: fillMissingDates(analytics.pageViews),
+                subscriberStats: analytics.subscribers ?? [],
+                categoryStats: analytics.articleStats ?? [],
+                voteStats: analytics.votes ?? [],
+                commentStats: analytics.comments ?? [],
+            });
+            setIsReady(true);
+        }
+    }, [analytics]);
+
+    useEffect(() => {
+        console.log('Analytics data:', analytics);
+    }, [analytics]);
 
     return (
         <main className="dashboard">
