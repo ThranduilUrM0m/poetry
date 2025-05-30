@@ -74,9 +74,7 @@ export const fetchAnalyticsLive = createAsyncThunk<AnalyticsData, void, { reject
  */
 export const loadDummyAnalytics = createAsyncThunk(
     'analytics/loadDummy',
-    async (): Promise<AnalyticsData> => {
-        return dummyGAMetrics;
-    }
+    async (): Promise<AnalyticsData> => dummyGAMetrics
 );
 
 const analyticsSlice = createSlice({

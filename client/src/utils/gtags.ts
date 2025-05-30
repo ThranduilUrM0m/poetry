@@ -1,60 +1,74 @@
+/**
+ * gtags.ts
+ * --------
+ * Google Analytics 4 (GA4) utility functions for enhanced measurement, user properties,
+ * custom dimensions/metrics, and robust event tracking.
+ */
+
 export const GA_TRACKING_ID: string = process.env.NEXT_PUBLIC_GA_ID ?? '';
 
-type GtagEvent = {
+/* type GtagEvent = {
     action: string;
     category?: string;
     label?: string;
     value?: number;
-    params?: Record<string, string | number | boolean>;
-};
+    params?: Record<string, string | number | boolean | null>;
+}; */
 
 declare global {
     interface Window {
-        gtag: (command: 'config' | 'event' | 'consent', ...params: (string | object)[]) => void;
+        gtag?: (...args: unknown[]) => void;
+        dataLayer?: unknown[];
     }
 }
 
-// Enhanced pageview tracking
-export function pageview(url: string): void {
+/**
+ * Fires a pageview event with all custom dimensions and user properties.
+ */
+export function trackPageView(path: string, title?: string, referrer?: string): void {
     if (typeof window.gtag === 'function' && GA_TRACKING_ID) {
         window.gtag('config', GA_TRACKING_ID, {
-            page_path: url,
-            // Enable enhanced measurement
+            page_path: path,
+            page_title: title,
+            referrer,
             send_page_view: true,
-            // Add user properties if available
-            user_properties: {
-                user_id: getUserId() || 'anonymous', // Implement getUserId()
-                age_group: getUserAgeGroup() || 'unknown', // Implement getUserAgeGroup()
-            },
-            // Enable all enhanced measurements
-            enable_auto_pii: true,
-        });
-
-        // Track additional page information
-        window.gtag('event', 'page_view', {
-            page_title: document.title,
-            page_location: window.location.href,
-            page_path: url,
+            ...getCustomDimensions(),
         });
     }
 }
 
-// Enhanced event tracking
-export function event({ action, category, label, value, params = {} }: GtagEvent): void {
+/**
+ * Fires a custom event with robust parameter logging.
+ */
+export function trackEvent(
+    name: string,
+    params: Record<string, string | number | boolean | null>
+): void {
     if (typeof window.gtag === 'function') {
-        window.gtag('event', action, {
-            event_category: category,
-            event_label: label,
-            value: value,
-            ...params,
-        });
+        try {
+            window.gtag('event', name, params);
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[gtags] trackEvent error:', err, name, params);
+        }
     }
 }
 
-// Device and browser tracking
+/**
+ * Sets custom dimensions/metrics for the session.
+ */
+export function setCustomDimensions(dimensions: Record<string, string | number | null>): void {
+    if (typeof window.gtag === 'function') {
+        window.gtag('set', 'custom_map', dimensions);
+    }
+}
+
+/**
+ * Tracks device/browser/OS info.
+ */
 export function trackDeviceInfo(): void {
     if (typeof window.gtag === 'function') {
-        window.gtag('event', 'device_info', {
+        trackEvent('device_info', {
             device_type: getDeviceType(),
             screen_resolution: `${window.screen.width}x${window.screen.height}`,
             viewport_size: `${window.innerWidth}x${window.innerHeight}`,
@@ -64,7 +78,24 @@ export function trackDeviceInfo(): void {
     }
 }
 
-// Helper functions
+/**
+ * Initializes GA4 with consent and error logging.
+ */
+export function initializeGtag(): void {
+    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_ID) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function (...args: unknown[]) {
+            window.dataLayer!.push(args);
+        };
+        window.gtag('js', new Date());
+        window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+            page_path: window.location.pathname,
+        });
+    }
+}
+
+// --- Helpers ---
+
 function getDeviceType(): string {
     const ua = navigator.userAgent;
     if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
@@ -96,74 +127,13 @@ function getOSName(): string {
     return 'Unknown';
 }
 
-// User ID management (implement based on your auth system)
-function getUserId(): string | null {
-    // Example: return localStorage.getItem('userId');
-    return null;
-}
-
-// Age group detection (if available)
-function getUserAgeGroup(): string | null {
-    // Implement based on your user data
-    return null;
-}
-
-// Track user engagement
-export function trackEngagement(): void {
-    if (typeof window.gtag === 'function') {
-        // Track scroll depth
-        trackScrollDepth();
-
-        // Track time on page
-        trackTimeOnPage();
-
-        // Track interactions
-        document.addEventListener('click', trackOutboundLinks);
-    }
-}
-
-function trackScrollDepth(): void {
-    const thresholds = [25, 50, 75, 90];
-    let lastSent = 0;
-
-    window.addEventListener('scroll', () => {
-        const scrollPercent = Math.round(
-            (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100
-        );
-
-        const threshold = thresholds.find((t) => scrollPercent >= t && t > lastSent);
-
-        if (threshold) {
-            window.gtag('event', 'scroll', {
-                scroll_depth: `${threshold}%`,
-            });
-            lastSent = threshold;
-        }
-    });
-}
-
-function trackTimeOnPage(): void {
-    const startTime = Date.now();
-
-    window.addEventListener('beforeunload', () => {
-        const duration = Date.now() - startTime;
-        window.gtag('event', 'timing_complete', {
-            name: 'page_duration',
-            value: Math.round(duration / 1000), // in seconds
-            event_category: 'Engagement',
-        });
-    });
-}
-
-function trackOutboundLinks(e: MouseEvent): void {
-    const target = e.target as HTMLElement;
-    const link = target.closest('a');
-
-    if (link && link.href && !link.href.startsWith(window.location.origin)) {
-        window.gtag('event', 'click', {
-            event_category: 'Outbound Link',
-            event_label: link.href,
-            transport_type: 'beacon',
-        });
-    }
+function getCustomDimensions(): Record<string, string | number | null> {
+    return {
+        traffic_source: window.sessionStorage.getItem('traffic_source') ?? 'direct',
+        campaign: window.sessionStorage.getItem('campaign') ?? '',
+        medium: window.sessionStorage.getItem('medium') ?? '',
+        content_group: window.sessionStorage.getItem('content_group') ?? '',
+        experiment_id: window.sessionStorage.getItem('experiment_id') ?? '',
+        session_id: window.sessionStorage.getItem('session_id') ?? '',
+    };
 }
