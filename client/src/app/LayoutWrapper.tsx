@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import NProgress from 'nprogress';
 import Header from '@/components/Header';
@@ -64,7 +64,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <LoadingContext.Provider value={{ isLoaded }}>
-            <ClientAnalytics />
+            <Suspense fallback={null}>
+                <ClientAnalytics />
+            </Suspense>
             <HeaderThemeProvider>
                 <SearchModalProvider>
                     <OverlayProvider>
