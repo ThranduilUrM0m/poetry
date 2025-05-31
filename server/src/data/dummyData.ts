@@ -326,7 +326,7 @@ export const dummyArticles: Partial<ArticleDocument>[] = [
             new Types.ObjectId('66a8ec668c35b3ebd6c01fd3'),
         ],
         status: 'approved',
-        isBio: false,
+        isBio: true,
     },
     {
         _id: new Types.ObjectId('5e9368cf0289c153a8737040'),

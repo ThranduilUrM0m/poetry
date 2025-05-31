@@ -345,7 +345,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
     const errorTextSpring = useSpring({
         opacity: error ? 1 : 0,
         top: error ? '3.5vh' : '100%',
-        transform: error ? 'translateY(-100%)' : 'translateY(0)',
+        transform: error ? 'translateY(-50%)' : 'translateY(0)',
         right: inputValue ? '6vh' : '1.5vh',
         config: smoothConfig,
     });
@@ -607,7 +607,10 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                     {...downshiftInputProps}
                                     autoComplete="off"
                                     style={{
-                                        color: !autocompleteSuggestion ? 'inherit' : 'transparent',
+                                        color:
+                                            autocompleteSuggestion && suggestions.length > 0
+                                                ? 'transparent'
+                                                : 'inherit',
                                     }}
                                 />
                             )}

@@ -5,12 +5,13 @@ import socket from '../socket';
 import type { AppDispatch } from '@/store';
 import { fetchNotifications } from '@/slices/notificationSlice';
 import { fetchArticles } from '@/slices/articleSlice';
-import { fetchComments } from '@/slices/commentSlice';
+import { fetchCommentsByArticle } from '@/slices/commentSlice';
 import { fetchSubscribers } from '@/slices/subscriberSlice';
 import { fetchViews } from '@/slices/viewSlice';
 import { fetchVotes } from '@/slices/voteSlice';
 
 import type { NotificationPayload } from '@/types/notification';
+import { selectUser } from '@/slices/userSlice';
 
 // 1. Strictly‐typed action for socket events
 export const addSocketNotification = createAction<NotificationPayload>(
@@ -23,27 +24,65 @@ const socketMiddleware: Middleware = (storeAPI) => (next) => (action) => {
     if (!s._initialized) {
         s._initialized = true;
         s.on('notification', (notif: NotificationPayload) => {
-            // refresh from server
-            (storeAPI.dispatch as AppDispatch)(fetchNotifications());
-            // inject into UI
+            const state = storeAPI.getState();
+            const user = selectUser(state);
+
+            // Only fetch notifications for logged-in users
+            if (user) {
+                (storeAPI.dispatch as AppDispatch)(fetchNotifications());
+            }
+
             (storeAPI.dispatch as AppDispatch)(addSocketNotification(notif));
-            // cascade updates
+
             switch (notif.category) {
-                case 'article':
-                    (storeAPI.dispatch as AppDispatch)(fetchArticles());
+                case 'article': {
+                    // Only fetch if the current article matches the notification
+                    const currentArticle = state.article?.currentArticle;
+                    const notifArticleId = notif.metadata?.article || notif.metadata?.articleId;
+                    const notifArticleSlug = notif.metadata?.articleSlug || notif.metadata?.slug;
+                    if (
+                        currentArticle &&
+                        (notifArticleId === currentArticle._id ||
+                            notifArticleSlug === currentArticle.slug)
+                    ) {
+                        (storeAPI.dispatch as AppDispatch)(fetchArticles());
+                    }
                     break;
-                case 'comment':
-                    (storeAPI.dispatch as AppDispatch)(fetchComments());
+                }
+                case 'comment': {
+                    // Only fetch comments for the current article if it matches
+                    const currentArticle = state.article?.currentArticle;
+                    const notifArticleId = notif.metadata?.article;
+                    if (currentArticle && notifArticleId === currentArticle._id) {
+                        (storeAPI.dispatch as AppDispatch)(
+                            fetchCommentsByArticle(currentArticle._id)
+                        );
+                    }
                     break;
-                case 'subscriber':
+                }
+                case 'vote': {
+                    // Only fetch votes for the current article or comment if it matches
+                    const currentArticle = state.article?.currentArticle;
+                    const notifArticleId = notif.metadata?.article || notif.metadata?.articleId;
+                    if (currentArticle && notifArticleId === currentArticle._id) {
+                        (storeAPI.dispatch as AppDispatch)(fetchVotes());
+                    }
+                    break;
+                }
+                case 'view': {
+                    // Only fetch views for the current article if it matches
+                    const currentArticle = state.article?.currentArticle;
+                    const notifArticleId = notif.metadata?.article || notif.metadata?.articleId;
+                    if (currentArticle && notifArticleId === currentArticle._id) {
+                        (storeAPI.dispatch as AppDispatch)(fetchViews());
+                    }
+                    break;
+                }
+                case 'subscriber': {
+                    // Only fetch subscribers if the user is an admin or on the dashboard
                     (storeAPI.dispatch as AppDispatch)(fetchSubscribers());
                     break;
-                case 'view':
-                    (storeAPI.dispatch as AppDispatch)(fetchViews());
-                    break;
-                case 'vote':
-                    (storeAPI.dispatch as AppDispatch)(fetchVotes());
-                    break;
+                }
             }
         });
     }

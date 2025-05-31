@@ -58,6 +58,7 @@ export default function AboutPage() {
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles);
+    const bioArticle = articles.find((a) => a.isBio);
     const comments = useSelector(selectComments);
     const featuredComments = useSelector(selectFeaturedComments);
     const isLoading = useSelector(selectIsLoading);
@@ -200,6 +201,22 @@ export default function AboutPage() {
         }
     };
 
+    const extractFirstPhrases = (htmlContent: string) => {
+        // Create a temporary div to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+
+        // Get all text content, removing HTML tags
+        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+        // Split by sentence endings and get first two sentences
+        const sentences = textContent
+            .split(/[.!?]+/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+        return sentences.slice(0, 3).join('. ') + (sentences.length > 1 ? '.' : '');
+    };
+
     // Function to check if a string contains Arabic characters
     const containsArabic = (text: string) => /[\u0600-\u06FF]+/.test(text);
 
@@ -248,22 +265,21 @@ export default function AboutPage() {
                                 </p>
                             </div>
                             <div className="about__section-1-right-text">
-                                <h2>
-                                    Born into a lineage of poets, I am deeply rooted in the rich
-                                    tapestry of Moroccan Amazigh traditions. My poetry is a
-                                    harmonious blend of influences from Moroccan dialects, French,
-                                    and Spanish, reflecting the diverse cultural heritage that has
-                                    shaped my perspective. Drawing inspiration from the evocative
-                                    rhythms of Ahwach, the soulful expressions of Tamawayt, and the
-                                    poignant narratives of Aita, I endeavor to weave verses that
-                                    resonate with themes of tradition, longing, and the enduring
-                                    connection to one&apos;s homeland. Through my work, I aim to
-                                    celebrate the beauty of our shared histories and the timeless
-                                    traditions that bind us across generations.
+                                <h2
+                                    lang={containsArabic(bioArticle?.body || '') ? 'ar' : 'en'}
+                                    className="firstPhrase"
+                                >
+                                    {bioArticle?.body && extractFirstPhrases(bioArticle?.body)}
                                 </h2>
                             </div>
                             <Link
-                                href={`/blog/biography/##slugToBio`}
+                                href={
+                                    bioArticle
+                                        ? `/blog/${bioArticle.category.toLowerCase()}/${
+                                              bioArticle.slug
+                                          }`
+                                        : '#'
+                                }
                                 className="about__section-1-right-read"
                             >
                                 <AnimatedWrapper

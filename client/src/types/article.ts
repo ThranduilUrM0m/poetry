@@ -67,6 +67,7 @@ export interface Article {
     slug: string;
     isPrivate: boolean;
     isFeatured?: boolean;
+    isBio?: boolean;
     tags?: string[];
     comments?: Comment[]; // Updated to use Comment type
     views?: View[];

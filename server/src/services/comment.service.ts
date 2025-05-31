@@ -147,6 +147,11 @@ export class CommentService {
             }
         }
 
+        if (!data.article || !isObjectIdOrHexString(data.article)) {
+            throw new BadRequestException('Invalid article ID');
+        }
+        data.article = new Types.ObjectId(data.article);
+
         const created = new this.commentModel({
             ...data,
             isFeatured: data.isFeatured ?? true,
@@ -178,6 +183,7 @@ export class CommentService {
 
     /** Comments filtered by article (no fallback) */
     async getCommentsByArticle(articleId: string): Promise<PopulatedComment[]> {
+
         if (!isObjectIdOrHexString(articleId)) {
             throw new BadRequestException('Invalid article ID');
         }

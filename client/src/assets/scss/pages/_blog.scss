@@ -313,7 +313,7 @@
                             }
 
                             a {
-                                @apply h-1/2 px-[1.75vh] py-[2vh];
+                                @apply h-1/2 px-[1.75vh] py-[2vh] translate-y-full;
 
                                 .firstPhrase {
                                     @apply line-clamp-2;

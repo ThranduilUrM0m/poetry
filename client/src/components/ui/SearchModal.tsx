@@ -313,17 +313,17 @@ export default function SearchModal(): JSX.Element | null {
             icon?: JSX.Element
         ): SearchSuggestion => ({
             _id: id,
-            title: _.startCase(title),
+            title,
             type,
             sourceType: 'Article' as const, // Required by the discriminated union
             source: article, // Must match sourceType ('Article')
             priority, // Now required by BaseSuggestion
             icon,
         });
-        const uniqueTitles = new Set(articles.map((a) => _.startCase(a.title)));
-        const uniqueCategories = new Set(articles.map((a) => _.startCase(a.category)));
+        const uniqueTitles = new Set(articles.map((a) => a.title));
+        const uniqueCategories = new Set(articles.map((a) => a.category));
         const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => _.toLower(tag))));
-        const uniqueAuthors = new Set(articles.map((a) => _.startCase(a.author.username)));
+        const uniqueAuthors = new Set(articles.map((a) => a.author.username));
         const suggestions: SearchSuggestion[] = [];
         uniqueTitles.forEach((title) => {
             const article = articles.find((a) => _.toLower(a.title) === _.toLower(title))!;
@@ -351,7 +351,7 @@ export default function SearchModal(): JSX.Element | null {
                 createSuggestion(
                     `tag-${_.toLower(tag)}`,
                     'tag',
-                    _.startCase(tag),
+                    tag,
                     article,
                     3,
                     <Hash size={16} />

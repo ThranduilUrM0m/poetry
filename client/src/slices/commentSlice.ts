@@ -66,6 +66,18 @@ export const analyzeComment = createAsyncThunk(
             const analysis = response.data;
             const isFlagged = analysis.toxic || analysis.spam || analysis.sentiment === 'negative';
 
+            // If severity is high, delete the comment
+            if (analysis.severity === 'high') {
+                await dispatch(
+                    deleteComment({ id: commentId, fingerprint: comment._comment_fingerprint })
+                );
+                return {
+                    commentId,
+                    analysis,
+                    deleted: true,
+                };
+            }
+
             // Determine approval status based on analysis
             const updateData: Partial<Comment> = !isFlagged
                 ? { _comment_isOK: true, isFeatured: true }
@@ -86,6 +98,7 @@ export const analyzeComment = createAsyncThunk(
             return {
                 commentId,
                 analysis,
+                deleted: false,
             };
         } catch (error) {
             return rejectWithValue(getErrorMessage(error));
@@ -133,8 +146,22 @@ export const createComment = createAsyncThunk(
             );
             const newComment = response.data;
 
-            // Trigger analysis immediately after creation
-            await dispatch(analyzeComment(newComment._id!)).unwrap();
+            // --- Analyze directly using the new comment body ---
+            const analysisResponse = await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/analyze-comment`,
+                { text: newComment._comment_body }
+            );
+            const analysis = analysisResponse.data;
+
+            // Optionally, update the comment if needed based on analysis
+            // (e.g., set _comment_isOK or isFeatured)
+            // You can dispatch updateComment here if you want
+
+            // Optionally, store analysis in Redux
+            dispatch({
+                type: 'comments/analyze/fulfilled',
+                payload: { commentId: newComment._id, analysis },
+            });
 
             return newComment;
         } catch (error) {

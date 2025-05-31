@@ -43,4 +43,5 @@ exports.Notification = Notification = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Notification);
 exports.NotificationSchema = mongoose_1.SchemaFactory.createForClass(Notification);
+exports.NotificationSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90, partialFilterExpression: { isRead: true } });
 //# sourceMappingURL=notification.model.js.map

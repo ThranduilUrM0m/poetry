@@ -119,8 +119,10 @@ const buildCommentTree = (comments: Comment[]): CommentTree[] => {
                 roots.push(commentMap[comment._id]);
             }
         } else {
-            // Explicitly handle root comments
-            roots.push(commentMap[comment._id]);
+            // Only push if not already in roots
+            if (!roots.some((c) => c._id === comment._id)) {
+                roots.push(commentMap[comment._id]);
+            }
         }
     });
 
@@ -312,6 +314,7 @@ export default function ArticlePage() {
         reset,
     } = useForm<FormData>({
         resolver: yupResolver(validationSchema),
+        mode: 'onSubmit',
         defaultValues: {
             Parent: null,
             _comment_author: '',
@@ -341,11 +344,10 @@ export default function ArticlePage() {
 
     // Fetch comments when the article is loaded
     useEffect(() => {
-        if (article?._id) {
-            /* Check where is Rejected coming from, Why is there a comment from another article being displayed on another */
-            dispatch(fetchCommentsByArticle(article._id));
+        if (isLoaded && !isLoading && article) {
+            dispatch(fetchCommentsByArticle(article._id ? article._id : ''));
         }
-    }, [article, dispatch]);
+    }, [article, isLoaded, isLoading, dispatch]);
 
     const verifyArticleView = async (articleId: string, fp: string) => {
         const viewKey = `viewed_${articleId}`;
@@ -645,14 +647,6 @@ export default function ArticlePage() {
             if (article?._id) {
                 dispatch(fetchCommentsByArticle(article._id));
             }
-            setSubmitHeader('Success!');
-            setSubmitMessage(
-                currentComment?._id
-                    ? 'Comment updated successfully!'
-                    : 'Comment submitted successfully!'
-            );
-            setIsSuccess(true);
-            setIsSubmitOpen(true);
         } catch (error) {
             console.log(error);
             setSubmitHeader("We're sorry!");

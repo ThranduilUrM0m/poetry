@@ -53,6 +53,7 @@ export default function HomePage() {
     const { isLoaded } = useLoading();
     const dispatch = useDispatch<AppDispatch>();
     const articles = useSelector(selectArticles);
+    const bioArticle = articles.find((a) => a.isBio);
     const isLoading = useSelector(selectIsLoading);
     const error = useSelector(selectError);
 
@@ -165,7 +166,7 @@ export default function HomePage() {
                             config={{ mass: 1, tension: 170, friction: 26 }}
                         >
                             <div className="home__section-1-left-fadedText">
-                                <p>Hi. I&apos;m Boutaleb!</p>
+                                <p>Hi. I&apos;m [Poet&rsquo;s LastName]!</p>
                             </div>
 
                             <div className="home__section-1-left-text">
@@ -179,7 +180,13 @@ export default function HomePage() {
                             </div>
 
                             <Link
-                                href={`/blog/biography/##slugToBio`}
+                                href={
+                                    bioArticle
+                                        ? `/blog/${bioArticle.category.toLowerCase()}/${
+                                              bioArticle.slug
+                                          }`
+                                        : '#'
+                                }
                                 className="home__section-1-left-read"
                             >
                                 <AnimatedWrapper
@@ -609,9 +616,9 @@ export default function HomePage() {
                                 <span className="aboutMe">About Me</span>
 
                                 <h2 className="fullName">
-                                    Boutaleb
+                                    [Poet&rsquo;s LastName]
                                     <br />
-                                    Zakariae
+                                    [Poet&rsquo;s FirstName]
                                 </h2>
 
                                 <p className="text">

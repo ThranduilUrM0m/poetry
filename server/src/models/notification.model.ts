@@ -29,3 +29,9 @@ export class Notification {
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
+
+// TTL index: remove read notifications 3 months (90 days) after they are marked read
+NotificationSchema.index(
+    { updatedAt: 1 },
+    { expireAfterSeconds: 60 * 60 * 24 * 90, partialFilterExpression: { isRead: true } }
+);

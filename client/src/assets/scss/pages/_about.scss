@@ -41,7 +41,7 @@
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply text-[8.5vh];
+                        @apply w-3/4 text-[8.5vh];
                     }
                     
                     b {

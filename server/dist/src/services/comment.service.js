@@ -102,6 +102,10 @@ let CommentService = class CommentService {
                 throw new common_1.NotFoundException('Parent comment not found');
             }
         }
+        if (!data.article || !(0, mongoose_2.isObjectIdOrHexString)(data.article)) {
+            throw new common_1.BadRequestException('Invalid article ID');
+        }
+        data.article = new mongoose_2.Types.ObjectId(data.article);
         const created = new this.commentModel({
             ...data,
             isFeatured: data.isFeatured ?? true,
