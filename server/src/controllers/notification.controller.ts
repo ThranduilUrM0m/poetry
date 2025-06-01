@@ -19,6 +19,12 @@ export class NotificationController {
         return this.service.findAll(+page, +limit);
     }
 
+    @Get('unread-count')
+    async getUnreadCount(@Req() req) {
+        const userId = req.user._id;
+        return this.service.countUnread(userId);
+    }
+
     /**
      * PATCH /api/notifications/:id/read
      * Marks a single notification as read.

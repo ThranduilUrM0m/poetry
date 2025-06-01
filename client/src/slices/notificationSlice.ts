@@ -64,6 +64,22 @@ export const fetchNotifications = createAsyncThunk<
     }
 });
 
+export const fetchUnreadCount = createAsyncThunk<number, void, { state: RootState }>(
+    'notifications/fetchUnreadCount',
+    async (_, { getState, rejectWithValue }) => {
+        const token = getState().auth.token;
+        try {
+            const { data } = await axios.get<{ count: number }>(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/notifications/unread-count`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return data.count;
+        } catch (error: unknown) {
+            return rejectWithValue(getErrorMessage(error));
+        }
+    }
+);
+
 export const markAsRead = createAsyncThunk<
     Notification,
     string,
@@ -105,9 +121,12 @@ export const deleteNotification = createAsyncThunk<
 >('notifications/delete', async (notificationId, { getState, rejectWithValue }) => {
     try {
         const token = (getState() as RootState).auth.token;
-        await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${notificationId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.delete(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/notifications/${notificationId}`,
+            {
+                headers: { Authorization: `Bearer ${token}` },
+            }
+        );
         return notificationId;
     } catch (error: unknown) {
         return rejectWithValue(getErrorMessage(error));
@@ -143,6 +162,10 @@ export const notificationSlice = createSlice({
             .addCase(fetchNotifications.rejected, (state, { payload }) => {
                 state.error = payload ?? 'Failed to fetch notifications';
                 state.isLoading = false;
+            })
+
+            .addCase(fetchUnreadCount.fulfilled, (state, { payload }) => {
+                state.unreadCount = payload;
             })
 
             // markAsRead

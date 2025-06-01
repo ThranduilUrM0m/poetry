@@ -266,7 +266,7 @@
                                     }
 
                                     ._formGroup {
-                                        @apply flex-none w-fit;
+                                        @apply flex-none w-fit z-10;
                                     }
                                 }
                             }

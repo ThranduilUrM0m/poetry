@@ -23,5 +23,8 @@ export declare class NotificationService {
     }>;
     markAsRead(id: string): Promise<Notification>;
     markAllRead(): Promise<void>;
+    countUnread(userId: string): Promise<{
+        count: number;
+    }>;
     delete(id: string): Promise<void>;
 }

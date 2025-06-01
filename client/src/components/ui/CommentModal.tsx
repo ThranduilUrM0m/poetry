@@ -7,6 +7,7 @@ import { /* format,  */ sub } from 'date-fns';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import _ from 'lodash';
+import { createPortal } from 'react-dom';
 /* import { config } from '@react-spring/web'; */
 
 // Table-related imports
@@ -581,12 +582,28 @@ export default function CommentManagementModal({
         manualSorting: true,
         globalFilterFn: (row, columnId, filterValue) => {
             const commentData = row.original as CommentWithDepth;
-            const value = row.getValue(columnId);
-            if (!value) return false;
-
-            const strValue = String(value).toLowerCase();
             const searchValue = String(filterValue).toLowerCase();
-            const matches = strValue.includes(searchValue);
+
+            // Check author, body, email
+            let matches =
+                (commentData._comment_author?.toLowerCase().includes(searchValue) ?? false) ||
+                (commentData._comment_body?.toLowerCase().includes(searchValue) ?? false) ||
+                (commentData._comment_email?.toLowerCase().includes(searchValue) ?? false);
+
+            // Also check article ID and article title
+            if (commentData.article) {
+                if (typeof commentData.article === 'string') {
+                    matches =
+                        matches ||
+                        (typeof commentData.article === 'string' &&
+                            (commentData.article as string).toLowerCase().includes(searchValue));
+                } else if (typeof commentData.article === 'object') {
+                    matches =
+                        matches ||
+                        (commentData.article._id?.toLowerCase().includes(searchValue) ?? false) ||
+                        (commentData.article.title?.toLowerCase().includes(searchValue) ?? false);
+                }
+            }
 
             // If this row matches the search, show it and its parent chain
             if (matches) {
@@ -599,9 +616,9 @@ export default function CommentManagementModal({
                     typeof comment.Parent === 'string' ? comment.Parent : comment.Parent?._id;
                 return (
                     parent === commentData._id &&
-                    (comment._comment_body.toLowerCase().includes(searchValue) ||
-                        comment._comment_author.toLowerCase().includes(searchValue) ||
-                        comment._comment_email.toLowerCase().includes(searchValue))
+                    (comment._comment_body?.toLowerCase().includes(searchValue) ||
+                        comment._comment_author?.toLowerCase().includes(searchValue) ||
+                        comment._comment_email?.toLowerCase().includes(searchValue))
                 );
             });
 
@@ -618,9 +635,12 @@ export default function CommentManagementModal({
                 const parentComment = tableData.find((c) => c._id === parentId);
                 if (parentComment) {
                     const parentMatches =
-                        parentComment._comment_body.toLowerCase().includes(searchValue) ||
-                        parentComment._comment_author.toLowerCase().includes(searchValue) ||
-                        parentComment._comment_email.toLowerCase().includes(searchValue);
+                        (parentComment._comment_body?.toLowerCase().includes(searchValue) ??
+                            false) ||
+                        (parentComment._comment_author?.toLowerCase().includes(searchValue) ??
+                            false) ||
+                        (parentComment._comment_email?.toLowerCase().includes(searchValue) ??
+                            false);
                     return parentMatches;
                 }
             }
@@ -756,7 +776,7 @@ export default function CommentManagementModal({
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <AnimatedWrapper
             className="_modal__comments"
             from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
@@ -932,6 +952,7 @@ export default function CommentManagementModal({
                     </ul>
                 </div>
             </div>
-        </AnimatedWrapper>
+        </AnimatedWrapper>,
+        document.body
     );
 }

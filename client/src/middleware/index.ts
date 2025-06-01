@@ -24,6 +24,8 @@ const socketMiddleware: Middleware = (storeAPI) => (next) => (action) => {
     if (!s._initialized) {
         s._initialized = true;
         s.on('notification', (notif: NotificationPayload) => {
+            console.log('[SOCKET NOTIFICATION]', notif);
+
             const state = storeAPI.getState();
             const user = selectUser(state);
 
@@ -36,17 +38,7 @@ const socketMiddleware: Middleware = (storeAPI) => (next) => (action) => {
 
             switch (notif.category) {
                 case 'article': {
-                    // Only fetch if the current article matches the notification
-                    const currentArticle = state.article?.currentArticle;
-                    const notifArticleId = notif.metadata?.article || notif.metadata?.articleId;
-                    const notifArticleSlug = notif.metadata?.articleSlug || notif.metadata?.slug;
-                    if (
-                        currentArticle &&
-                        (notifArticleId === currentArticle._id ||
-                            notifArticleSlug === currentArticle.slug)
-                    ) {
-                        (storeAPI.dispatch as AppDispatch)(fetchArticles());
-                    }
+                    (storeAPI.dispatch as AppDispatch)(fetchArticles());
                     break;
                 }
                 case 'comment': {

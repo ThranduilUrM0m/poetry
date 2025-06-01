@@ -6,6 +6,7 @@ import {
     markAllRead,
     selectNotifications,
     selectUnreadCount,
+    fetchUnreadCount,
 } from '@/slices/notificationSlice';
 import type { Notification } from '@/slices/notificationSlice';
 import { LuBellRing } from 'react-icons/lu';
@@ -27,6 +28,7 @@ export default function NotificationDropdown() {
     // Fetch on mount
     useEffect(() => {
         dispatch(fetchNotifications());
+        dispatch(fetchUnreadCount());
     }, [dispatch]);
 
     // Click-away to close
@@ -70,7 +72,7 @@ export default function NotificationDropdown() {
                 <LuBellRing />
                 {unreadCount > 0 && (
                     <span className="notification-badge">
-                        <div>{unreadCount}</div>
+                        <div>{unreadCount > 99 ? '99+' : unreadCount}</div>
                     </span>
                 )}
             </button>

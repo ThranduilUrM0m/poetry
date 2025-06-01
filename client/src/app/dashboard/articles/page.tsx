@@ -12,7 +12,7 @@
 'use client';
 
 // Core React and third-party imports
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -354,6 +354,7 @@ export default function DashboardPage() {
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
     const [commentModalArticleId, setCommentModalArticleId] = useState<string | null>(null);
     const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
+    const [isModalMounted, setIsModalMounted] = useState(false);
 
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
@@ -362,6 +363,22 @@ export default function DashboardPage() {
         setCommentModalArticleId(articleId);
         setIsCommentModalOpen(true);
     };
+
+    const filteredComments = React.useMemo(() => {
+        if (!isCommentModalOpen) return [];
+        if (!commentModalArticleId) return comments; // Show all
+        return comments.filter((c) => {
+            if (!c.article) return false;
+            // Always compare as strings
+            if (typeof c.article === 'string') {
+                return String(c.article) === String(commentModalArticleId);
+            }
+            if (typeof c.article === 'object' && c.article._id) {
+                return String(c.article._id) === String(commentModalArticleId);
+            }
+            return false;
+        });
+    }, [comments, isCommentModalOpen, commentModalArticleId]);
 
     // Handler to close
     const handleCloseComments = () => {
@@ -531,6 +548,7 @@ export default function DashboardPage() {
         },
         {
             id: 'comments',
+            accessorFn: (row) => row.comments?.length || 0,
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <MessageSquare className="__icon-header" />
@@ -558,6 +576,7 @@ export default function DashboardPage() {
         },
         {
             id: 'views',
+            accessorFn: (row) => row.views?.length || 0,
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <Eye className="__icon-header" />
@@ -577,6 +596,7 @@ export default function DashboardPage() {
         },
         {
             id: 'upvotes',
+            accessorFn: (row) => row.votes?.filter((v) => v.direction === 'up').length || 0,
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <ThumbsUp className="__icon-header" />
@@ -598,6 +618,7 @@ export default function DashboardPage() {
         },
         {
             id: 'downvotes',
+            accessorFn: (row) => row.votes?.filter((v) => v.direction === 'down').length || 0,
             header: ({ column }) => (
                 <button onClick={() => column.toggleSorting()} className="__sortable-header">
                     <ThumbsDown className="__icon-header" />
@@ -760,10 +781,10 @@ export default function DashboardPage() {
         }
     };
 
-    const handleAddArticle = () => {
+    const handleAddArticle = useCallback(() => {
         dispatch(clearCurrentArticle());
         setIsArticleModalOpen(true);
-    };
+    }, [dispatch]);
 
     const handleEditArticle = (article: Article) => {
         dispatch(setCurrentArticle(article));
@@ -1167,7 +1188,10 @@ export default function DashboardPage() {
                                     <button
                                         type="button"
                                         className="__viewMore"
-                                        onClick={() => setIsCommentModalOpen(true)}
+                                        onClick={() => {
+                                            setCommentModalArticleId(null);
+                                            setIsCommentModalOpen(true);
+                                        }}
                                     >
                                         <AnimatedWrapper
                                             as="span" // Use a span to wrap the text and arrow
@@ -1242,19 +1266,24 @@ export default function DashboardPage() {
                         </div>
                         {renderArticlesTable()}
                     </div>
-                    {isCommentModalOpen && commentModalArticleId && (
+                    {/* {isCommentModalOpen && commentModalArticleId && ( */}
+                    {isCommentModalOpen && (
                         <CommentManagementModal
                             isOpen={isCommentModalOpen}
                             onClose={handleCloseComments}
-                            comments={comments}
+                            comments={filteredComments}
                             refreshComments={handleRefreshComments}
-                            initialFilter={commentModalArticleId}
+                            initialFilter={commentModalArticleId ?? undefined} // <-- Fix here
                         />
                     )}
-                    {isArticleModalOpen && (
+                    {isArticleModalOpen && !isModalMounted && (
                         <ArticleManagementModal
+                            key="article-modal" // Add a key
                             isOpen={isArticleModalOpen}
-                            onClose={() => setIsArticleModalOpen(false)}
+                            onClose={() => {
+                                setIsArticleModalOpen(false);
+                                setIsModalMounted(false);
+                            }}
                             refreshArticles={handleRefreshArticles}
                         />
                     )}

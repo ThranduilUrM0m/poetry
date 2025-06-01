@@ -21,6 +21,7 @@ import { useForm } from 'react-hook-form';
 import FormField from '@/components/ui/FormField';
 import { VisitorIncrease, ReturningUsers } from '@/components/ui/HeroImage';
 import { selectArticles } from '@/slices/articleSlice';
+import { selectSubscribers } from '@/slices/subscriberSlice';
 import { selectAnalyticsLoading, selectAnalytics } from '@/slices/analyticsSlice';
 import {
     PieChart,
@@ -70,6 +71,7 @@ export default function DashboardPage() {
     const { loadError, isReady, chartData } = useDashboard();
     const analyticsData = useSelector(selectAnalytics);
     const articles = useSelector(selectArticles);
+    const subscribers = useSelector(selectSubscribers);
     const isAnalyticsLoading = useSelector(selectAnalyticsLoading);
     const [showAxisNumbers] = useState<boolean>(false);
     const { control, watch } = useForm<DashboardFormValues>({
@@ -176,14 +178,23 @@ export default function DashboardPage() {
         return analyticsData.pageViews.find((d) => d.date === today)?.views || 0;
     };
 
-    // UPDATED: More robust most viewed page detection
-    const getMostViewedPage = (): { title: string; views: number } => {
-        if (!analyticsData?.userBehavior?.pageViewsDetail) {
-            return { title: 'N/A', views: 0 };
-        }
+    const subscriberStats = React.useMemo(() => {
+        // Group by date and count
+        const counts: Record<string, number> = {};
+        subscribers.forEach((sub) => {
+            const date = new Date(sub.createdAt).toISOString().split('T')[0];
+            counts[date] = (counts[date] || 0) + 1;
+        });
+        return Object.entries(counts).map(([date, count]) => ({ date, count }));
+    }, [subscribers]);
 
-        const maxEntry = findMaxEntry(analyticsData.userBehavior.pageViewsDetail);
-        return maxEntry ? { title: maxEntry[0], views: maxEntry[1] } : { title: 'N/A', views: 0 };
+    // UPDATED: More robust most viewed page detection
+    const getMostViewedPage = (): { path: string; views: number } => {
+        if (!analyticsData?.userBehavior?.pageViewsByPath) {
+            return { path: 'N/A', views: 0 };
+        }
+        const maxEntry = findMaxEntry(analyticsData.userBehavior.pageViewsByPath);
+        return maxEntry ? { path: maxEntry[0], views: maxEntry[1] } : { path: 'N/A', views: 0 };
     };
 
     // UPDATED: Format age range display
@@ -224,7 +235,10 @@ export default function DashboardPage() {
 
     // NEW: Compute visitor increase from real data
     const computeVisitorIncrease = (): { increase: number; percentage: string } => {
-        if (!analyticsData?.pageViews || analyticsData.pageViews.length < 2) {
+        const sortedPageViews = (analyticsData?.pageViews || [])
+            .slice()
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        if (sortedPageViews.length < 2) {
             return { increase: 0, percentage: '0%' };
         }
 
@@ -233,15 +247,10 @@ export default function DashboardPage() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const todayStr = today.toISOString().split('T')[0];
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-        const todayViews = analyticsData.pageViews.find((d) => d.date === todayStr)?.views || 0;
-        const yesterdayViews =
-            analyticsData.pageViews.find((d) => d.date === yesterdayStr)?.views || 0;
-
-        const increase = todayViews - yesterdayViews;
-        const percentage = computeImprovementPercentage(todayViews, yesterdayViews);
+        const last = sortedPageViews[sortedPageViews.length - 1];
+        const prev = sortedPageViews[sortedPageViews.length - 2];
+        const increase = last.views - prev.views;
+        const percentage = computeImprovementPercentage(last.views, prev.views);
 
         return { increase, percentage };
     };
@@ -295,7 +304,7 @@ export default function DashboardPage() {
                                             <div className="_content">
                                                 <div className="__stat-label">Most Viewed Page</div>
                                                 <div className="__stat-value">
-                                                    {getMostViewedPage().title} (
+                                                    {getMostViewedPage().path} (
                                                     {getMostViewedPage().views})
                                                 </div>
                                             </div>
@@ -416,7 +425,7 @@ export default function DashboardPage() {
                                 <div className="__body-chart">
                                     <ResponsiveContainer>
                                         {renderTimeSeriesChart(
-                                            chartData.subscriberStats,
+                                            subscriberStats || [],
                                             'count',
                                             'area',
                                             'colorSubs',

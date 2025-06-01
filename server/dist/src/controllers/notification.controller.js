@@ -23,6 +23,10 @@ let NotificationController = class NotificationController {
     async list(page = '1', limit = '20') {
         return this.service.findAll(+page, +limit);
     }
+    async getUnreadCount(req) {
+        const userId = req.user._id;
+        return this.service.countUnread(userId);
+    }
     async markOne(id) {
         return this.service.markAsRead(id);
     }
@@ -44,6 +48,13 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], NotificationController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)('unread-count'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "getUnreadCount", null);
 __decorate([
     (0, common_1.Patch)(':id/read'),
     __param(0, (0, common_1.Param)('id')),

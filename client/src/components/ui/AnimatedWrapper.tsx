@@ -11,6 +11,7 @@ import {
 import type { CSSProperties } from 'react';
 import { useGesture } from '@use-gesture/react';
 import { useInView } from 'react-intersection-observer';
+import { useMergedRef } from '@/hooks/useMergedRef';
 
 type HTMLElementTag = keyof HTMLElementTagNameMap;
 type AsProp<T extends HTMLElementTag> = { as?: T | React.ElementType };
@@ -156,6 +157,17 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     const elementRef = useRef<HTMLElement>(null);
     const [isClicked, setIsClicked] = useState(false);
     const { ref: inViewRef, inView } = useInView({ triggerOnce: true });
+
+    // Merge three refs:
+    // 1) elementRef (internal)
+    // 2) inViewRef (from useInView)
+    // 3) forwarded ref (for animations)
+    const mergedRef = useMergedRef<HTMLElement>(
+        elementRef,
+        inViewRef,
+        // We cast the `ref` so that TS understands it may be a callback or an object ref
+        ref as React.RefCallback<HTMLElement> | React.MutableRefObject<HTMLElement | null>
+    );
 
     // Always create an internal spring ref for this wrapper
     const springRef = useSpringRef();
@@ -376,12 +388,16 @@ const AnimatedWrapper = <T extends HTMLElementTag = 'div'>(
     const safeSprings = normalizeKeys(springs as Record<string, SpringStyles>);
     return (
         <AnimatedComponent
-            ref={(node: HTMLElement) => {
+            /* ref={(node: HTMLElement) => {
                 elementRef.current = node;
                 inViewRef(node);
-                if (typeof ref === 'function') ref(node);
-                else if (ref) (ref as React.RefObject<HTMLElement>).current = node;
-            }}
+                if (typeof ref === 'function') {
+                    ref(node);
+                } else if (ref && 'current' in ref) {
+                    (ref as React.RefObject<HTMLElement>).current = node;
+                }
+            }} */
+            ref={mergedRef}
             {...(hover ? bindHover() : {})}
             onFocus={handleFocus}
             onBlur={handleBlur}

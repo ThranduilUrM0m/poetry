@@ -8,6 +8,9 @@ export declare class NotificationController {
         page: number;
         limit: number;
     }>;
+    getUnreadCount(req: any): Promise<{
+        count: number;
+    }>;
     markOne(id: string): Promise<import("../models/notification.model").Notification>;
     markAll(): Promise<{
         message: string;

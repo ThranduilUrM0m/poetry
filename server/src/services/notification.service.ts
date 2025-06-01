@@ -94,6 +94,11 @@ export class NotificationService {
         await this.notifModel.updateMany({ isRead: false }, { isRead: true }).exec();
     }
 
+    async countUnread(userId: string) {
+        const count = await this.notifModel.countDocuments({ user: userId, isRead: false });
+        return { count };
+    }
+
     /**
      * Delete a notification by ID.
      */

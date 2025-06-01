@@ -1,6 +1,7 @@
 'use client';
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { createPortal } from 'react-dom';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 
@@ -95,6 +96,7 @@ export default function ArticleManagementModal({
     const [isSubmitOpen, setIsSubmitOpen] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [formReset, setFormReset] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     /* const isLoadingTags = useSelector(selectTagsLoading); */
 
     const {
@@ -135,6 +137,12 @@ export default function ArticleManagementModal({
     const { showOverlay, hideOverlay } = useOverlay();
     const modalRef = useRef<HTMLDivElement>(null);
 
+    // Memoize handlers
+    const handleClose = useCallback(() => {
+        hideOverlay();
+        onClose();
+    }, [hideOverlay, onClose]);
+
     const onSubmit: SubmitHandler<ArticleFormValues> = async (data) => {
         const payload = {
             ...data,
@@ -171,6 +179,7 @@ export default function ArticleManagementModal({
             // If you want, pipe error into SubmitModal
             console.error(err);
             // Toggling an error-submission modal:
+            setIsSuccess(false);
             setSubmitError('Submission failed');
             setIsSubmitOpen(true);
         }
@@ -188,13 +197,21 @@ export default function ArticleManagementModal({
                 tagInput: '',
             });
             setSelectedTags(currentArticle.tags!);
-            setValue('tags', currentArticle.tags!);
+            // REMOVE setValue('tags', ...) here, since reset already sets tags
         } else {
-            reset();
+            reset({
+                title: '',
+                body: '',
+                category: '',
+                tags: [],
+                isPrivate: false,
+                isFeatured: false,
+                tagInput: '',
+            });
             setSelectedTags([]);
-            setValue('tags', []);
+            // REMOVE setValue('tags', ...) here, since reset already sets tags
         }
-    }, [reset, currentArticle, setValue]);
+    }, [currentArticle, reset]);
 
     const categorySuggestions = React.useMemo(() => {
         const seen = new Set<string>();
@@ -224,19 +241,40 @@ export default function ArticleManagementModal({
         return arabicRegex.test(text);
     };
 
-    // Show/hide overlay with correct close handler
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && !mounted) {
+            setMounted(true);
             showOverlay({
                 zIndex: 99,
                 blurClass: '',
-                onClick: onClose, // Always use the same handler
+                onClick: handleClose,
             });
-        } else {
+        } else if (!isOpen && mounted) {
             hideOverlay();
+            setMounted(false);
         }
-        return () => hideOverlay();
-    }, [isOpen, showOverlay, hideOverlay, onClose]);
+
+        return () => {
+            if (mounted) {
+                hideOverlay();
+                setMounted(false);
+            }
+        };
+    }, [isOpen, mounted, showOverlay, hideOverlay, handleClose]);
+
+    // Separate effect for escape key and click outside
+    useEffect(() => {
+        if (!isOpen || !mounted) return;
+
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') handleClose();
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isOpen, mounted, handleClose]);
 
     // Escape key and click outside
     useEffect(() => {
@@ -255,316 +293,340 @@ export default function ArticleManagementModal({
         };
     }, [isOpen, onClose]);
 
+    const handleSubmitClose = useCallback(() => {
+        setIsSubmitOpen(false);
+        dispatch(clearCurrentArticle());
+        reset({
+            title: '',
+            body: '',
+            category: '',
+            tags: [],
+            isPrivate: false,
+            isFeatured: false,
+            tagInput: '',
+        });
+        setSelectedTags([]);
+    }, [dispatch, reset]);
+
     if (!isOpen) return null;
 
     return (
         <>
-            <AnimatedWrapper
-                className="_modal__article"
-                from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
-                to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
-                config={smoothConfig}
-                ref={modalRef}
-            >
-                {/* Header */}
-                <div className="_header">
-                    {/* Close button */}
-                    <AnimatedWrapper
-                        as="button"
-                        onClick={onClose}
-                        aria-label="Close"
-                        className="__articleClose"
-                        hover={{
-                            from: { transform: 'translateX(-1%)', opacity: 0.5 },
-                            to: { transform: 'translateX(0)', opacity: 1 },
-                        }}
-                        click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
-                        config={smoothConfig}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                            <g>
-                                <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
-                                <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
-                            </g>
-                        </svg>
-                        Esc
-                    </AnimatedWrapper>
-                </div>
+            {createPortal(
+                <AnimatedWrapper
+                    className="_modal__article"
+                    from={{ opacity: 0, transform: 'translateY(-50px) translateX(-50%)' }}
+                    to={{ opacity: 1, transform: 'translateY(0) translateX(-50%)' }}
+                    config={smoothConfig}
+                    ref={modalRef}
+                >
+                    {/* Header */}
+                    <div className="_header">
+                        {/* Close button */}
+                        <AnimatedWrapper
+                            as="button"
+                            onClick={onClose}
+                            aria-label="Close"
+                            className="__articleClose"
+                            hover={{
+                                from: { transform: 'translateX(-1%)', opacity: 0.5 },
+                                to: { transform: 'translateX(0)', opacity: 1 },
+                            }}
+                            click={{ from: { scale: 1 }, to: { scale: 0.9 } }}
+                            config={smoothConfig}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                                <g>
+                                    <line className="one" x1="29.5" y1="49.5" x2="70.5" y2="49.5" />
+                                    <line className="two" x1="29.5" y1="50.5" x2="70.5" y2="50.5" />
+                                </g>
+                            </svg>
+                            Esc
+                        </AnimatedWrapper>
+                    </div>
 
-                {/* Body */}
-                <div className="_body">
-                    <form className="_form" onSubmit={handleSubmit(onSubmit)}>
-                        <div className="_row">
-                            <FormField
-                                label="Title"
-                                name="title"
-                                value={currentArticle?.title || ''}
-                                type="text"
-                                control={control}
-                                error={errors.title?.message}
-                                icon={<Type />}
-                                rules={{ required: 'Title is required' }}
-                                forceReset={formReset}
-                                onClear={() => handleClearField('title')}
-                            />
+                    {/* Body */}
+                    <div className="_body">
+                        <form className="_form" onSubmit={handleSubmit(onSubmit)}>
+                            <div className="_row">
+                                <FormField
+                                    label="Title"
+                                    name="title"
+                                    value={currentArticle?.title || ''}
+                                    type="text"
+                                    control={control}
+                                    error={errors.title?.message}
+                                    icon={<Type />}
+                                    rules={{ required: 'Title is required' }}
+                                    forceReset={formReset}
+                                    onClear={() => handleClearField('title')}
+                                />
 
-                            {/* Make this FormField a downshift too */}
-                            <FormField
-                                label="Category"
-                                name="category"
-                                value={currentArticle?.category || ''}
-                                type="text"
-                                control={control}
-                                error={errors.category?.message}
-                                icon={<AlignLeft />}
-                                rules={{ required: 'Category is required' }}
-                                forceReset={formReset}
-                                onClear={() => handleClearField('category')}
-                                suggestions={categorySuggestions}
-                                selectedSuggestions={[]}
-                                onSuggestionSelect={(s) => {
-                                    setValue('category', s.title);
-                                    clearErrors('category');
-                                }}
-                                onInputChange={(val) => {
-                                    setValue('category', val);
-                                }}
-                            />
-                        </div>
+                                {/* Make this FormField a downshift too */}
+                                <FormField
+                                    label="Category"
+                                    name="category"
+                                    value={currentArticle?.category || ''}
+                                    type="text"
+                                    control={control}
+                                    error={errors.category?.message}
+                                    icon={<AlignLeft />}
+                                    rules={{ required: 'Category is required' }}
+                                    forceReset={formReset}
+                                    onClear={() => handleClearField('category')}
+                                    suggestions={categorySuggestions}
+                                    selectedSuggestions={[]}
+                                    onSuggestionSelect={(s) => {
+                                        setValue('category', s.title);
+                                        clearErrors('category');
+                                    }}
+                                    onInputChange={(val) => {
+                                        setValue('category', val);
+                                    }}
+                                />
+                            </div>
 
-                        <div className="_row __textarea">
-                            <FormField
-                                name="body"
-                                type="quill"
-                                value={currentArticle?.body || ''}
-                                control={control}
-                                error={errors.body?.message}
-                                rules={{ required: 'Content is required' }}
-                                forceReset={formReset}
-                                onClear={() => handleClearField('body')}
-                            />
-                        </div>
+                            <div className="_row __textarea">
+                                <FormField
+                                    name="body"
+                                    type="quill"
+                                    value={currentArticle?.body || ''}
+                                    control={control}
+                                    error={errors.body?.message}
+                                    rules={{ required: 'Content is required' }}
+                                    forceReset={formReset}
+                                    onClear={() => handleClearField('body')}
+                                />
+                            </div>
 
-                        <div className="_row">
-                            <FormField
-                                label="Tags"
-                                name="tagInput"
-                                type="text"
-                                icon={<Hash />}
-                                error={
-                                    tagSuggestions.length === 0
-                                        ? 'No exact matches found, here are some suggestions.'
-                                        : errors.tags?.message
-                                }
-                                suggestions={tagSuggestions.map((tag) => ({
-                                    _id: tag,
-                                    title: tag,
-                                    type: 'tag',
-                                    sourceType: 'Article',
-                                }))}
-                                control={control}
-                                onInputChange={(val: string) => {
-                                    setValue('tagInput', val);
-                                    dispatch(
-                                        fetchTagSuggestions({ input: val, content: watch('body') })
-                                    );
-                                }}
-                                onSuggestionSelect={(s) => {
-                                    if (!selectedTags.includes(s.title)) {
-                                        setSelectedTags((prev) => [...prev, s.title]); // update local state
-                                        setValue('tags', [...selectedTags, s.title]); // mirror into form if needed
+                            <div className="_row">
+                                <FormField
+                                    label="Tags"
+                                    name="tagInput"
+                                    type="text"
+                                    icon={<Hash />}
+                                    error={
+                                        tagSuggestions.length === 0
+                                            ? 'No exact matches found, here are some suggestions.'
+                                            : errors.tags?.message
                                     }
-                                    setValue('tagInput', ''); // clear input :contentReference[oaicite:3]{index=3}
-                                }}
-                                selectedSuggestions={selectedTags.map((t) => ({
-                                    _id: t,
-                                    title: t,
-                                    type: 'tag',
-                                    sourceType: 'Article',
-                                }))}
-                                forceReset={formReset}
-                                onClear={() => {
-                                    setValue('tagInput', '');
-                                    /* Gotta refresh the suggestions too */
-                                    clearErrors('tagInput');
-                                }}
-                            />
+                                    suggestions={tagSuggestions.map((tag) => ({
+                                        _id: tag,
+                                        title: tag,
+                                        type: 'tag',
+                                        sourceType: 'Article',
+                                    }))}
+                                    control={control}
+                                    onInputChange={(val: string) => {
+                                        setValue('tagInput', val);
+                                        dispatch(
+                                            fetchTagSuggestions({
+                                                input: val,
+                                                content: watch('body'),
+                                            })
+                                        );
+                                    }}
+                                    onSuggestionSelect={(s) => {
+                                        if (!selectedTags.includes(s.title)) {
+                                            setSelectedTags((prev) => [...prev, s.title]); // update local state
+                                            setValue('tags', [...selectedTags, s.title]); // mirror into form if needed
+                                        }
+                                        setValue('tagInput', ''); // clear input :contentReference[oaicite:3]{index=3}
+                                    }}
+                                    selectedSuggestions={selectedTags.map((t) => ({
+                                        _id: t,
+                                        title: t,
+                                        type: 'tag',
+                                        sourceType: 'Article',
+                                    }))}
+                                    forceReset={formReset}
+                                    onClear={() => {
+                                        setValue('tagInput', '');
+                                        /* Gotta refresh the suggestions too */
+                                        clearErrors('tagInput');
+                                    }}
+                                />
 
-                            <AnimatedWrapper
-                                className="__container"
-                                from={{ opacity: 0 }}
-                                to={{ opacity: 1 }}
-                                config={smoothConfig}
-                            >
-                                <div className="__tagsGrid">
-                                    <SimpleBar
-                                        className="_SimpleBar"
-                                        forceVisible="x"
-                                        autoHide={false}
-                                    >
-                                        <div className="__tagsGrid-content">
-                                            {selectedTags.map((tag) => (
-                                                <AnimatedWrapper
-                                                    key={tag}
-                                                    className="__tagCard"
-                                                    from={{ opacity: 0 }}
-                                                    to={{ opacity: 0.8 }}
-                                                    config={smoothConfig}
-                                                >
-                                                    <Hash />
-                                                    <span lang={containsArabic(tag) ? 'ar' : 'en'}>
-                                                        {tag}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => {
-                                                            const filtered = selectedTags.filter(
-                                                                (t) => t !== tag
-                                                            );
-                                                            setSelectedTags(filtered);
-                                                            setValue('tags', filtered);
-                                                        }}
-                                                        aria-label={`Remove ${tag}`}
-                                                        className="remove-tag"
-                                                    >
-                                                        <X size={14} />
-                                                    </button>
-                                                </AnimatedWrapper>
-                                            ))}
-                                        </div>
-                                    </SimpleBar>
-                                </div>
-                            </AnimatedWrapper>
-                        </div>
-
-                        <div className="_row">
-                            <FormField
-                                label="Private"
-                                name="isPrivate"
-                                value={currentArticle?.isPrivate || ''}
-                                type="checkbox"
-                                control={control}
-                                forceReset={formReset}
-                            />
-
-                            <button
-                                type="submit"
-                                className="_button"
-                                id="_buttonArticle"
-                                disabled={isSubmitting}
-                            >
-                                {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
                                 <AnimatedWrapper
-                                    as="span"
-                                    className="buttonBackground"
-                                    hover={{
-                                        from: { clipPath: 'inset(0 100% 0 0)' },
-                                        to: { clipPath: 'inset(0 0 0 0)' },
-                                    }}
-                                    config={{ mass: 1, tension: 170, friction: 26 }}
-                                    parentHoverSelector="#_buttonArticle"
-                                ></AnimatedWrapper>
-                                <div className="buttonBorders">
-                                    {/* Top border: animate width */}
-                                    <AnimatedWrapper
-                                        as="div"
-                                        className="borderTop"
-                                        hover={{
-                                            from: { width: '0%' },
-                                            to: { width: '100%' },
-                                            delay: 0,
-                                        }}
-                                        parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                        onRest={() => {
-                                            // Trigger the next animation after this one completes
-                                            document
-                                                .querySelector('.borderRight')
-                                                ?.dispatchEvent(new Event('startAnimation'));
-                                        }}
-                                    />
-                                    {/* Right border: animate height */}
-                                    <AnimatedWrapper
-                                        as="div"
-                                        className="borderRight"
-                                        hover={{
-                                            from: { height: '0%' },
-                                            to: { height: '100%' },
-                                            delay: 0, // Start immediately after the previous animation
-                                        }}
-                                        parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                        onRest={() => {
-                                            // Trigger the next animation after this one completes
-                                            document
-                                                .querySelector('.borderBottom')
-                                                ?.dispatchEvent(new Event('startAnimation'));
-                                        }}
-                                    />
-                                    {/* Bottom border: animate width */}
-                                    <AnimatedWrapper
-                                        as="div"
-                                        className="borderBottom"
-                                        hover={{
-                                            from: { width: '0%' },
-                                            to: { width: '100%' },
-                                            delay: 0, // Start immediately after the previous animation
-                                        }}
-                                        parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                        onRest={() => {
-                                            // Trigger the next animation after this one completes
-                                            document
-                                                .querySelector('.borderLeft')
-                                                ?.dispatchEvent(new Event('startAnimation'));
-                                        }}
-                                    />
-                                    {/* Left border: animate height */}
-                                    <AnimatedWrapper
-                                        as="div"
-                                        className="borderLeft"
-                                        hover={{
-                                            from: { height: '0%' },
-                                            to: { height: '100%' },
-                                            delay: 0, // Start immediately after the previous animation
-                                        }}
-                                        parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
-                                    />
-                                </div>
-                                <AnimatedWrapper
-                                    as="span"
-                                    className="buttonContent"
-                                    hover={{
-                                        from: {
-                                            color: 'rgb(var(--text)/1)',
-                                        },
-                                        to: {
-                                            color: 'rgb(var(--white)/1)',
-                                        },
-                                    }}
-                                    config={{
-                                        mass: 1,
-                                        tension: 170,
-                                        friction: 26,
-                                    }}
-                                    parentHoverSelector="#_buttonArticle"
+                                    className="__container"
+                                    from={{ opacity: 0 }}
+                                    to={{ opacity: 1 }}
+                                    config={smoothConfig}
                                 >
-                                    {isSubmitting
-                                        ? currentArticle
-                                            ? 'Updating…'
-                                            : 'Creating…'
-                                        : currentArticle
-                                        ? 'Update Article'
-                                        : 'Create Article'}
-                                    <b className="__dot">.</b>
+                                    <div className="__tagsGrid">
+                                        <SimpleBar
+                                            className="_SimpleBar"
+                                            forceVisible="x"
+                                            autoHide={false}
+                                        >
+                                            <div className="__tagsGrid-content">
+                                                {selectedTags.map((tag) => (
+                                                    <AnimatedWrapper
+                                                        key={tag}
+                                                        className="__tagCard"
+                                                        from={{ opacity: 0 }}
+                                                        to={{ opacity: 0.8 }}
+                                                        config={smoothConfig}
+                                                    >
+                                                        <Hash />
+                                                        <span
+                                                            lang={containsArabic(tag) ? 'ar' : 'en'}
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => {
+                                                                const filtered =
+                                                                    selectedTags.filter(
+                                                                        (t) => t !== tag
+                                                                    );
+                                                                setSelectedTags(filtered);
+                                                                setValue('tags', filtered);
+                                                            }}
+                                                            aria-label={`Remove ${tag}`}
+                                                            className="remove-tag"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </AnimatedWrapper>
+                                                ))}
+                                            </div>
+                                        </SimpleBar>
+                                    </div>
                                 </AnimatedWrapper>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </AnimatedWrapper>
+                            </div>
+
+                            <div className="_row">
+                                <FormField
+                                    label="Private"
+                                    name="isPrivate"
+                                    value={currentArticle?.isPrivate || ''}
+                                    type="checkbox"
+                                    control={control}
+                                    forceReset={formReset}
+                                />
+
+                                <button
+                                    type="submit"
+                                    className="_button"
+                                    id="_buttonArticle"
+                                    disabled={isSubmitting}
+                                >
+                                    {/* The sequential effect is still a mystery and the background effect is not reversing with ease */}
+                                    <AnimatedWrapper
+                                        as="span"
+                                        className="buttonBackground"
+                                        hover={{
+                                            from: { clipPath: 'inset(0 100% 0 0)' },
+                                            to: { clipPath: 'inset(0 0 0 0)' },
+                                        }}
+                                        config={{ mass: 1, tension: 170, friction: 26 }}
+                                        parentHoverSelector="#_buttonArticle"
+                                    ></AnimatedWrapper>
+                                    <div className="buttonBorders">
+                                        {/* Top border: animate width */}
+                                        <AnimatedWrapper
+                                            as="div"
+                                            className="borderTop"
+                                            hover={{
+                                                from: { width: '0%' },
+                                                to: { width: '100%' },
+                                                delay: 0,
+                                            }}
+                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                            onRest={() => {
+                                                // Trigger the next animation after this one completes
+                                                document
+                                                    .querySelector('.borderRight')
+                                                    ?.dispatchEvent(new Event('startAnimation'));
+                                            }}
+                                        />
+                                        {/* Right border: animate height */}
+                                        <AnimatedWrapper
+                                            as="div"
+                                            className="borderRight"
+                                            hover={{
+                                                from: { height: '0%' },
+                                                to: { height: '100%' },
+                                                delay: 0, // Start immediately after the previous animation
+                                            }}
+                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                            onRest={() => {
+                                                // Trigger the next animation after this one completes
+                                                document
+                                                    .querySelector('.borderBottom')
+                                                    ?.dispatchEvent(new Event('startAnimation'));
+                                            }}
+                                        />
+                                        {/* Bottom border: animate width */}
+                                        <AnimatedWrapper
+                                            as="div"
+                                            className="borderBottom"
+                                            hover={{
+                                                from: { width: '0%' },
+                                                to: { width: '100%' },
+                                                delay: 0, // Start immediately after the previous animation
+                                            }}
+                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                            onRest={() => {
+                                                // Trigger the next animation after this one completes
+                                                document
+                                                    .querySelector('.borderLeft')
+                                                    ?.dispatchEvent(new Event('startAnimation'));
+                                            }}
+                                        />
+                                        {/* Left border: animate height */}
+                                        <AnimatedWrapper
+                                            as="div"
+                                            className="borderLeft"
+                                            hover={{
+                                                from: { height: '0%' },
+                                                to: { height: '100%' },
+                                                delay: 0, // Start immediately after the previous animation
+                                            }}
+                                            parentHoverSelector="#_buttonArticle" // <-- Updated parent hover selector
+                                        />
+                                    </div>
+                                    <AnimatedWrapper
+                                        as="span"
+                                        className="buttonContent"
+                                        hover={{
+                                            from: {
+                                                color: 'rgb(var(--text)/1)',
+                                            },
+                                            to: {
+                                                color: 'rgb(var(--white)/1)',
+                                            },
+                                        }}
+                                        config={{
+                                            mass: 1,
+                                            tension: 170,
+                                            friction: 26,
+                                        }}
+                                        parentHoverSelector="#_buttonArticle"
+                                    >
+                                        {isSubmitting
+                                            ? currentArticle
+                                                ? 'Updating…'
+                                                : 'Creating…'
+                                            : currentArticle
+                                            ? 'Update Article'
+                                            : 'Create Article'}
+                                        <b className="__dot">.</b>
+                                    </AnimatedWrapper>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </AnimatedWrapper>,
+                document.body
+            )}
             <SubmitModal
                 isSubmitOpen={isSubmitOpen}
-                onSubmitClose={() => setIsSubmitOpen(false)}
+                onSubmitClose={handleSubmitClose}
                 header={currentArticle ? 'Update Failed' : 'Creation Failed'}
                 message={submitError || ''}
-                isSuccess={false}
+                isSuccess={isSuccess}
             />
         </>
     );

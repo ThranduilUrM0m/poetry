@@ -31,6 +31,7 @@ export interface AnalyticsData {
     };
     userBehavior: {
         pageViewsDetail: Record<string, number>;
+        pageViewsByPath: Record<string, number>; // <-- Add this line
         eventTracking: Record<string, number>;
         siteSpeed: number;
     };
@@ -100,6 +101,7 @@ export const dummyGAMetrics: AnalyticsData = {
     },
     userBehavior: {
         pageViewsDetail: { homepage: 150, blog: 100, contact: 30 },
+        pageViewsByPath: { '/': 150, '/blog': 100, '/contact': 30 },
         eventTracking: { click: 200, formSubmit: 50, videoPlay: 30 },
         siteSpeed: 2.5,
     },

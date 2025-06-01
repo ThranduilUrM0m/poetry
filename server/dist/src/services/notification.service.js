@@ -62,6 +62,10 @@ let NotificationService = class NotificationService {
     async markAllRead() {
         await this.notifModel.updateMany({ isRead: false }, { isRead: true }).exec();
     }
+    async countUnread(userId) {
+        const count = await this.notifModel.countDocuments({ user: userId, isRead: false });
+        return { count };
+    }
     async delete(id) {
         await this.getByIdOrThrow(id);
         await this.notifModel.findByIdAndDelete(id).exec();

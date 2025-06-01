@@ -132,6 +132,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         console.log('Analytics data:', analytics);
     }, [analytics]);
 
+    // Block render until auth check is done
+    if (isAuthLoading || (!token && typeof window !== 'undefined')) {
+        return null; // Or a spinner
+    }
+    
     return (
         <main className="dashboard">
             <SectionObserver theme="light">

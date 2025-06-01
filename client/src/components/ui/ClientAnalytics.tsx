@@ -27,7 +27,9 @@ export default function ClientAnalytics() {
     // Track pageview and custom dimensions on route change
     useEffect(() => {
         const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
-        trackPageView(url, document.title, document.referrer);
+        setTimeout(() => {
+            trackPageView(url, document.title, document.referrer);
+        }, 100); // 100ms delay to allow <Head> to update title
 
         // Example: Set custom dimensions/metrics if available (replace with real values)
         setCustomDimensions({

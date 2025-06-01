@@ -1,18 +1,13 @@
 Dashboard/ :
 1. Responsive Design
-
-Notifications :
-1. limit to 3 months
+2. use Next.js middleware to block access to /dashboard routes on the server side if no auth cookie/token is present.
 
 Name :
-1. app/page.tsx : home__section-1-left-fadedText
-2. app/page.tsx : home__section-3 fullName
-3. app/about/page.tsx : 
+1. number on whatsapp contact
 
 Footer :
 1. Legal Notice
 2. Newsroom
 
 Domain
-Google Analytics (Already STarted but can't make sure it's working until the website is actually running good)
-Analytics are not getting the page title
+Google Analytics (Already Started but can't make sure it's working until the website is actually running good)
