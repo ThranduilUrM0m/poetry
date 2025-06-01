@@ -19,6 +19,7 @@ import { useSearchModal } from '@/context/SearchModalContext';
 import Image from 'next/image';
 import Slider from 'react-slick';
 import { useMedia } from 'react-use';
+import { normalizeString } from '@/utils/stringUtils';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -375,7 +376,7 @@ export default function BlogPage() {
 
                                                     <div className="_row">
                                                         <Link
-                                                            href={`/blog/${bestArticle.category.toLowerCase()}/${
+                                                            href={`/blog/${normalizeString(bestArticle.category)}/${
                                                                 bestArticle.slug
                                                             }`}
                                                             className="_button"
@@ -580,7 +581,7 @@ export default function BlogPage() {
                                     {topRatedArticles.map((article) => (
                                         <li key={article._id}>
                                             <Link
-                                                href={`/blog/${article.category.toLowerCase()}/${
+                                                href={`/blog/${normalizeString(article.category)}/${
                                                     article.slug
                                                 }`}
                                             >
@@ -662,7 +663,7 @@ export default function BlogPage() {
                                             </div>
                                         )}
                                         <Link
-                                            href={`/blog/${article.category.toLowerCase()}/${
+                                            href={`/blog/${normalizeString(article.category)}/${
                                                 article.slug
                                             }`}
                                         >
@@ -722,7 +723,7 @@ export default function BlogPage() {
                                             >
                                                 <Link
                                                     className="_cardBody"
-                                                    href={`/blog/${_article.category.toLowerCase()}/${
+                                                    href={`/blog/${normalizeString(_article.category)}/${
                                                         _article.slug
                                                     }`}
                                                 >
@@ -840,7 +841,7 @@ export default function BlogPage() {
                                             >
                                                 <Link
                                                     className="_cardBody"
-                                                    href={`/blog/${_article.category.toLowerCase()}/${
+                                                    href={`/blog/${normalizeString(_article.category)}/${
                                                         _article.slug
                                                     }`}
                                                 >

@@ -54,7 +54,7 @@ export default function Footer() {
                     <Newsletter />
                 </div>
                 <div className="footer__container-right">
-                    <h2>Qasida</h2>
+                    <h2>Qasidaty.</h2>
                     <div className="footer__container-right-links">
                         <div>
                             <h3>

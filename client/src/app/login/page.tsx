@@ -13,6 +13,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import SubmitModal from '@/components/ui/SubmitModal';
 import FormField from '@/components/ui/FormField';
+import { useMedia } from 'react-use';
 
 interface FormData {
     login: string; // Can be either email or username.
@@ -35,6 +36,8 @@ const validationSchema = Yup.object().shape({
 }) as Yup.ObjectSchema<FormData>;
 
 export default function LoginPage() {
+    const isSm = useMedia('(min-width: 640px)');
+
     // Access the Redux dispatch function.
     const dispatch = useDispatch<AppDispatch>();
     // Get NextJS router instance.
@@ -81,7 +84,7 @@ export default function LoginPage() {
         try {
             setError(null);
             const resultAction = await dispatch(loginUser(data));
-            
+
             if (loginUser.fulfilled.match(resultAction)) {
                 router.push('/dashboard');
             } else {
@@ -121,6 +124,10 @@ export default function LoginPage() {
             router.push('/dashboard');
         }
     }, [token, router]);
+
+    if (token) {
+        return null; // Or a spinner
+    }
 
     return (
         <main className="login">
@@ -172,7 +179,7 @@ export default function LoginPage() {
                                 <div className="_row">
                                     <button
                                         type="submit"
-                                        className="_button __flex1"
+                                        className={`_button ${isSm && '__flex1'}`}
                                         id="_buttonComment"
                                         disabled={isLoading}
                                     >

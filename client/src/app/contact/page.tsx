@@ -482,7 +482,7 @@ export default function ContactPage() {
                                                     phone="+212654528492"
                                                     message="Bonjour, j’ai besoin d’aide !"
                                                 >
-                                                    <u>+212 6 54 52 84 92</u>
+                                                    <u>+212 6 66 66 66 66</u>
                                                 </WaLink>
                                             </AnimatedWrapper>
                                         </AnimatedWrapper>

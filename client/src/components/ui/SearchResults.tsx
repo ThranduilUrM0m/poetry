@@ -4,6 +4,7 @@ import SimpleBar from 'simplebar-react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import ArticleCard from '@/components/ui/ArticleCard';
 import { Article } from '@/types/article';
+import { normalizeString } from '@/utils/stringUtils';
 import { useMedia } from 'react-use';
 
 interface SearchResultsProps {
@@ -28,7 +29,7 @@ export default function SearchResults({
     const handleArticleClick = (article: Article) => {
         onSearchClose(); // Close the modal
         // Use the article's slug and category for navigation
-        router.push(`/blog/${article.category.toLowerCase()}/${article.slug}`);
+        router.push(`/blog/${normalizeString(article.category)}/${article.slug}`);
     };
 
     return (

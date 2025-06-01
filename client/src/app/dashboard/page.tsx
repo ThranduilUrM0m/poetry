@@ -35,6 +35,7 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
+import { normalizeString } from '@/utils/stringUtils';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
@@ -448,7 +449,7 @@ export default function DashboardPage() {
                                     {getTopArticles().map((article) => (
                                         <div key={article._id} className="__article-item">
                                             <Link
-                                                href={`/blog/${article.category.toLowerCase()}/${
+                                                href={`/blog/${normalizeString(article.category)}/${
                                                     article.slug
                                                 }`}
                                                 className="__article-link"

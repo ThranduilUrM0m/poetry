@@ -18,6 +18,7 @@ import { Article } from '@/types/article';
 import _ from 'lodash';
 import { useSearchModal } from '@/context/SearchModalContext';
 import { useMedia } from 'react-use';
+import { normalizeString } from '@/utils/stringUtils';
 
 // Define sort and timeframe options explicitly:
 type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
@@ -188,17 +189,17 @@ const filterArticlesBySuggestions = (
         const tagMatches =
             !groupedSuggestions.tag ||
             groupedSuggestions.tag.some((tag) =>
-                article.tags!.some((t) => _.toLower(t) === _.toLower(tag.title))
+                article.tags!.some((t) => normalizeString(t) === normalizeString(tag.title))
             );
         const categoryMatches =
             !groupedSuggestions.category ||
             groupedSuggestions.category.some(
-                (cat) => _.toLower(article.category) === _.toLower(cat.title)
+                (cat) => normalizeString(article.category) === normalizeString(cat.title)
             );
         const authorMatches =
             !groupedSuggestions.author ||
             groupedSuggestions.author.some(
-                (auth) => _.toLower(article.author.username) === _.toLower(auth.title)
+                (auth) => normalizeString(article.author.username) === normalizeString(auth.title)
             );
         return tagMatches && categoryMatches && authorMatches;
     });
@@ -322,20 +323,20 @@ export default function SearchModal(): JSX.Element | null {
         });
         const uniqueTitles = new Set(articles.map((a) => a.title));
         const uniqueCategories = new Set(articles.map((a) => a.category));
-        const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => _.toLower(tag))));
+        const uniqueTags = new Set(articles.flatMap((a) => a.tags!.map((tag) => normalizeString(tag))));
         const uniqueAuthors = new Set(articles.map((a) => a.author.username));
         const suggestions: SearchSuggestion[] = [];
         uniqueTitles.forEach((title) => {
-            const article = articles.find((a) => _.toLower(a.title) === _.toLower(title))!;
+            const article = articles.find((a) => normalizeString(a.title) === normalizeString(title))!;
             suggestions.push(
-                createSuggestion(`title-${_.toLower(title)}`, 'title', title, article, 1)
+                createSuggestion(`title-${normalizeString(title)}`, 'title', title, article, 1)
             );
         });
         uniqueCategories.forEach((category) => {
-            const article = articles.find((a) => _.toLower(a.category) === _.toLower(category))!;
+            const article = articles.find((a) => normalizeString(a.category) === normalizeString(category))!;
             suggestions.push(
                 createSuggestion(
-                    `category-${_.toLower(category)}`,
+                    `category-${normalizeString(category)}`,
                     'category',
                     category,
                     article,
@@ -345,11 +346,11 @@ export default function SearchModal(): JSX.Element | null {
         });
         uniqueTags.forEach((tag) => {
             const article = articles.find((a) =>
-                a.tags!.some((t) => _.toLower(t) === _.toLower(tag))
+                a.tags!.some((t) => normalizeString(t) === normalizeString(tag))
             )!;
             suggestions.push(
                 createSuggestion(
-                    `tag-${_.toLower(tag)}`,
+                    `tag-${normalizeString(tag)}`,
                     'tag',
                     tag,
                     article,
@@ -360,11 +361,11 @@ export default function SearchModal(): JSX.Element | null {
         });
         uniqueAuthors.forEach((username) => {
             const article = articles.find(
-                (a) => _.toLower(a.author.username) === _.toLower(username)
+                (a) => normalizeString(a.author.username) === normalizeString(username)
             )!;
             suggestions.push(
                 createSuggestion(
-                    `author-${_.toLower(username)}`,
+                    `author-${normalizeString(username)}`,
                     'author',
                     username,
                     article,
@@ -380,31 +381,31 @@ export default function SearchModal(): JSX.Element | null {
         searchTerm: string,
         articles: Article[]
     ): { exactMatches: Article[]; similarMatches: Article[] } => {
-        const searchLower = _.toLower(searchTerm);
+        const searchLower = normalizeString(searchTerm);
         const exactMatches = articles.filter(
             (article) =>
-                _.includes(_.toLower(article.title), searchLower) ||
-                _.includes(_.toLower(article.category), searchLower) ||
-                _.includes(_.toLower(article.author.username), searchLower) ||
-                article.tags!.some((tag) => _.includes(_.toLower(tag), searchLower))
+                _.includes(normalizeString(article.title), searchLower) ||
+                _.includes(normalizeString(article.category), searchLower) ||
+                _.includes(normalizeString(article.author.username), searchLower) ||
+                article.tags!.some((tag) => _.includes(normalizeString(tag), searchLower))
         );
         if (exactMatches.length === 0) {
             const articlesWithSimilarity = articles.map((article) => ({
                 article,
                 similarity: Math.max(
-                    stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.title)),
-                    stringSimilarity.compareTwoStrings(searchLower, _.toLower(article.category)),
+                    stringSimilarity.compareTwoStrings(searchLower, normalizeString(article.title)),
+                    stringSimilarity.compareTwoStrings(searchLower, normalizeString(article.category)),
                     article.tags!.reduce(
                         (maxSim, tag) =>
                             Math.max(
                                 maxSim,
-                                stringSimilarity.compareTwoStrings(searchLower, _.toLower(tag))
+                                stringSimilarity.compareTwoStrings(searchLower, normalizeString(tag))
                             ),
                         0
                     ),
                     stringSimilarity.compareTwoStrings(
                         searchLower,
-                        _.toLower(article.author.username)
+                        normalizeString(article.author.username)
                     )
                 ),
             }));

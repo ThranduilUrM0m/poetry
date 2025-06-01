@@ -124,7 +124,7 @@
                     }
 
                     &::before {
-                        content: 'Qasida.';
+                        content: 'Qasidaty.';
                         @apply opacity-25 font-abril z-[-1] absolute w-fit h-fit text-[rgb(var(--text)/.1)] text-[17.5vh] font-normal top-0 -left-[10vh] -translate-y-1/2;
                     }
                 }

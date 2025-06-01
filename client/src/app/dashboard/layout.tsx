@@ -136,7 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (isAuthLoading || (!token && typeof window !== 'undefined')) {
         return null; // Or a spinner
     }
-    
+
     return (
         <main className="dashboard">
             <SectionObserver theme="light">

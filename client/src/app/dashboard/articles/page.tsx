@@ -83,6 +83,7 @@ import {
 
 // Chart imports
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { normalizeString } from '@/utils/stringUtils';
 
 // Type declarations
 type SortOption = 'trending' | 'mostViewed' | 'topRated' | 'mostRecent' | 'mostRelevant';
@@ -112,7 +113,7 @@ const validationSchema: Yup.ObjectSchema<FormValues> = Yup.object().shape({
 // Custom filter function
 const fuzzyFilter: FilterFn<ArticleTableColumn> = (row, columnId, value) => {
     const itemValue = row.getValue(columnId) as string;
-    return itemValue.toLowerCase().includes(value.toLowerCase());
+    return normalizeString(itemValue).includes(normalizeString(value));
 };
 
 // Custom hooks

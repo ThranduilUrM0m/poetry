@@ -6,6 +6,7 @@ import { useTransition, useSpring } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { SearchSuggestion, SuggestionType } from '@/types/search';
 import { Article } from '@/types/article';
+import { normalizeString } from '@/utils/stringUtils';
 import _ from 'lodash';
 
 // Quill
@@ -40,6 +41,25 @@ interface SelectProps {
     onBlur: () => void;
     value: string;
     ref: React.Ref<HTMLButtonElement>;
+}
+
+// Helper: Find the index of a normalized substring in the original string
+function findNormalizedMatchIndex(original: string, search: string) {
+    const normOriginal = normalizeString(original);
+    const normSearch = normalizeString(search);
+    const idx = normOriginal.indexOf(normSearch);
+    if (idx === -1) return -1;
+    // Map normalized index back to original string index
+    let origIdx = 0,
+        normIdx = 0;
+    while (origIdx < original.length && normIdx < idx) {
+        // Advance origIdx and normIdx together, skipping diacritics in original
+        const char = original[origIdx];
+        const normChar = normalizeString(char);
+        if (normChar) normIdx++;
+        origIdx++;
+    }
+    return origIdx;
 }
 
 const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string | boolean>({
@@ -89,8 +109,8 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
 
     // Enhanced similarity check function
     const getStringSimilarity = (str1: string, str2: string): number => {
-        const s1 = _.toLower(str1);
-        const s2 = _.toLower(str2);
+        const s1 = normalizeString(str1);
+        const s2 = normalizeString(str2);
         // Check for exact substring match first
         if (s1.includes(s2) || s2.includes(s1)) {
             return 1;
@@ -109,12 +129,12 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
     const filterSuggestions = useMemo(
         () =>
             (inputVal: string, items: S[]): S[] => {
-                const searchTerm = _.toLower(inputVal).trim();
+                const searchTerm = normalizeString(inputVal).trim();
                 if (!searchTerm) return items;
 
                 // First try exact matches
                 const exactMatches = items.filter((item) =>
-                    _.toLower(item.title).includes(searchTerm)
+                    normalizeString(item.title).includes(searchTerm)
                 );
 
                 if (exactMatches.length > 0) {
@@ -229,7 +249,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
             return;
         }
         const filtered = filterSuggestions(
-            typeof inputValue === 'string' ? _.toLower(inputValue) : '',
+            typeof inputValue === 'string' ? normalizeString(inputValue) : '',
             masterSuggestionList
         );
         if (filtered.length > 0) {
@@ -237,8 +257,10 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                 (item) =>
                     item.type === 'title' &&
                     _.startsWith(
-                        _.toLower(item.title),
-                        _.toLower(typeof inputValue === 'string' ? _.toLower(inputValue) : '')
+                        normalizeString(item.title),
+                        normalizeString(
+                            typeof inputValue === 'string' ? normalizeString(inputValue) : ''
+                        )
                     )
             );
             if (exactMatch) {
@@ -280,44 +302,33 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
 
     const renderAutocomplete = () => {
         if (!autocompleteSuggestion || !inputValue) return null;
-        const suggestionLower = _.toLower(autocompleteSuggestion);
-        const inputLower = typeof inputValue === 'string' ? _.toLower(inputValue) : '';
-        if (!_.includes(suggestionLower, inputLower)) {
+        const inputStr = typeof inputValue === 'string' ? inputValue : '';
+        const matchIndex = findNormalizedMatchIndex(autocompleteSuggestion, inputStr);
+        if (matchIndex === -1) {
             return (
                 <span className="_autocomplete">
-                    <span className="_typed">
-                        {typeof inputValue === 'string' ? _.toLower(inputValue) : ''}
+                    <span className="_typed">{normalizeString(inputStr)}</span>
+                </span>
+            );
+        }
+        const matchLength = inputStr.length;
+        return (
+            <span className="_autocomplete">
+                {autocompleteSuggestion.slice(0, matchIndex) && (
+                    <span className="_suggestion">
+                        {autocompleteSuggestion.slice(0, matchIndex)}
                     </span>
+                )}
+                <span className="_typed">
+                    {autocompleteSuggestion.slice(matchIndex, matchIndex + matchLength)}
                 </span>
-            );
-        }
-        const parts = [];
-        const matchIndex = suggestionLower.indexOf(inputLower);
-        if (matchIndex > 0) {
-            parts.push(
-                <span key="prefix" className="_suggestion">
-                    {autocompleteSuggestion.slice(0, matchIndex)}
-                </span>
-            );
-        }
-        parts.push(
-            <span key="match" className="_typed">
-                {autocompleteSuggestion.slice(
-                    matchIndex,
-                    matchIndex + (typeof inputValue === 'string' ? inputValue.length : 0)
+                {autocompleteSuggestion.slice(matchIndex + matchLength) && (
+                    <span className="_suggestion">
+                        {autocompleteSuggestion.slice(matchIndex + matchLength)}
+                    </span>
                 )}
             </span>
         );
-        const postMatchIndex =
-            matchIndex + (typeof inputValue === 'string' ? inputValue.length : 0);
-        if (postMatchIndex < autocompleteSuggestion.length) {
-            parts.push(
-                <span key="suffix" className="_suggestion">
-                    {autocompleteSuggestion.slice(postMatchIndex)}
-                </span>
-            );
-        }
-        return <span className="_autocomplete">{parts}</span>;
     };
 
     /* They take right even when the clear button isn't showing, and why isn't it showing when the input is filled */

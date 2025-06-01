@@ -18,6 +18,7 @@ import Link from 'next/link';
 import LongArrow from '@/components/ui/LongArrow';
 import { config } from '@react-spring/web';
 import { Comment } from '@/types/article';
+import { normalizeString } from '@/utils/stringUtils';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -275,7 +276,7 @@ export default function AboutPage() {
                             <Link
                                 href={
                                     bioArticle
-                                        ? `/blog/${bioArticle.category.toLowerCase()}/${
+                                        ? `/blog/${normalizeString(bioArticle.category)}/${
                                               bioArticle.slug
                                           }`
                                         : '#'

@@ -8,6 +8,7 @@ import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import _ from 'lodash';
 import { createPortal } from 'react-dom';
+import { normalizeString } from '@/utils/stringUtils';
 /* import { config } from '@react-spring/web'; */
 
 // Table-related imports
@@ -85,7 +86,7 @@ const validationSchema = Yup.object().shape({
 // Custom filter function
 const commentFuzzyFilter: FilterFn<Comment> = (row, columnId, value) => {
     const itemValue = row.getValue(columnId) as string;
-    return itemValue.toLowerCase().includes(value.toLowerCase());
+    return normalizeString(itemValue).includes(normalizeString(value));
 };
 
 // Cells
@@ -582,13 +583,13 @@ export default function CommentManagementModal({
         manualSorting: true,
         globalFilterFn: (row, columnId, filterValue) => {
             const commentData = row.original as CommentWithDepth;
-            const searchValue = String(filterValue).toLowerCase();
+            const searchValue = normalizeString(String(filterValue));
 
             // Check author, body, email
             let matches =
-                (commentData._comment_author?.toLowerCase().includes(searchValue) ?? false) ||
-                (commentData._comment_body?.toLowerCase().includes(searchValue) ?? false) ||
-                (commentData._comment_email?.toLowerCase().includes(searchValue) ?? false);
+                (normalizeString(commentData._comment_author).includes(searchValue) ?? false) ||
+                (normalizeString(commentData._comment_body).includes(searchValue) ?? false) ||
+                (normalizeString(commentData._comment_email).includes(searchValue) ?? false);
 
             // Also check article ID and article title
             if (commentData.article) {
@@ -596,12 +597,12 @@ export default function CommentManagementModal({
                     matches =
                         matches ||
                         (typeof commentData.article === 'string' &&
-                            (commentData.article as string).toLowerCase().includes(searchValue));
+                            normalizeString((commentData.article as string)).includes(searchValue));
                 } else if (typeof commentData.article === 'object') {
                     matches =
                         matches ||
-                        (commentData.article._id?.toLowerCase().includes(searchValue) ?? false) ||
-                        (commentData.article.title?.toLowerCase().includes(searchValue) ?? false);
+                        (normalizeString(commentData.article._id!).includes(searchValue) ?? false) ||
+                        (normalizeString(commentData.article.title).includes(searchValue) ?? false);
                 }
             }
 
@@ -616,9 +617,9 @@ export default function CommentManagementModal({
                     typeof comment.Parent === 'string' ? comment.Parent : comment.Parent?._id;
                 return (
                     parent === commentData._id &&
-                    (comment._comment_body?.toLowerCase().includes(searchValue) ||
-                        comment._comment_author?.toLowerCase().includes(searchValue) ||
-                        comment._comment_email?.toLowerCase().includes(searchValue))
+                    (normalizeString(comment._comment_body).includes(searchValue) ||
+                        normalizeString(comment._comment_author).includes(searchValue) ||
+                        normalizeString(comment._comment_email).includes(searchValue))
                 );
             });
 
@@ -635,11 +636,11 @@ export default function CommentManagementModal({
                 const parentComment = tableData.find((c) => c._id === parentId);
                 if (parentComment) {
                     const parentMatches =
-                        (parentComment._comment_body?.toLowerCase().includes(searchValue) ??
+                        (normalizeString(parentComment._comment_body).includes(searchValue) ??
                             false) ||
-                        (parentComment._comment_author?.toLowerCase().includes(searchValue) ??
+                        (normalizeString(parentComment._comment_author).includes(searchValue) ??
                             false) ||
-                        (parentComment._comment_email?.toLowerCase().includes(searchValue) ??
+                        (normalizeString(parentComment._comment_email).includes(searchValue) ??
                             false);
                     return parentMatches;
                 }

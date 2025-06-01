@@ -7,6 +7,7 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import _ from 'lodash';
 import Link from 'next/link';
 import { useMedia } from 'react-use';
+import { normalizeString } from '@/utils/stringUtils';
 
 interface ArticleCardProps {
     readonly article: Article;
@@ -39,7 +40,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     return (
         <AnimatedWrapper as="div" className="article-card" config={smoothConfig}>
             <Link
-                href={`/blog/${article.category.toLowerCase()}/${article.slug}`}
+                href={`/blog/${normalizeString(article.category)}/${article.slug}`}
             >
                 <div className="meta">
                     {/* Author name span - only shows if firstName or lastName exists */}

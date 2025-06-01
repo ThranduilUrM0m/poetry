@@ -18,6 +18,7 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
 import SectionObserver from '@/components/SectionObserver';
 import { useMedia } from 'react-use';
+import { normalizeString } from '@/utils/stringUtils';
 
 interface SliderSettings {
     centerMode?: boolean;
@@ -182,7 +183,7 @@ export default function HomePage() {
                             <Link
                                 href={
                                     bioArticle
-                                        ? `/blog/${bioArticle.category.toLowerCase()}/${
+                                        ? `/blog/${normalizeString(bioArticle.category)}/${
                                               bioArticle.slug
                                           }`
                                         : '#'
@@ -379,7 +380,7 @@ export default function HomePage() {
 
                                                             <div className="_row">
                                                                 <Link
-                                                                    href={`/blog/${_article.category.toLowerCase()}/${
+                                                                    href={`/blog/${normalizeString(_article.category)}/${
                                                                         _article.slug
                                                                     }`}
                                                                     className="_button"

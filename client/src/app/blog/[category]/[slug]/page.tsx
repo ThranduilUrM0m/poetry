@@ -59,6 +59,7 @@ import 'quill/dist/quill.snow.css';
 import { VoteStateManager } from '@/utils/voteStateManager';
 import { useMedia } from 'react-use';
 import { SocialShare } from '@/components/ui/SocialShare';
+import { normalizeString } from '@/utils/stringUtils';
 
 interface FormData {
     Parent: string | null;
@@ -726,7 +727,9 @@ export default function ArticlePage() {
                                             </li>
                                             <li>
                                                 <Link
-                                                    href={`/blog/${article.category.toLowerCase()}`}
+                                                    href={`/blog/${normalizeString(
+                                                        article.category
+                                                    )}`}
                                                 >
                                                     {article.category}
                                                 </Link>

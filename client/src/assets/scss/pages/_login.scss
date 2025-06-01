@@ -1,3 +1,5 @@
+@use "../abstracts/mq";
+
 .login {
     @apply w-full h-full;
     background-color: #FF3CAC;
@@ -10,7 +12,12 @@
 
             // Left Column
             ._card {
-                @apply relative flex flex-col justify-center items-center bg-[rgb(var(--background)/1)] p-[5vh] my-[10vh] h-[calc(100%-20vh)] w-[80vh];
+                @apply relative flex flex-col justify-center items-center bg-[rgb(var(--background)/1)] p-[2.5vh] my-[10vh] h-[calc(100%-10vh)] w-[90%];
+
+                // sm breakpoint (>= 640px): small tablets and up
+                @include mq.mq($from: sm) {
+                    @apply p-[5vh] my-[10vh] h-[calc(100%-20vh)] w-[80vh];
+                }
 
                 &Header {
                     h3 {

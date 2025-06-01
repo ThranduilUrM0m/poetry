@@ -9,6 +9,7 @@ import * as Yup from 'yup';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import FormField from '@/components/ui/FormField';
 import { useOverlay } from '@/context/OverlayContext';
+import { normalizeString } from '@/utils/stringUtils';
 
 // Redux
 import { AppDispatch } from '@/store';
@@ -216,7 +217,7 @@ export default function ArticleManagementModal({
     const categorySuggestions = React.useMemo(() => {
         const seen = new Set<string>();
         return articles
-            .map((a) => a.category.trim().toLowerCase())
+            .map((a) => normalizeString(a.category).trim())
             .filter((cat) => {
                 if (seen.has(cat)) return false;
                 seen.add(cat);
