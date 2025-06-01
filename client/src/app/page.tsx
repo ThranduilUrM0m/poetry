@@ -166,7 +166,7 @@ export default function HomePage() {
                             config={{ mass: 1, tension: 170, friction: 26 }}
                         >
                             <div className="home__section-1-left-fadedText">
-                                <p>Hi. I&apos;m [Poet&rsquo;s LastName]!</p>
+                                <p>Hi. I&apos;m Elmkinsi!</p>
                             </div>
 
                             <div className="home__section-1-left-text">
@@ -616,9 +616,9 @@ export default function HomePage() {
                                 <span className="aboutMe">About Me</span>
 
                                 <h2 className="fullName">
-                                    [Poet&rsquo;s LastName]
+                                    Elmkinsi
                                     <br />
-                                    [Poet&rsquo;s FirstName]
+                                    Fatima
                                 </h2>
 
                                 <p className="text">
