@@ -16,7 +16,6 @@ import { OverlayProvider, useOverlay } from '@/context/OverlayContext';
 import Overlay from '@/components/ui/Overlay';
 import { createPortal } from 'react-dom';
 import 'nprogress/nprogress.css';
-
 import ClientAnalytics from '@/components/ui/ClientAnalytics';
 
 function GlobalOverlay() {

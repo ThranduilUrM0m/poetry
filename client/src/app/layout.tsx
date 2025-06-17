@@ -1,5 +1,5 @@
 ﻿// app/layout.tsx
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from '@vercel/analytics/next';
 import Head from 'next/head';
 import Script from 'next/script';
 import LayoutWrapper from './LayoutWrapper';
@@ -48,7 +48,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </head>
             <body>
                 <Providers>
-                    <LayoutWrapper>{children}</LayoutWrapper>
+                    <LayoutWrapper>
+                        {children}
+                        <Analytics />
+                    </LayoutWrapper>
                 </Providers>
             </body>
         </html>
