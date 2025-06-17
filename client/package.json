@@ -47,6 +47,8 @@
     "nprogress": "^0.2.0",
     "openai": "^4.96.0",
     "quill": "^2.0.3",
+    "quill-image-resize-module": "^3.0.0",
+    "quill-image-resize-module-ts": "^3.0.3",
     "rating-score": "^1.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

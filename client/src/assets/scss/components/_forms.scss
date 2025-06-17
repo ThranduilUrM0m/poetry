@@ -25,6 +25,11 @@ $_ in $quill-sizes {
     }
 }
 
+.ql-editor img {
+    max-width: 100%;
+    height: auto;
+}
+
 form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
 
