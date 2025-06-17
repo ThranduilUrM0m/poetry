@@ -136,10 +136,10 @@ export default function HomePage() {
     return (
         <>
             <Head>
-                <title>Qasida | Poetry Website</title>
+                <title>Qasidaty | Poetry Website</title>
                 <meta
                     name="description"
-                    content={`Qasida is a poetry website that showcases a collection of thoughts and writings.`}
+                    content={`Qasidaty is a poetry website that showcases a collection of thoughts and writings.`}
                 />
             </Head>
             <main className="home">
