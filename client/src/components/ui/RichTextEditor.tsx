@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchFontList, selectFontList } from '@/slices/fontsSlice';
 import ToolbarSelect from '@/components/ui/ToolbarSelect';
 import SimpleBar from 'simplebar-react';
-import { ImageResize } from 'quill-image-resize-module';
 import 'quill/dist/quill.snow.css'; // Import Quill styles
 
 // ➊ Minimal types for our handler
@@ -33,7 +32,6 @@ FontAttributor.whitelist = [];
 SizeAttributor.whitelist = [];
 Quill.register('formats/font', FontAttributor, true);
 Quill.register('formats/size', SizeAttributor, true);
-Quill.register('modules/imageResize', ImageResize);
 
 interface RichTextEditorProps {
     value?: string;
