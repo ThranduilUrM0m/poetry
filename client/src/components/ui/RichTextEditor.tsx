@@ -2,12 +2,15 @@
 
 import React, { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
 import Quill from 'quill';
+import QuillResize from 'quill-resize-module';
 import { AppDispatch } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFontList, selectFontList } from '@/slices/fontsSlice';
 import ToolbarSelect from '@/components/ui/ToolbarSelect';
 import SimpleBar from 'simplebar-react';
 import 'quill/dist/quill.snow.css'; // Import Quill styles
+import imageCompression from 'browser-image-compression';
+/* import SubmitModal from '@/components/ui/SubmitModal'; */
 
 // ➊ Minimal types for our handler
 interface QuillRange {
@@ -33,6 +36,8 @@ SizeAttributor.whitelist = [];
 Quill.register('formats/font', FontAttributor, true);
 Quill.register('formats/size', SizeAttributor, true);
 
+Quill.register('modules/resize', QuillResize);
+
 interface RichTextEditorProps {
     value?: string;
     forceReset?: boolean;
@@ -42,10 +47,17 @@ export type RichTextEditorHandle = { getContent: () => string };
 
 const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
     ({ value = '', forceReset = false, onChange }, ref) => {
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+        /* const [isUploading, setIsUploading] = useState(false); */
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [uploadError, setUploadError] = useState<string | null>(null);
+
         const [currentHeader, setCurrentHeader] = useState<string>('false');
         const [currentFont, setCurrentFont] = useState<string>('');
         const [currentSize, setCurrentSize] = useState<string>('');
-        // ➊ Create refs to hold the *latest* selections
+
         const currentFontRef = useRef<string>('');
         const currentSizeRef = useRef<string>('');
 
@@ -74,40 +86,104 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         ].map((s) => ({ value: s, label: `${s}pt` }));
         const sizeOptions = sizes.map((o) => o.value);
 
+        // Fetch fonts only once
         useEffect(() => {
             dispatch(fetchFontList());
         }, [dispatch]);
 
-        // 1️⃣ Update attributors when fonts or sizes change
+        // Update attributors when fonts or sizes change
         useEffect(() => {
-            // Only proceed if we have both Quill imported and a non-empty list
             if (!Quill || fonts.length === 0) return;
-
-            // 1️⃣ Create an array of { value: slug, label: original }
             const fontOptions = fonts.map((f) => {
-                const slug = f.replace(/\s+/g, '-'); // e.g. "Open Sans" ➔ "Open-Sans"
+                const slug = f.replace(/\s+/g, '-');
                 return { value: slug, label: f };
             });
             FontAttributor.whitelist = fontOptions.map((o) => o.value);
             SizeAttributor.whitelist = sizeOptions;
-
-            // 2️⃣ Whitelist exactly those same slugs
             Quill.register('formats/font', FontAttributor, true);
             Quill.register('formats/size', SizeAttributor, true);
         }, [fonts, sizeOptions]);
 
-        // 2️⃣ Then initialize Quill once
+        // Initialize Quill only once, after fonts are loaded
         useEffect(() => {
-            if (editorRef.current && !quillRef.current) {
+            if (editorRef.current && !quillRef.current && fonts.length > 0) {
                 const quill = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
-                        toolbar: '#toolbar',
+                        toolbar: {
+                            container: '#toolbar',
+                            handlers: {
+                                image: async function () {
+                                    const input = document.createElement('input');
+                                    input.setAttribute('type', 'file');
+                                    input.setAttribute('accept', 'image/*');
+                                    input.click();
+
+                                    input.onchange = async () => {
+                                        const file = input.files?.[0];
+                                        if (!file) return;
+
+                                        /* setIsUploading(true); */
+                                        setUploadError(null);
+
+                                        let uploadFile = file;
+                                        try {
+                                            if (file.size > 10485760) {
+                                                uploadFile = await imageCompression(file, {
+                                                    maxSizeMB: 10,
+                                                    maxWidthOrHeight: 1920,
+                                                    useWebWorker: true,
+                                                });
+                                            }
+                                        } catch {
+                                            setUploadError('Image compression failed.');
+                                            /* setIsUploading(false); */
+                                            return;
+                                        }
+
+                                        const formData = new FormData();
+                                        formData.append('file', uploadFile);
+                                        if (uploadPreset) {
+                                            formData.append('upload_preset', uploadPreset);
+                                        } else {
+                                            setUploadError('Upload preset is not defined');
+                                            /* setIsUploading(false); */
+                                            return;
+                                        }
+
+                                        try {
+                                            const res = await fetch(
+                                                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                                                { method: 'POST', body: formData }
+                                            );
+                                            const data = await res.json();
+
+                                            if (data.secure_url) {
+                                                const range = quill.getSelection(true);
+                                                quill.insertEmbed(
+                                                    range.index,
+                                                    'image',
+                                                    data.secure_url,
+                                                    'user'
+                                                );
+                                            } else {
+                                                setUploadError(
+                                                    data.error?.message || 'Image upload failed'
+                                                );
+                                            }
+                                        } catch {
+                                            setUploadError('Image upload failed');
+                                        } finally {
+                                            /* setIsUploading(false); */
+                                        }
+                                    };
+                                },
+                            },
+                        },
                         history: { delay: 500, maxStack: 200, userOnly: true },
-                        imageResize: {
-                            // Optional: see quill-image-resize-module docs for config options
-                            modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
-                        }
+                        resize: {
+                            modules: ['Resize', 'DisplaySize', 'Toolbar'],
+                        },
                     },
                     formats: [
                         'font',
@@ -138,24 +214,16 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                     { key: 13, collapsed: true },
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     (range: QuillRange, context: KeyboardContext) => {
-                        // Capture **all** current formats at the cursor
                         const formats = quill.getFormat(range.index) || {};
-
-                        // Insert newline & move cursor
                         quill.insertText(range.index, '\n', 'user');
                         quill.setSelection(range.index + 1, 0, 'silent');
-
-                        // Reapply each format found
                         Object.entries(formats).forEach(([name, value]) => {
                             quill.format(name, value, 'silent');
                         });
-
-                        // Prevent Quill’s default handler which would reset inline formats
                         return false;
                     }
                 );
 
-                // Improved selection change handler
                 quill.on('selection-change', (range: QuillRange | null) => {
                     if (range) {
                         const formats = quill.getFormat(range.index);
@@ -165,35 +233,29 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                     }
                 });
 
-                // Hook onChange
                 quill.on('text-change', () => {
                     onChange?.(quill.root.innerHTML);
                 });
             }
-        }, [onChange, fonts, currentFont, currentSize]);
+        }, [fonts, onChange, cloudName, uploadPreset]);
 
+        // Keep editor value in sync with prop
         useEffect(() => {
-            if (quillRef.current) {
-                // skip if it's already equal
-                if (quillRef.current.root.innerHTML !== value) {
-                    quillRef.current.root.innerHTML = value;
-                }
+            if (quillRef.current && quillRef.current.root.innerHTML !== value) {
+                quillRef.current.root.innerHTML = value;
             }
         }, [value, forceReset]);
 
-        // ➋ Whenever state updates, mirror it in the refs
+        // Keep refs in sync
         useEffect(() => {
             currentFontRef.current = currentFont;
         }, [currentFont]);
-
         useEffect(() => {
             currentSizeRef.current = currentSize;
         }, [currentSize]);
 
         useImperativeHandle(ref, () => ({
-            getContent: () => {
-                return quillRef.current?.root.innerHTML || '';
-            },
+            getContent: () => quillRef.current?.root.innerHTML || '',
         }));
 
         return (
@@ -291,6 +353,22 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 <SimpleBar style={{ maxHeight: '33.5vh' }}>
                     <div ref={editorRef} />
                 </SimpleBar>
+
+                {/* Uploading indicator */}
+                {/* {isUploading && (
+                    <div className="image-uploading-indicator">
+                        <span>Uploading image...</span>
+                    </div>
+                )} */}
+
+                {/* Error Modal */}
+                {/* <SubmitModal
+                    isSubmitOpen={!!uploadError}
+                    onSubmitClose={() => setUploadError(null)}
+                    header="Image Upload Error"
+                    message={uploadError || ''}
+                    isSuccess={false}
+                /> */}
             </>
         );
     }

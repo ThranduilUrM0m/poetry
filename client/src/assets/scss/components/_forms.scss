@@ -30,6 +30,39 @@ $_ in $quill-sizes {
     height: auto;
 }
 
+// Add to your SCSS (e.g. _forms.scss or a global file)
+.image-uploading-indicator {
+    @apply flex items-center justify-center w-full py-[2vh] bg-[rgb(var(--primary-light)/.1)] text-[2vh] text-[rgb(var(--primary)/1)] font-semibold;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50;
+
+    // Optional: add a spinner
+    &::before {
+        content: '';
+        display: inline-block;
+        width: 2vh;
+        height: 2vh;
+        margin-right: 1vh;
+        border: 0.3vh solid rgb(var(--primary)/.3);
+        border-top: 0.3vh solid rgb(var(--primary)/1);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        vertical-align: middle;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 form {
     @apply relative flex flex-col gap-[1vh] h-full w-full;
 

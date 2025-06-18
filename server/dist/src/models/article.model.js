@@ -61,7 +61,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Article.prototype, "votes", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ enum: ['pending', 'approved', 'rejected'], default: 'pending' }),
+    (0, mongoose_1.Prop)({ enum: ['pending', 'approved', 'rejected'], default: 'approved' }),
     __metadata("design:type", String)
 ], Article.prototype, "status", void 0);
 __decorate([

@@ -237,7 +237,6 @@ const usePopularCategories = () => {
 };
 
 // Cell Components
-
 const PrivateCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isPrivate, setIsPrivate] = useState(row.original.isPrivate);
@@ -332,6 +331,37 @@ const StatusCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row
             title={`Status: ${status}. Click to cycle.`}
         >
             {status}
+        </button>
+    );
+};
+
+const BioCell: React.FC<{ row: Row<Article>; onUpdate: () => void }> = ({ row, onUpdate }) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const [isBio, setIsBio] = useState(row.original.isBio);
+
+    const toggleBio = async () => {
+        try {
+            await dispatch(
+                updateArticleById({
+                    id: row.original._id!,
+                    data: { isBio: !isBio },
+                })
+            ).unwrap();
+            setIsBio((prev) => !prev);
+            onUpdate();
+        } catch (err) {
+            console.error('Failed to toggle bio:', err);
+        }
+    };
+
+    return (
+        <button
+            className={`__bio-toggle ${isBio ? '__active' : '__inactive'}`}
+            onClick={toggleBio}
+            aria-label={isBio ? 'Unset as Bio' : 'Set as Bio'}
+            type="button"
+        >
+            {isBio ? <BookUser /> : <BookUser style={{ opacity: 0.3 }} />}
         </button>
     );
 };
@@ -664,13 +694,7 @@ export default function DashboardPage() {
                         (column.getIsSorted() === 'asc' ? <ChevronUp /> : <ChevronDown />)}
                 </button>
             ),
-            cell: (info) => (
-                <span
-                    className={`__status-indicator ${info.getValue() ? '__active' : '__inactive'}`}
-                >
-                    {info.getValue() ? <BookUser /> : null}
-                </span>
-            ),
+            cell: ({ row }) => <BioCell row={row} onUpdate={handleRefreshArticles} />,
             enableSorting: true,
             meta: {
                 tdClassName: 'isCentered', // Custom class for this column's cells

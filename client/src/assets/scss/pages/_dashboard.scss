@@ -807,6 +807,10 @@
                                                         &.rejected {
                                                             @apply bg-[rgb(var(--redNoBG)/.25)] border border-[rgb(var(--redNoBG)/.75)];
                                                         }
+
+                                                        &.pending {
+                                                            @apply bg-[rgb(var(--yellowPending)/.25)] border border-[rgb(var(--yellowPending)/.75)];
+                                                        }
                                                     }
                                                 }
                                             }

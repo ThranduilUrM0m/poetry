@@ -39,7 +39,7 @@ export class Article {
     @Prop({ type: [{ type: Types.ObjectId, ref: 'Vote' }] })
     votes: Types.ObjectId[];
 
-    @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+    @Prop({ enum: ['pending', 'approved', 'rejected'], default: 'approved' })
     status: string;
 
     @Prop({ default: false })
