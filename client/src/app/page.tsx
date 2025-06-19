@@ -114,17 +114,33 @@ export default function HomePage() {
     };
 
     const extractFirstPhrase = (htmlContent: string) => {
-        // Create a temporary div to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
+        if (!htmlContent) return '';
+        // Replace <br> and <br/> with \n
+        let text = htmlContent.replace(/<br\s*\/?>/gi, '\n');
+        // Replace </p> with \n (paragraphs)
+        text = text.replace(/<\/p>/gi, '\n');
+        // Remove all other tags
+        text = text.replace(/<[^>]+>/g, '');
+        // Collapse multiple newlines
+        text = text.replace(/\n{2,}/g, '\n');
+        // Split into lines
+        const lines = text
+            .split('\n')
+            .map((l) => l.trim())
+            .filter(Boolean);
 
-        // Get all text content, removing HTML tags
-        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+        let preview = '';
+        let charCount = 0;
+        let lineCount = 0;
 
-        // Split by sentence endings and get first sentence
-        const firstSentence = textContent.split(/[.!?]+/)[0];
-
-        return firstSentence.trim();
+        for (const line of lines) {
+            if (preview) preview += '\n';
+            preview += line;
+            charCount += line.length;
+            lineCount++;
+            if (charCount >= 1000 || lineCount >= 2000) break;
+        }
+        return preview.trim();
     };
 
     // Function to check if a string contains Arabic characters
@@ -380,9 +396,9 @@ export default function HomePage() {
 
                                                             <div className="_row">
                                                                 <Link
-                                                                    href={`/blog/${normalizeString(_article.category)}/${
-                                                                        _article.slug
-                                                                    }`}
+                                                                    href={`/blog/${normalizeString(
+                                                                        _article.category
+                                                                    )}/${_article.slug}`}
                                                                     className="_button"
                                                                     id="_buttonArticle"
                                                                 >

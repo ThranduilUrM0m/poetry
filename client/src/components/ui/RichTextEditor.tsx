@@ -17,9 +17,6 @@ interface QuillRange {
     index: number;
     length: number;
 }
-interface KeyboardContext {
-    format: Record<string, unknown>;
-}
 interface Attributor {
     whitelist: string[];
 }
@@ -210,19 +207,9 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 });
                 quillRef.current = quill;
 
-                quill.keyboard.addBinding(
-                    { key: 13, collapsed: true },
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    (range: QuillRange, context: KeyboardContext) => {
-                        const formats = quill.getFormat(range.index) || {};
-                        quill.insertText(range.index, '\n', 'user');
-                        quill.setSelection(range.index + 1, 0, 'silent');
-                        Object.entries(formats).forEach(([name, value]) => {
-                            quill.format(name, value, 'silent');
-                        });
-                        return false;
-                    }
-                );
+                if (value) {
+                    quill.clipboard.dangerouslyPasteHTML(value);
+                }
 
                 quill.on('selection-change', (range: QuillRange | null) => {
                     if (range) {
@@ -241,8 +228,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
 
         // Keep editor value in sync with prop
         useEffect(() => {
-            if (quillRef.current && quillRef.current.root.innerHTML !== value) {
-                quillRef.current.root.innerHTML = value;
+            if (quillRef.current && value !== undefined) {
+                // Only update if value is different from current content
+                if (quillRef.current.root.innerHTML !== value) {
+                    quillRef.current.clipboard.dangerouslyPasteHTML(value);
+                }
             }
         }, [value, forceReset]);
 
