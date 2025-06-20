@@ -273,7 +273,7 @@
 
                                     // Images
                                     img {
-                                        @apply max-w-full h-auto my-[2vh] rounded-[1vh] mx-auto shadow-md transition-all duration-300 ease-in-out;
+                                        @apply max-w-full h-auto my-[2vh] rounded-[1vh] shadow-md transition-all duration-300 ease-in-out;
 
                                         &.ql-align-center {
                                             @apply block mx-auto;

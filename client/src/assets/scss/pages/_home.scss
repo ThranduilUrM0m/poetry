@@ -343,6 +343,7 @@
                                     }
 
                                     &:first-of-type {
+
                                         // sm breakpoint (>= 640px): small tablets and up
                                         @include mq.mq($from: sm) {
                                             @apply mt-[4vh];

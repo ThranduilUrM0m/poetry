@@ -70,10 +70,22 @@ export class ArticleService {
                 .lean()
                 .exec();
         } else {
-            doc = await this.articleModel
-                .findOne(filter as FilterQuery<ArticleDocument>)
-                .lean()
-                .exec();
+            // Case-insensitive match for category and slug if present
+            const filterObj = filter as any;
+            if (filterObj.category && filterObj.slug) {
+                doc = await this.articleModel
+                    .findOne({
+                        category: new RegExp(`^${filterObj.category}$`, 'i'),
+                        slug: new RegExp(`^${filterObj.slug}$`, 'i'),
+                    })
+                    .lean()
+                    .exec();
+            } else {
+                doc = await this.articleModel
+                    .findOne(filter as FilterQuery<ArticleDocument>)
+                    .lean()
+                    .exec();
+            }
         }
 
         // Found in DB?

@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animated';
+import lineClamp from '@tailwindcss/line-clamp';
 
 export default {
     content: [
@@ -12,7 +13,7 @@ export default {
             fontFamily: {
                 arabic: ['Amiri', 'serif'],
                 latin: ['Arsenal', 'serif'],
-                abril: ['Abril Fatface', 'cursive']
+                abril: ['Abril Fatface', 'cursive'],
             },
             colors: {
                 d: 'rgb(var(--d) / <alpha-value>)',
@@ -38,7 +39,10 @@ export default {
             transitionDuration: {
                 DEFAULT: '300ms',
             },
+            lineClamp: {
+                10: '10',
+            },
         },
     },
-    plugins: [animate],
+    plugins: [animate, lineClamp],
 } satisfies Config;

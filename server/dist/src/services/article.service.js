@@ -43,10 +43,22 @@ let ArticleService = class ArticleService {
                 .exec();
         }
         else {
-            doc = await this.articleModel
-                .findOne(filter)
-                .lean()
-                .exec();
+            const filterObj = filter;
+            if (filterObj.category && filterObj.slug) {
+                doc = await this.articleModel
+                    .findOne({
+                    category: new RegExp(`^${filterObj.category}$`, 'i'),
+                    slug: new RegExp(`^${filterObj.slug}$`, 'i'),
+                })
+                    .lean()
+                    .exec();
+            }
+            else {
+                doc = await this.articleModel
+                    .findOne(filter)
+                    .lean()
+                    .exec();
+            }
         }
         if (doc) {
             return doc;

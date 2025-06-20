@@ -202,35 +202,37 @@ export default function AboutPage() {
         }
     };
 
-    const extractFirstPhrases = (htmlContent: string) => {
-        if (!htmlContent) return '';
-        // Replace <br> and <br/> with \n
-        let text = htmlContent.replace(/<br\s*\/?>/gi, '\n');
-        // Replace </p> with \n (paragraphs)
-        text = text.replace(/<\/p>/gi, '\n');
-        // Remove all other tags
-        text = text.replace(/<[^>]+>/g, '');
-        // Collapse multiple newlines
-        text = text.replace(/\n{2,}/g, '\n');
-        // Split into lines
-        const lines = text
-            .split('\n')
-            .map((l) => l.trim())
-            .filter(Boolean);
+    function sanitizeHtmlForPreview(html: string): string {
+        if (!html) return '';
+        let sanitized = html;
 
-        let preview = '';
-        let charCount = 0;
-        let lineCount = 0;
+        // 1. Remove <p> or <div> that only contain a media element (img, video, iframe, a)
+        sanitized = sanitized.replace(
+            /<(p|div)[^>]*>\s*(<img[^>]*>|<video[^>]*>.*?<\/video>|<iframe[^>]*>.*?<\/iframe>|<a[^>]*>.*?<\/a>)\s*<\/\1>/gi,
+            ''
+        );
 
-        for (const line of lines) {
-            if (preview) preview += '\n';
-            preview += line;
-            charCount += line.length;
-            lineCount++;
-            if (charCount >= 500 || lineCount >= 1000) break;
-        }
-        return preview.trim();
-    };
+        // 2. Remove standalone media elements (not wrapped)
+        sanitized = sanitized
+            .replace(/<img[^>]*>/gi, '')
+            .replace(/<video[^>]*>.*?<\/video>/gi, '')
+            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+            .replace(/<a[^>]*>.*?<\/a>/gi, '');
+
+        // 3. Remove all tags except <br>, <p>, <b>, <i>, <strong>, <em>
+        sanitized = sanitized.replace(/<(?!\/?(br|p|b|i|strong|em)\b)[^>]+>/gi, '');
+
+        // 4. Remove empty paragraphs (including those with only whitespace or <br>)
+        sanitized = sanitized.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '');
+
+        // 5. Collapse multiple consecutive <br> into one
+        sanitized = sanitized.replace(/(<br\s*\/?>\s*){2,}/gi, '<br>');
+
+        // 6. Trim leading/trailing whitespace and <br>
+        sanitized = sanitized.replace(/^(<br\s*\/?>)+/i, '').replace(/(<br\s*\/?>)+$/i, '');
+
+        return sanitized;
+    }
 
     // Function to check if a string contains Arabic characters
     const containsArabic = (text: string) => /[\u0600-\u06FF]+/.test(text);
@@ -280,12 +282,22 @@ export default function AboutPage() {
                                 </p>
                             </div>
                             <div className="about__section-1-right-text">
-                                <h2
-                                    lang={containsArabic(bioArticle?.body || '') ? 'ar' : 'en'}
-                                    className="firstPhrase"
-                                >
-                                    {bioArticle?.body && extractFirstPhrases(bioArticle?.body)}
-                                </h2>
+                                {bioArticle?.body && (
+                                    <h2
+                                        lang={containsArabic(bioArticle?.body || '') ? 'ar' : 'en'}
+                                        className="firstPhrase"
+                                        /* style={{
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 5, // or whatever fits your design
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                        }} */
+                                        dangerouslySetInnerHTML={{
+                                            __html: sanitizeHtmlForPreview(bioArticle?.body),
+                                        }}
+                                    ></h2>
+                                )}
                             </div>
                             <Link
                                 href={

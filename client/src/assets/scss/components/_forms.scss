@@ -301,7 +301,8 @@ form {
 
                         .ql-editor {
                             @apply relative p-0 py-[1vh] min-h-[33.5vh] max-h-[33.5vh] overflow-y-auto;
-
+                            background: transparent !important;
+                            
                             &::before {
                                 @apply w-full left-0 right-0 text-[rgb(var(--text)/.25)];
                             }

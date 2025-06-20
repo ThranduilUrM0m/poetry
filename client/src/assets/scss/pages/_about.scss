@@ -41,7 +41,7 @@
 
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply w-3/4 text-[8.5vh];
+                        @apply text-[8.5vh];
                     }
                     
                     b {
@@ -64,7 +64,16 @@
                             
                     // sm breakpoint (>= 640px): small tablets and up
                     @include mq.mq($from: sm) {
-                        @apply w-3/4 text-[2.5vh];
+                        @apply text-[2.5vh];
+                    }
+
+                    .firstPhrase {
+                        @apply text-[2.5vh] leading-[1.2] overflow-hidden text-ellipsis line-clamp-6;
+
+                        // sm breakpoint (>= 640px): small tablets and up
+                        @include mq.mq($from: sm) {
+                            @apply text-[3vh] line-clamp-10;
+                        }
                     }
 
                     &::before {

@@ -17,6 +17,9 @@ interface QuillRange {
     index: number;
     length: number;
 }
+interface KeyboardContext {
+    format: Record<string, unknown>;
+}
 interface Attributor {
     whitelist: string[];
 }
@@ -47,7 +50,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
         const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-        /* const [isUploading, setIsUploading] = useState(false); */
+        const [isUploading, setIsUploading] = useState(false);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -120,7 +123,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                         const file = input.files?.[0];
                                         if (!file) return;
 
-                                        /* setIsUploading(true); */
+                                        setIsUploading(true);
                                         setUploadError(null);
 
                                         let uploadFile = file;
@@ -134,7 +137,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                             }
                                         } catch {
                                             setUploadError('Image compression failed.');
-                                            /* setIsUploading(false); */
+                                            setIsUploading(false);
                                             return;
                                         }
 
@@ -144,7 +147,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                             formData.append('upload_preset', uploadPreset);
                                         } else {
                                             setUploadError('Upload preset is not defined');
-                                            /* setIsUploading(false); */
+                                            setIsUploading(false);
                                             return;
                                         }
 
@@ -171,7 +174,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                         } catch {
                                             setUploadError('Image upload failed');
                                         } finally {
-                                            /* setIsUploading(false); */
+                                            setIsUploading(false);
                                         }
                                     };
                                 },
@@ -180,7 +183,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                         history: { delay: 500, maxStack: 200, userOnly: true },
                         resize: {
                             modules: ['Resize', 'DisplaySize', 'Toolbar'],
-                        },
+                        }
                     },
                     formats: [
                         'font',
@@ -210,6 +213,23 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 if (value) {
                     quill.clipboard.dangerouslyPasteHTML(value);
                 }
+
+                quill.keyboard.addBinding(
+                    { key: 13, shiftKey: null }, // Enter (with or without shift)
+                    {}, // no additional requirements
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    (range: QuillRange, context: KeyboardContext) => {
+                        // handler
+                        // 2️⃣ Insert our <br/> embed
+                        quill.insertEmbed(range.index, 'break', true, Quill.sources.USER);
+
+                        // 3️⃣ Move cursor _after_ the break
+                        quill.setSelection(range.index + 1, Quill.sources.SILENT);
+
+                        // 4️⃣ Prevent the default paragraph insertion
+                        return false;
+                    }
+                );
 
                 quill.on('selection-change', (range: QuillRange | null) => {
                     if (range) {
@@ -345,11 +365,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 </SimpleBar>
 
                 {/* Uploading indicator */}
-                {/* {isUploading && (
+                {isUploading && (
                     <div className="image-uploading-indicator">
                         <span>Uploading image...</span>
                     </div>
-                )} */}
+                )}
 
                 {/* Error Modal */}
                 {/* <SubmitModal
