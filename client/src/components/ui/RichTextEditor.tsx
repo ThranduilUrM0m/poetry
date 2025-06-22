@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
-import Quill from 'quill';
-import QuillResize from 'quill-resize-module';
+import Quill, { Delta } from 'quill';
+import ResizeModule from '@botom/quill-resize-module';
+import { ImageDrop } from 'quill-image-drop-module';
 import { AppDispatch } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFontList, selectFontList } from '@/slices/fontsSlice';
@@ -13,13 +14,16 @@ import imageCompression from 'browser-image-compression';
 /* import SubmitModal from '@/components/ui/SubmitModal'; */
 
 // ➊ Minimal types for our handler
+// Types
 interface QuillRange {
     index: number;
     length: number;
 }
+
 interface KeyboardContext {
     format: Record<string, unknown>;
 }
+
 interface Attributor {
     whitelist: string[];
 }
@@ -36,7 +40,8 @@ SizeAttributor.whitelist = [];
 Quill.register('formats/font', FontAttributor, true);
 Quill.register('formats/size', SizeAttributor, true);
 
-Quill.register('modules/resize', QuillResize);
+Quill.register('modules/resize', ResizeModule);
+Quill.register('modules/imageDrop', ImageDrop);
 
 interface RichTextEditorProps {
     value?: string;
@@ -178,12 +183,184 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                         }
                                     };
                                 },
+                                video: async function () {
+                                    const input = document.createElement('input');
+                                    input.setAttribute('type', 'file');
+                                    input.setAttribute('accept', 'video/*');
+                                    input.click();
+
+                                    input.onchange = async () => {
+                                        const file = input.files?.[0];
+                                        if (!file) return;
+
+                                        setIsUploading(true);
+                                        setUploadError(null);
+
+                                        const uploadFile = file;
+                                        const formData = new FormData();
+                                        formData.append('file', uploadFile);
+                                        if (uploadPreset) {
+                                            formData.append('upload_preset', uploadPreset);
+                                        } else {
+                                            setUploadError('Upload preset is not defined');
+                                            setIsUploading(false);
+                                            return;
+                                        }
+
+                                        try {
+                                            const res = await fetch(
+                                                `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+                                                { method: 'POST', body: formData }
+                                            );
+                                            const data = await res.json();
+
+                                            if (data.secure_url) {
+                                                const range = quill.getSelection(true);
+                                                quill.insertEmbed(
+                                                    range.index,
+                                                    'video',
+                                                    data.secure_url,
+                                                    'user'
+                                                );
+                                            } else {
+                                                setUploadError(
+                                                    data.error?.message || 'Video upload failed'
+                                                );
+                                            }
+                                        } catch {
+                                            setUploadError('Video upload failed');
+                                        } finally {
+                                            setIsUploading(false);
+                                        }
+                                    };
+                                },
                             },
                         },
-                        history: { delay: 500, maxStack: 200, userOnly: true },
+                        history: {
+                            delay: 500,
+                            maxStack: 200,
+                            userOnly: true,
+                        },
                         resize: {
-                            modules: ['Resize', 'DisplaySize', 'Toolbar'],
-                        }
+                            locale: {
+                                altTip: 'Hold down the alt key to zoom',
+                                floatLeft: 'Left',
+                                floatRight: 'Right',
+                                center: 'Center',
+                                restore: 'Restore',
+                            },
+                        },
+                        imageDrop: true,
+                        clipboard: {
+                            matchers: [
+                                [
+                                    '*',
+                                    (node: Node, delta: Delta) => {
+                                        if (!(node instanceof HTMLElement)) return delta;
+
+                                        const attributes: Record<string, string> = {};
+                                        const classList = Array.from(node.classList);
+                                        const style = node.style;
+
+                                        // 1. Process Quill classes
+                                        const fontClass = classList.find(
+                                            (cls) =>
+                                                cls.startsWith('ql-font-') &&
+                                                FontAttributor.whitelist.includes(
+                                                    cls.replace('ql-font-', '')
+                                                )
+                                        );
+                                        if (fontClass)
+                                            attributes.font = fontClass.replace('ql-font-', '');
+
+                                        const sizeClass = classList.find(
+                                            (cls) =>
+                                                cls.startsWith('ql-size-') &&
+                                                SizeAttributor.whitelist.includes(
+                                                    cls.replace('ql-size-', '')
+                                                )
+                                        );
+                                        if (sizeClass)
+                                            attributes.size = sizeClass.replace('ql-size-', '');
+
+                                        // 2. Process inline styles
+                                        if (style.fontFamily && !attributes.font) {
+                                            const fontValue = style.fontFamily
+                                                .replace(/['"]/g, '')
+                                                .replace(/\s+/g, '-');
+                                            if (FontAttributor.whitelist.includes(fontValue)) {
+                                                attributes.font = fontValue;
+                                            }
+                                        }
+
+                                        if (style.fontSize && !attributes.size) {
+                                            const sizeValue = style.fontSize.replace(
+                                                /(pt|px)/g,
+                                                ''
+                                            );
+                                            if (SizeAttributor.whitelist.includes(sizeValue)) {
+                                                attributes.size = sizeValue;
+                                            }
+                                        }
+
+                                        // 3. Apply attributes to all delta operations
+                                        if (Object.keys(attributes).length > 0) {
+                                            return new Delta(
+                                                delta.ops.map((op) => ({
+                                                    ...op,
+                                                    attributes: {
+                                                        ...(op.attributes || {}),
+                                                        ...attributes,
+                                                    },
+                                                }))
+                                            );
+                                        }
+                                        return delta;
+                                    },
+                                ],
+                                [
+                                    'img',
+                                    (node: Node, delta: Delta) => {
+                                        if (node instanceof HTMLImageElement) {
+                                            const width =
+                                                node.style.width || node.getAttribute('width');
+                                            const height =
+                                                node.style.height || node.getAttribute('height');
+                                            let align: string | undefined;
+
+                                            console.log('Processing image node:', node);
+
+                                            // Handle float style
+                                            if (node.style.float) {
+                                                console.log('Image float style:', node.style.float);
+                                                if (node.style.float === 'right') align = 'right';
+                                                else if (node.style.float === 'left')
+                                                    align = 'left';
+                                                else if (node.style.float === 'none') align = '';
+                                            }
+
+                                            // Handle custom alignment classes (from resize module)
+                                            const classList = Array.from(node.classList);
+                                            if (classList.includes('ql-resize-style-center'))
+                                                align = 'center';
+                                            if (classList.includes('ql-resize-style-right'))
+                                                align = 'right';
+                                            if (classList.includes('ql-resize-style-left'))
+                                                align = 'left';
+
+                                            delta.ops.forEach((op) => {
+                                                op.attributes = op.attributes || {};
+                                                if (width) op.attributes.width = width;
+                                                if (height) op.attributes.height = height;
+                                                if (align !== undefined)
+                                                    op.attributes.align = align;
+                                            });
+                                        }
+                                        return delta;
+                                    },
+                                ],
+                            ],
+                        },
                     },
                     formats: [
                         'font',
@@ -201,6 +378,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                         'indent',
                         'link',
                         'image',
+                        'video',
                         'color',
                         'background',
                         'align',
@@ -208,10 +386,13 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                     ],
                     placeholder: 'Tell your story...',
                 });
+
                 quillRef.current = quill;
 
+                // Updated value setting with proper clipboard handling
                 if (value) {
-                    quill.clipboard.dangerouslyPasteHTML(value);
+                    const delta = quill.clipboard.convert({ html: value });
+                    quill.setContents(delta, 'silent');
                 }
 
                 quill.keyboard.addBinding(
@@ -249,9 +430,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         // Keep editor value in sync with prop
         useEffect(() => {
             if (quillRef.current && value !== undefined) {
-                // Only update if value is different from current content
                 if (quillRef.current.root.innerHTML !== value) {
-                    quillRef.current.clipboard.dangerouslyPasteHTML(value);
+                    console.log('Updating editor content:', value);
+                    const Delta = Quill.import('delta');
+                    const delta = quillRef.current.clipboard.convert({ html: value });
+
+                    // Clear and set new content
+                    quillRef.current.setContents(new Delta());
+                    quillRef.current.updateContents(delta);
                 }
             }
         }, [value, forceReset]);
@@ -356,6 +542,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                     <span className="ql-formats">
                         <button className="ql-link"></button>
                         <button className="ql-image"></button>
+                        <button className="ql-video"></button>
                     </span>
                 </div>
 

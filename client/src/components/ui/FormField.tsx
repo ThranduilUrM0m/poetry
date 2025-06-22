@@ -14,11 +14,14 @@ import dynamic from 'next/dynamic';
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
     ssr: false,
 });
+const TipTapEditor = dynamic(() => import('@/components/ui/TipTapEditor'), {
+    ssr: false,
+});
 
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion, V = string | boolean> {
     label?: string;
     name: Path<T>;
-    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select' | 'quill';
+    type?: 'text' | 'email' | 'password' | 'checkbox' | 'textarea' | 'select' | 'quill' | 'tiptap';
     options?: Array<{ value: string; label: string }>;
     icon?: React.ReactNode;
     error?: string;
@@ -571,8 +574,20 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                         >
                             {icon && <div className="_icon">{icon}</div>}
 
+                            {/*  */}
+
                             {type === 'quill' ? (
                                 <RichTextEditor
+                                    ref={ref}
+                                    value={value as string}
+                                    forceReset={forceReset}
+                                    onChange={(content: string) => {
+                                        onChange(content);
+                                        if (onInputChange) onInputChange(content as V);
+                                    }}
+                                />
+                            ) : type === 'tiptap' ? (
+                                <TipTapEditor
                                     ref={ref}
                                     value={value as string}
                                     forceReset={forceReset}

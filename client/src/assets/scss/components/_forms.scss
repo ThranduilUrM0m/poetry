@@ -25,11 +25,6 @@ $_ in $quill-sizes {
     }
 }
 
-.ql-editor img {
-    max-width: 100%;
-    height: auto;
-}
-
 // Add to your SCSS (e.g. _forms.scss or a global file)
 .image-uploading-indicator {
     @apply flex items-center justify-center w-full py-[2vh] bg-[rgb(var(--primary-light)/.1)] text-[2vh] text-[rgb(var(--primary)/1)] font-semibold;
@@ -302,7 +297,12 @@ form {
                         .ql-editor {
                             @apply relative p-0 py-[1vh] min-h-[33.5vh] max-h-[33.5vh] overflow-y-auto;
                             background: transparent !important;
-                            
+
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                            }
+
                             &::before {
                                 @apply w-full left-0 right-0 text-[rgb(var(--text)/.25)];
                             }
