@@ -11,11 +11,14 @@ import _ from 'lodash';
 
 // Quill
 import dynamic from 'next/dynamic';
+
 const RichTextEditor = dynamic(() => import('@/components/ui/RichTextEditor'), {
     ssr: false,
+    loading: () => <div className="quill-loading">Loading editor...</div>,
 });
 const TipTapEditor = dynamic(() => import('@/components/ui/TipTapEditor'), {
     ssr: false,
+    loading: () => <div className="tiptap-loading">Loading editor...</div>,
 });
 
 interface FormFieldProps<T extends FieldValues, S extends SearchSuggestion, V = string | boolean> {

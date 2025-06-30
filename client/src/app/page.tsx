@@ -641,12 +641,7 @@ export default function HomePage() {
                                 </h2>
 
                                 <p className="text">
-                                    Weaving emotions into words, painting worlds with poetry.
-                                    <br />
-                                    With verses that stir the soul and imagery that lingers,
-                                    [Poet&rsquo;s Name] crafts poetry that transcends time. Inspired
-                                    by life&rsquo;s quiet moments and its grand emotions, each line
-                                    is a journey through love, loss, hope, and wonder.
+                                    I’m Fatima El Mkinsi, born in Salé in 1946. Over a forty‑year career spanning Salé and Rabat, I leveraged my bilingual fluency in Arabic and French to inspire students as a physical‑education instructor. After voluntarily retiring in 2005, I now dedicate this platform to sharing my literary works and inviting every literature enthusiast to embark on a transcultural, transgenerational journey through words.
                                 </p>
 
                                 <div className="_row">

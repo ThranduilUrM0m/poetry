@@ -28,6 +28,8 @@ interface Attributor {
     whitelist: string[];
 }
 
+let hasRegisteredModules = false;
+
 // ➋ Import the **class** attributors for font & size
 const RawFontAttributor = Quill.import('attributors/class/font') as unknown;
 const RawSizeAttributor = Quill.import('attributors/class/size') as unknown;
@@ -91,6 +93,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         ].map((s) => ({ value: s, label: `${s}pt` }));
         const sizeOptions = sizes.map((o) => o.value);
 
+        if (!hasRegisteredModules) {
+            Quill.register('modules/resize', ResizeModule);
+            Quill.register('modules/imageDrop', ImageDrop);
+            hasRegisteredModules = true;
+        }
+
+        // Add loading state
+        const [isLoading, setIsLoading] = useState(true);
+
         // Fetch fonts only once
         useEffect(() => {
             dispatch(fetchFontList());
@@ -99,14 +110,20 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         // Update attributors when fonts or sizes change
         useEffect(() => {
             if (!Quill || fonts.length === 0) return;
-            const fontOptions = fonts.map((f) => {
-                const slug = f.replace(/\s+/g, '-');
-                return { value: slug, label: f };
-            });
-            FontAttributor.whitelist = fontOptions.map((o) => o.value);
+
+            // Update whitelists
+            const fontOptions = fonts.map((f) => f.replace(/\s+/g, '-'));
+            FontAttributor.whitelist = fontOptions;
             SizeAttributor.whitelist = sizeOptions;
+
+            // Re-register formats
             Quill.register('formats/font', FontAttributor, true);
             Quill.register('formats/size', SizeAttributor, true);
+
+            // Force content reprocessing if editor exists
+            if (quillRef.current && fontOptions.length && sizeOptions.length) {
+                quillRef.current.update();
+            }
         }, [fonts, sizeOptions]);
 
         // Initialize Quill only once, after fonts are loaded
@@ -183,7 +200,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                         }
                                     };
                                 },
-                                video: async function () {
+                                /* Video is limited to only mp4 and only less than 100mb and can't resize it on height */
+                                /* video: async function () {
                                     const input = document.createElement('input');
                                     input.setAttribute('type', 'file');
                                     input.setAttribute('accept', 'video/*');
@@ -233,7 +251,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                             setIsUploading(false);
                                         }
                                     };
-                                },
+                                }, */
                             },
                         },
                         history: {
@@ -322,7 +340,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                     'img',
                                     (node: Node, delta: Delta) => {
                                         if (node instanceof HTMLImageElement) {
-                                            const width =
+                                            /* const width =
                                                 node.style.width || node.getAttribute('width');
                                             const height =
                                                 node.style.height || node.getAttribute('height');
@@ -333,6 +351,63 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                                             // Handle float style
                                             if (node.style.float) {
                                                 console.log('Image float style:', node.style.float);
+                                                if (node.style.float === 'right') align = 'right';
+                                                else if (node.style.float === 'left')
+                                                    align = 'left';
+                                                else if (node.style.float === 'none') align = '';
+                                            }
+
+                                            // Handle custom alignment classes (from resize module)
+                                            const classList = Array.from(node.classList);
+                                            if (classList.includes('ql-resize-style-center'))
+                                                align = 'center';
+                                            if (classList.includes('ql-resize-style-right'))
+                                                align = 'right';
+                                            if (classList.includes('ql-resize-style-left'))
+                                                align = 'left';
+
+                                            delta.ops.forEach((op) => {
+                                                op.attributes = op.attributes || {};
+                                                if (width) op.attributes.width = width;
+                                                if (height) op.attributes.height = height;
+                                                if (align !== undefined)
+                                                    op.attributes.align = align;
+                                            }); */
+
+                                            const styles = node.getAttribute('style') || '';
+                                            const align = styles.includes('float: left')
+                                                ? 'left'
+                                                : styles.includes('float: right')
+                                                ? 'right'
+                                                : styles.includes('margin: auto')
+                                                ? 'center'
+                                                : '';
+
+                                            delta.ops = delta.ops.map((op) => ({
+                                                ...op,
+                                                attributes: {
+                                                    ...op.attributes,
+                                                    width: node.width,
+                                                    height: node.height,
+                                                    align,
+                                                },
+                                            }));
+                                        }
+                                        return delta;
+                                    },
+                                ],
+                                [
+                                    'video',
+                                    (node: Node, delta: Delta) => {
+                                        if (node instanceof HTMLVideoElement) {
+                                            const width =
+                                                node.style.width || node.getAttribute('width');
+                                            const height =
+                                                node.style.height || node.getAttribute('height');
+                                            let align: string | undefined;
+
+                                            // Handle float style
+                                            if (node.style.float) {
                                                 if (node.style.float === 'right') align = 'right';
                                                 else if (node.style.float === 'left')
                                                     align = 'left';
@@ -424,23 +499,44 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
                 quill.on('text-change', () => {
                     onChange?.(quill.root.innerHTML);
                 });
+
+                // Add this at end of initialization:
+                setIsLoading(false);
             }
         }, [fonts, onChange, cloudName, uploadPreset]);
 
         // Keep editor value in sync with prop
         useEffect(() => {
-            if (quillRef.current && value !== undefined) {
+            if (isLoading || !quillRef.current) return;
+
+            if (
+                quillRef.current &&
+                value !== undefined &&
+                FontAttributor.whitelist.length > 0 &&
+                SizeAttributor.whitelist.length > 0
+            ) {
                 if (quillRef.current.root.innerHTML !== value) {
-                    console.log('Updating editor content:', value);
-                    const Delta = Quill.import('delta');
+                    /* const Delta = Quill.import('delta');
                     const delta = quillRef.current.clipboard.convert({ html: value });
 
                     // Clear and set new content
                     quillRef.current.setContents(new Delta());
-                    quillRef.current.updateContents(delta);
+                    quillRef.current.updateContents(delta); */
+
+                    // Save cursor position
+                    const range = quillRef.current.getSelection();
+
+                    // Set content directly (bypass Quill's Delta system)
+                    quillRef.current.root.innerHTML = value;
+
+                    // Force Quill to re-render and recognize formats
+                    quillRef.current.update();
+
+                    // Restore cursor position
+                    if (range) quillRef.current.setSelection(range);
                 }
             }
-        }, [value, forceReset]);
+        }, [value, forceReset, isLoading]);
 
         // Keep refs in sync
         useEffect(() => {
@@ -453,6 +549,11 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(
         useImperativeHandle(ref, () => ({
             getContent: () => quillRef.current?.root.innerHTML || '',
         }));
+
+        // Add loading UI:
+        /* if (isLoading) {
+            return <div className="quill-loading">Initializing editor...</div>;
+        } */
 
         return (
             <>

@@ -2,7 +2,6 @@
 @use 'sass:map';
 
 @use "../abstracts/mq";
-
 @use '../base/quillvars'as *;
 @use '../abstracts/functions'as fn;
 
@@ -48,6 +47,15 @@ $_ in $quill-sizes {
     }
 }
 
+.quill-loading,
+.tiptap-loading {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.02);
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -84,7 +92,6 @@ form {
                     }
                 }
             }
-
 
             &.__notEmpty {
                 ._errorText {

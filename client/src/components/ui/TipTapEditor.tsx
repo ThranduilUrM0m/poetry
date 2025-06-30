@@ -1,129 +1,77 @@
+// components/ui/TipTapEditor.tsx
 'use client';
-
-import React, { useEffect, useImperativeHandle, forwardRef, useState } from 'react';
+import React, { useEffect, useImperativeHandle, forwardRef, useState, ChangeEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFontList, selectFontList } from '@/slices/fontsSlice';
-import { AppDispatch } from '@/store';
+import type { AppDispatch } from '@/store';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Dropcursor from '@tiptap/extension-dropcursor';
+import Image from '@tiptap/extension-image';
+import TextStyle from '@tiptap/extension-text-style';
+import FontFamily from '@tiptap/extension-font-family';
+import FontSize from '@tiptap/extension-font-size';
+import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import Underline from '@tiptap/extension-underline';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import ImageResize from 'tiptap-extension-resize-image';
+import { compressImage } from '@/utils/imageCompression';
 import {
     Bold,
     Italic,
     Underline as UnderlineIcon,
-    Strikethrough,
-    Subscript as SubscriptIcon,
-    Superscript as SuperscriptIcon,
-    /* Blockquote, */
-    Code,
-    ListOrdered,
-    List,
-    Indent,
-    Outdent,
     AlignLeft,
     AlignCenter,
     AlignRight,
-    AlignJustify,
-    /* ArrowRightLeft, */
     Link as LinkIcon,
     Image as ImageIcon,
 } from 'lucide-react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
-import FontSize from '@tiptap/extension-font-size';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
-import TextAlign from '@tiptap/extension-text-align';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import FontFamily from '@tiptap/extension-font-family';
-import Underline from '@tiptap/extension-underline';
-import Subscript from '@tiptap/extension-subscript';
-import Superscript from '@tiptap/extension-superscript';
-import Highlight from '@tiptap/extension-highlight';
-import SimpleBar from 'simplebar-react';
-import 'simplebar-react/dist/simplebar.min.css';
 
-export type TipTapEditorHandle = { getContent: () => string };
+export type TipTapEditorHandle = {
+    getContent: () => string;
+};
 
 interface TipTapEditorProps {
     value?: string;
-    onChange?: (content: string) => void;
     forceReset?: boolean;
+    onChange?: (html: string) => void;
 }
-
-const sizes = [
-    '8',
-    '9',
-    '10',
-    '11',
-    '12',
-    '14',
-    '16',
-    '18',
-    '20',
-    '22',
-    '24',
-    '26',
-    '28',
-    '36',
-    '48',
-    '72',
-].map((s) => ({ value: s, label: `${s}pt` }));
 
 const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
     ({ value = '', forceReset = false, onChange }, ref) => {
         const dispatch = useDispatch<AppDispatch>();
         const fonts = useSelector(selectFontList);
 
-        // Fetch fonts only once
         useEffect(() => {
             dispatch(fetchFontList());
         }, [dispatch]);
 
-        // State for toolbar selects
-        const [currentHeader, setCurrentHeader] = useState('false');
-        const [currentFont, setCurrentFont] = useState('');
-        const [currentSize, setCurrentSize] = useState('');
+        const [currentFont, setCurrentFont] = useState<string>('');
+        const [currentSize, setCurrentSize] = useState<string>('');
 
-        // Tiptap editor instance
         const editor = useEditor({
             extensions: [
                 StarterKit,
+                Dropcursor,
                 TextStyle,
-                FontFamily,
+                FontFamily.configure({ types: ['textStyle'] }),
+                FontSize.configure({ types: ['textStyle'] }),
+                TextAlign.configure({ types: ['heading', 'paragraph'] }),
+                Link.configure({ openOnClick: true }),
+                Underline,
                 Subscript,
                 Superscript,
-                Highlight,
+                Placeholder.configure({ placeholder: 'Tell your story...' }),
 
-                FontSize,
-                Color,
-                TextAlign.configure({ types: ['heading', 'paragraph'] }),
-                Link,
-                Underline,
-                Image.extend({
-                    addAttributes() {
-                        return {
-                            ...this.parent?.(),
-                            float: {
-                                default: null,
-                                parseHTML: (element) => element.style.float || null,
-                                renderHTML: (attributes) => {
-                                    if (!attributes.float) return {};
-                                    return { style: `float: ${attributes.float}` };
-                                },
-                            },
-                            width: {
-                                default: null,
-                                parseHTML: (element) => element.getAttribute('width') || null,
-                                renderHTML: (attributes) => {
-                                    if (!attributes.width) return {};
-                                    return { width: attributes.width };
-                                },
-                            },
-                        };
-                    },
-                }),
-                Placeholder.configure({
-                    placeholder: 'Tell your story...',
+                // Image with resize handles & float toolbar
+                Image.configure({ inline: false }),
+                ImageResize.configure({
+                    // optional: set minimum / maximum dimensions
+                    handleSize: 8,
+                    enforceMaxWidth: true,
                 }),
             ],
             content: value,
@@ -132,318 +80,198 @@ const TipTapEditor = forwardRef<TipTapEditorHandle, TipTapEditorProps>(
             },
         });
 
-        useImperativeHandle(
-            ref,
-            () => ({
-                getContent: () => editor?.getHTML() || '',
-            }),
-            [editor]
-        );
+        useImperativeHandle(ref, () => ({ getContent: () => editor?.getHTML() || '' }), [editor]);
 
         useEffect(() => {
-            if (editor && value !== editor.getHTML()) {
-                editor.commands.setContent(value || '', false);
+            if (!editor) return;
+            if (forceReset) editor.commands.clearContent();
+            if (value !== editor.getHTML()) {
+                editor.commands.setContent(value, false);
             }
         }, [value, forceReset, editor]);
 
-        // Image upload handler (Cloudinary)
-        const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
-            if (!file) return;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+            if (!file || !editor) return;
+            const compressed = await compressImage(file);
+            const form = new FormData();
+            form.append('file', compressed);
+            form.append(
+                'upload_preset',
+                process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET as string
+            );
             const res = await fetch(
                 `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-                { method: 'POST', body: formData }
+                { method: 'POST', body: form }
             );
             const data = await res.json();
             if (data.secure_url) {
-                editor?.chain().focus().setImage({ src: data.secure_url }).run();
-            }
-        };
-
-        // Toolbar handlers
-        const setHeader = (val: string) => {
-            setCurrentHeader(val);
-            if (val === 'false') {
-                editor?.chain().focus().setParagraph().run();
-            } else {
                 editor
-                    ?.chain()
+                    .chain()
                     .focus()
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    .toggleHeading({ level: Number(val) as any })
+                    .setImage({ src: data.secure_url }) // insert the image
+                    .updateAttributes('image', { float: 'none' }) // then apply our custom float
                     .run();
             }
         };
-        const setFont = (val: string) => {
-            setCurrentFont(val);
-            // You need to implement a custom extension for font-family in Tiptap for full support
-            editor?.chain().focus().setMark('textStyle', { fontFamily: val }).run();
+
+        const applyFont = (slug: string) => {
+            setCurrentFont(slug);
+            editor?.chain().focus().setMark('textStyle', { fontFamily: slug }).run();
         };
-        const setSize = (val: string) => {
-            setCurrentSize(val);
-            // You need to implement a custom extension for font-size in Tiptap for full support
+        const applySize = (size: string) => {
+            setCurrentSize(size);
             editor
                 ?.chain()
                 .focus()
-                .setMark('textStyle', { fontSize: `${val}pt` })
+                .setMark('textStyle', { fontSize: `${size}pt` })
                 .run();
         };
 
         return (
             <>
-                {/* Toolbar - use Quill classNames */}
-                <div id="toolbar" className="ql-toolbar">
-                    <span className="ql-formats">
-                        {/* Header */}
-                        <select
-                            className="ql-header"
-                            value={currentHeader}
-                            onChange={(e) => setHeader(e.target.value)}
-                        >
-                            <option value="false">Normal</option>
-                            <option value="1">H1</option>
-                            <option value="2">H2</option>
-                            <option value="3">H3</option>
-                            <option value="4">H4</option>
-                            <option value="5">H5</option>
-                            <option value="6">H6</option>
-                        </select>
-                    </span>
-                    <span className="ql-formats">
-                        {/* Font */}
-                        <select
-                            className="ql-font"
-                            value={currentFont}
-                            onChange={(e) => setFont(e.target.value)}
-                        >
-                            <option value="">Font</option>
-                            {fonts.map((f) => {
-                                const slug = f.replace(/\s+/g, '-');
-                                return (
-                                    <option key={slug} value={slug}>
-                                        {f}
-                                    </option>
-                                );
-                            })}
-                        </select>
-                        {/* Size */}
-                        <select
-                            className="ql-size"
-                            value={currentSize}
-                            onChange={(e) => setSize(e.target.value)}
-                        >
-                            <option value="">Size</option>
-                            {sizes.map((s) => (
-                                <option key={s.value} value={s.value}>
-                                    {s.label}
+                <div className="tiptap-toolbar flex flex-wrap items-center gap-2 p-2 border-b bg-white shadow-sm">
+                    {/* Font */}
+                    <select
+                        className="tiptap-select"
+                        value={currentFont}
+                        onChange={(e) => applyFont(e.target.value)}
+                        aria-label="Font"
+                        title="Font"
+                    >
+                        <option value="">Font</option>
+                        {fonts.map((f) => {
+                            const slug = f.replace(/\s+/g, '-');
+                            return (
+                                <option key={slug} value={slug}>
+                                    {f}
                                 </option>
-                            ))}
-                        </select>
-                    </span>
-                    <span className="ql-formats">
-                        {/* Bold, Italic, Underline, Strike */}
-                        <button
-                            className="ql-bold"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleBold().run()}
-                        >
-                            <Bold size={18} />
-                        </button>
-                        <button
-                            className="ql-italic"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleItalic().run()}
-                        >
-                            <Italic size={18} />
-                        </button>
-                        <button
-                            className="ql-underline"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                        >
-                            <UnderlineIcon size={18} />
-                        </button>
-                        <button
-                            className="ql-strike"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleStrike().run()}
-                        >
-                            <Strikethrough size={18} />
-                        </button>
-                    </span>
-                    <span className="ql-formats">
-                        <button
-                            className="ql-script"
-                            value="sub"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleSubscript().run()}
-                        >
-                            <SubscriptIcon size={18} />
-                        </button>
-                        <button
-                            className="ql-script"
-                            value="super"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleSuperscript().run()}
-                        >
-                            <SuperscriptIcon size={18} />
-                        </button>
-                    </span>
-                    <span className="ql-formats">
-                        <button
-                            className="ql-blockquote"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-                        >
-                            {/* <Blockquote size={18} /> */}
-                        </button>
-                        <button
-                            className="ql-code-block"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
-                        >
-                            <Code size={18} />
-                        </button>
-                    </span>
-                    <span className="ql-formats">
-                        {/* Color and Background */}
-                        {/* You can use a color picker or a select here */}
+                            );
+                        })}
+                    </select>
+
+                    {/* Size */}
+                    <select
+                        className="tiptap-select"
+                        value={currentSize}
+                        onChange={(e) => applySize(e.target.value)}
+                        aria-label="Font Size"
+                        title="Font Size"
+                    >
+                        <option value="">Size</option>
+                        {[
+                            '8',
+                            '9',
+                            '10',
+                            '11',
+                            '12',
+                            '14',
+                            '16',
+                            '18',
+                            '20',
+                            '22',
+                            '24',
+                            '26',
+                            '28',
+                            '36',
+                            '48',
+                            '72',
+                        ].map((s) => (
+                            <option key={s} value={s}>
+                                {s}pt
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Bold/Italic/Underline */}
+                    <ToolbarButton
+                        icon={<Bold />}
+                        action={() => editor?.chain().focus().toggleBold().run()}
+                        label="Bold"
+                    />
+                    <ToolbarButton
+                        icon={<Italic />}
+                        action={() => editor?.chain().focus().toggleItalic().run()}
+                        label="Italic"
+                    />
+                    <ToolbarButton
+                        icon={<UnderlineIcon />}
+                        action={() => editor?.chain().focus().toggleUnderline().run()}
+                        label="Underline"
+                    />
+
+                    {/* Align */}
+                    <ToolbarButton
+                        icon={<AlignLeft />}
+                        action={() => editor?.chain().focus().setTextAlign('left').run()}
+                        label="Left"
+                    />
+                    <ToolbarButton
+                        icon={<AlignCenter />}
+                        action={() => editor?.chain().focus().setTextAlign('center').run()}
+                        label="Center"
+                    />
+                    <ToolbarButton
+                        icon={<AlignRight />}
+                        action={() => editor?.chain().focus().setTextAlign('right').run()}
+                        label="Right"
+                    />
+
+                    {/* Link */}
+                    <ToolbarButton
+                        icon={<LinkIcon />}
+                        action={() => {
+                            const url = prompt('Enter link URL');
+                            if (url) editor?.chain().focus().setLink({ href: url }).run();
+                        }}
+                        label="Insert Link"
+                    />
+
+                    {/* Image */}
+                    <label
+                        className="tiptap-btn cursor-pointer"
+                        title="Insert Image"
+                        aria-label="Insert Image"
+                    >
+                        <ImageIcon className="w-4 h-4" />
                         <input
-                            type="color"
-                            className="ql-color"
-                            onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()}
-                            title="Text color"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageUpload}
                         />
-                        <input
-                            type="color"
-                            className="ql-background"
-                            onChange={(e) =>
-                                editor
-                                    ?.chain()
-                                    .focus()
-                                    .setHighlight({ color: e.target.value })
-                                    .run()
-                            }
-                            title="Background color"
-                        />
-                    </span>
-                    <span className="ql-formats">
-                        <button
-                            className="ql-list"
-                            value="ordered"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                        >
-                            <ListOrdered size={18} />
-                        </button>
-                        <button
-                            className="ql-list"
-                            value="bullet"
-                            type="button"
-                            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                        >
-                            <List size={18} />
-                        </button>
-                        <button
-                            className="ql-indent"
-                            value="-1"
-                            type="button"
-                            onClick={() => editor?.chain().focus().liftListItem('listItem').run()}
-                        >
-                            <Outdent size={18} />
-                        </button>
-                        <button
-                            className="ql-indent"
-                            value="+1"
-                            type="button"
-                            onClick={() => editor?.chain().focus().sinkListItem('listItem').run()}
-                        >
-                            <Indent size={18} />
-                        </button>
-                    </span>
-                    <span className="ql-formats">
-                        <button
-                            className="ql-align"
-                            value=""
-                            type="button"
-                            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-                        >
-                            <AlignLeft size={18} />
-                        </button>
-                        <button
-                            className="ql-align"
-                            value="center"
-                            type="button"
-                            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-                        >
-                            <AlignCenter size={18} />
-                        </button>
-                        <button
-                            className="ql-align"
-                            value="right"
-                            type="button"
-                            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-                        >
-                            <AlignRight size={18} />
-                        </button>
-                        <button
-                            className="ql-align"
-                            value="justify"
-                            type="button"
-                            onClick={() => editor?.chain().focus().setTextAlign('justify').run()}
-                        >
-                            <AlignJustify size={18} />
-                        </button>
-                        {/* <button
-                            className="ql-direction"
-                            value="rtl"
-                            type="button"
-                            onClick={() => editor?.chain().focus().setTextDirection('rtl').run()}
-                        >
-                            <ArrowRightLeft size={18} />
-                        </button> */}
-                    </span>
-                    <span className="ql-formats">
-                        <button
-                            className="ql-link"
-                            type="button"
-                            onClick={() => {
-                                const url = prompt('Enter URL');
-                                if (url) editor?.chain().focus().setLink({ href: url }).run();
-                            }}
-                        >
-                            <LinkIcon size={18} />
-                        </button>
-                        <button className="ql-image" type="button">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                style={{ display: 'none' }}
-                                id="tiptap-image-upload"
-                                onChange={handleImageUpload}
-                            />
-                            <label
-                                htmlFor="tiptap-image-upload"
-                                style={{ cursor: 'pointer', margin: 0 }}
-                            >
-                                <ImageIcon size={18} />
-                            </label>
-                        </button>
-                        {/* Video not natively supported in Tiptap, needs custom extension */}
-                    </span>
+                    </label>
                 </div>
 
-                {/* Editor content - use Quill className */}
-                <SimpleBar style={{ maxHeight: '33.5vh' }}>
-                    <EditorContent editor={editor} className="ql-editor" />
-                </SimpleBar>
+                <div className="tiptap-editor border p-2 min-h-[200px] overflow-auto">
+                    <EditorContent editor={editor} />
+                </div>
             </>
         );
     }
 );
+
+function ToolbarButton({
+    icon,
+    action,
+    label,
+}: {
+    icon: React.ReactNode;
+    action: () => void;
+    label: string;
+}) {
+    return (
+        <button
+            type="button"
+            className="tiptap-btn"
+            onClick={action}
+            aria-label={label}
+            title={label}
+        >
+            {icon}
+        </button>
+    );
+}
 
 TipTapEditor.displayName = 'TipTapEditor';
 export default TipTapEditor;

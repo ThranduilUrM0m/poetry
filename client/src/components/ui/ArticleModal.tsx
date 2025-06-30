@@ -294,6 +294,12 @@ export default function ArticleManagementModal({
         };
     }, [isOpen, onClose]);
 
+    useEffect(() => {
+        import('@/slices/fontsSlice').then(({ fetchFontList }) => {
+            dispatch(fetchFontList());
+        });
+    }, []);
+
     const handleSubmitClose = useCallback(() => {
         setIsSubmitOpen(false);
         dispatch(clearCurrentArticle());
