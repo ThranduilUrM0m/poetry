@@ -26,16 +26,16 @@ import { useMedia } from 'react-use';
 
 const contactMeItems = [
     {
-        label: 'DM me on Instagram',
+        label: 'Envoyez un DM sur Instagram',
         href: 'https://www.instagram.com/boutaleblcoder',
         icon: FaInstagram,
     },
     {
-        label: 'Connect with me on Facebook',
+        label: 'Ajoutez-moi sur Facebook',
         href: 'https://fb.me/boutaleblcoder',
         icon: FaFacebookF,
     },
-    { label: 'Follow me on X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
+    { label: 'Suivez-moi sur X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
 ];
 
 interface WaLinkProps {
@@ -166,15 +166,15 @@ export default function ContactPage() {
             setFormReset(true); // Trigger FormField reset
             setTimeout(() => setFormReset(false), 100); // Reset trigger
             dispatch(clearContactState());
-            setSubmitHeader('Thank you for reaching out!');
-            setSubmitMessage(successMessage || 'Your message has been sent successfully!');
+            setSubmitHeader('Merci de nous avoir contactés!');
+            setSubmitMessage(successMessage || 'Votre message a été envoyé avec succès!');
             setIsSuccess(true);
             setIsSubmitOpen(true);
         } catch (error) {
             if (error instanceof Error) {
                 setError('email', { type: 'manual', message: error.message });
             }
-            setSubmitHeader("We're sorry!");
+            setSubmitHeader("Nous sommes désolés!");
             setSubmitMessage(error as string);
             setIsSuccess(false);
             setIsSubmitOpen(true);
@@ -194,8 +194,8 @@ export default function ContactPage() {
     return (
         <>
             <Head>
-                <title>Contact Us | Poetry Website</title>
-                <meta name="description" content={`Get in touch with us for any inquiries or feedback.`} />
+                <title>Contactez-nous | Blog de poésie</title>
+                <meta name="description" content={`Contactez-nous pour toute demande ou retour.`} />
             </Head>
             <main className="contact">
                 <SectionObserver theme="dark">
@@ -228,32 +228,32 @@ export default function ContactPage() {
                                     {/* The focus state for the Floating label is not working perfect, maybe after I submit the email it stays focused but it never changes back */}
                                     <form className="_form" onSubmit={handleSubmit(onSubmit)}>
                                         <div className="_row __header">
-                                            <h2>Reach out to me</h2>
+                                            <h2>Contactez-moi</h2>
                                             <p>
-                                                It would be my great pleasure to read what you have
-                                                to say about my work
+                                                Ce serait un grand plaisir de lire ce que vous avez
+                                                à dire sur mes pensées et mes poèmes.
                                             </p>
                                         </div>
                                         <div className="_row">
                                             <FormField
-                                                label="First Name"
+                                                label="Prénom"
                                                 name="firstname"
                                                 type="text"
                                                 control={control}
                                                 error={errors.firstname?.message}
-                                                rules={{ required: 'First Name is required' }}
+                                                rules={{ required: 'Prénom est requis' }}
                                                 onClear={() => handleClearField('firstname')}
                                                 icon={<User />}
                                                 immediateSync={false} // Add this to prevent unnecessary Redux updates
                                                 forceReset={formReset}
                                             />
                                             <FormField
-                                                label="Last Name"
+                                                label="Nom de famille"
                                                 name="lastname"
                                                 type="text"
                                                 control={control}
                                                 error={errors.lastname?.message}
-                                                rules={{ required: 'Last Name is required' }}
+                                                rules={{ required: 'Nom de famille est requis' }}
                                                 onClear={() => handleClearField('lastname')}
                                                 icon={<User />}
                                                 forceReset={formReset}
@@ -266,19 +266,19 @@ export default function ContactPage() {
                                                 type="email"
                                                 control={control}
                                                 error={errors.email?.message}
-                                                rules={{ required: 'Email is required' }}
+                                                rules={{ required: 'Email est requis' }}
                                                 onClear={() => handleClearField('email')}
                                                 icon={<AtSign />}
                                                 immediateSync={true}
                                                 forceReset={formReset}
                                             />
                                             <FormField
-                                                label="Phone"
+                                                label="Téléphone"
                                                 name="phone"
                                                 type="text"
                                                 control={control}
                                                 error={errors.phone?.message}
-                                                rules={{ required: 'Phone is required' }}
+                                                rules={{ required: 'Téléphone est requis' }}
                                                 onClear={() => handleClearField('phone')}
                                                 icon={<Phone />}
                                                 forceReset={formReset}
@@ -291,7 +291,7 @@ export default function ContactPage() {
                                                 type="textarea"
                                                 control={control}
                                                 error={errors.message?.message}
-                                                rules={{ required: 'Message is required' }}
+                                                rules={{ required: 'Message est requis' }}
                                                 onClear={() => handleClearField('message')}
                                                 icon={<MessageSquare />}
                                                 forceReset={formReset}
@@ -403,7 +403,7 @@ export default function ContactPage() {
                                                     }}
                                                     parentHoverSelector="#_buttonContact"
                                                 >
-                                                    {isLoading ? 'Submitting...' : 'Submit'}
+                                                    {isLoading ? 'Envoi en cours...' : 'Envoyer'}
                                                     <b className="__dot">.</b>
                                                 </AnimatedWrapper>
                                             </button>
@@ -423,8 +423,8 @@ export default function ContactPage() {
                                     delay={200} // Delay in milliseconds
                                 >
                                     <div className="__group">
-                                        <h3>Chat with me</h3>
-                                        <p>Get in contact and let&apos;s talk about Poetry</p>
+                                        <h3>Discutez avec moi</h3>
+                                        <p>Contactez-moi et parlons de poésie</p>
                                         <AnimatedWrapper
                                             as="ul"
                                             className="__ul-contactMe"
@@ -456,8 +456,8 @@ export default function ContactPage() {
                                     </div>
 
                                     <div className="__group">
-                                        <h3>Contact me</h3>
-                                        <p>Connect with me on WhatsApp for work-related matters.</p>
+                                        <h3>Contactez-moi</h3>
+                                        <p>Connectez-vous avec moi sur WhatsApp pour des questions liées au travail.</p>
                                         <AnimatedWrapper
                                             as="ul"
                                             className="__ul-contactMe"

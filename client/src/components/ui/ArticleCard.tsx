@@ -17,19 +17,48 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     const isSm = useMedia('(min-width: 640px)');
     const smoothConfig = { mass: 1, tension: 170, friction: 26 };
 
-    const extractFirstPhrase = (htmlContent: string) => {
-        // Create a temporary div to parse HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlContent;
+    function sanitizeHtmlForPreview(html: string, maxLength?: number): string {
+        if (!html) return '';
+        let sanitized = html;
 
-        // Get all text content, removing HTML tags
-        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+        // 1. Remove <p> or <div> that only contain a media element (img, video, iframe, a)
+        sanitized = sanitized.replace(
+            /<(p|div)[^>]*>\s*(<img[^>]*>|<video[^>]*>.*?<\/video>|<iframe[^>]*>.*?<\/iframe>|<a[^>]*>.*?<\/a>)\s*<\/\1>/gi,
+            ''
+        );
 
-        // Split by sentence endings and get first sentence
-        const firstSentence = textContent.split(/[.!?]+/)[0];
+        // 2. Remove standalone media elements (not wrapped)
+        sanitized = sanitized
+            .replace(/<img[^>]*>/gi, '')
+            .replace(/<video[^>]*>.*?<\/video>/gi, '')
+            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+            .replace(/<a[^>]*>.*?<\/a>/gi, '');
 
-        return firstSentence.trim();
-    };
+        // 3. Remove all tags except <br>, <p>, <b>, <i>, <strong>, <em>
+        sanitized = sanitized.replace(/<(?!\/?(br|p|b|i|strong|em)\b)[^>]+>/gi, '');
+
+        // 4. Remove empty paragraphs (including those with only whitespace or <br>)
+        sanitized = sanitized.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '');
+
+        // 5. Collapse multiple consecutive <br> into one
+        sanitized = sanitized.replace(/(<br\s*\/?>\s*){2,}/gi, '<br>');
+
+        // 6. Trim leading/trailing whitespace and <br>
+        sanitized = sanitized.replace(/^(<br\s*\/?>)+/i, '').replace(/(<br\s*\/?>)+$/i, '');
+
+        // 7. If maxLength is provided, truncate the text content (strip tags for preview)
+        if (maxLength) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = sanitized;
+            let textContent = tempDiv.textContent || tempDiv.innerText || '';
+            if (textContent.length > maxLength) {
+                textContent = textContent.slice(0, maxLength).trim() + '...';
+            }
+            return textContent;
+        }
+
+        return sanitized;
+    }
 
     // Function to check if a string contains Arabic characters
     const containsArabic = (text: string) => {
@@ -39,9 +68,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
 
     return (
         <AnimatedWrapper as="div" className="article-card" config={smoothConfig}>
-            <Link
-                href={`/blog/${normalizeString(article.category)}/${article.slug}`}
-            >
+            <Link href={`/blog/${normalizeString(article.category)}/${article.slug}`}>
                 <div className="meta">
                     {/* Author name span - only shows if firstName or lastName exists */}
                     {(article.author.firstName || article.author.lastName) && (
@@ -58,7 +85,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                             }
                             className="author"
                         >
-                            by{' '}
+                            par{' '}
                             {[article.author.firstName, article.author.lastName]
                                 .filter(Boolean)
                                 .join(' ')}
@@ -66,7 +93,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                     )}
 
                     {/* Username span - only shows if username exists */}
-                    {(!_.isEmpty(article.author.username) && isSm) && (
+                    {!_.isEmpty(article.author.username) && isSm && (
                         <span
                             lang={containsArabic(article.author.username) ? 'ar' : 'en'}
                             className="username"
@@ -84,9 +111,15 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                 <h3 lang={containsArabic(article.title) ? 'ar' : 'en'} className="title">
                     {article.title}
                 </h3>
-                <p lang={containsArabic(article.body) ? 'ar' : 'en'} className="preview">
-                    {extractFirstPhrase(article.body)}
-                </p>
+
+                <p
+                    lang={containsArabic(article.body) ? 'ar' : 'en'}
+                    className="preview"
+                    dangerouslySetInnerHTML={{
+                        __html: sanitizeHtmlForPreview(article.body),
+                    }}
+                />
+
                 <div className="tags">
                     {article.tags!.map((tag, index) => (
                         <span lang={containsArabic(tag) ? 'ar' : 'en'} key={index} className="tag">

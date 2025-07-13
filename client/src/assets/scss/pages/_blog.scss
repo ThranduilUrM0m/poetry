@@ -353,7 +353,7 @@
                             }
 
                             .firstPhrase {
-                                @apply text-[2.5vh] leading-[1.2] flex-1 overflow-hidden text-ellipsis line-clamp-3;
+                                @apply text-[2.5vh] leading-[1.2] flex-initial overflow-hidden text-ellipsis line-clamp-3;
                             }
                         }
                     }

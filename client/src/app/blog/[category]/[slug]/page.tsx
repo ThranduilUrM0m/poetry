@@ -23,6 +23,7 @@ import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch } from '@/store';
 import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import _ from 'lodash';
 import SimpleBar from 'simplebar-react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
@@ -200,11 +201,12 @@ const CommentCard: React.FC<CommentCardProps> = ({
                         <b>{_.capitalize(comment._comment_author)}</b> ,{' '}
                         {comment.updatedAt &&
                             formatDistanceToNow(new Date(comment.updatedAt), {
+                                locale: fr,
                                 addSuffix: true,
                             })}
                     </p>
                     {currentComment?._id === comment._id && (
-                        <div className="__editing">Editing</div>
+                        <div className="__editing">Modification en cours</div>
                     )}
                 </div>
                 <div className="_middleRow">
@@ -232,14 +234,14 @@ const CommentCard: React.FC<CommentCardProps> = ({
 
                     <div className="reply">
                         <button type="button" onClick={() => handleReply(comment)}>
-                            <MessageSquareReply /> Reply
+                            <MessageSquareReply /> Répondre
                         </button>
                     </div>
                     {comment._comment_fingerprint === fingerprint && (
                         <>
                             <div className="edit">
                                 <button type="button" onClick={() => handleEditComment(comment)}>
-                                    <FilePenLine /> Edit
+                                    <FilePenLine /> Modifier
                                 </button>
                             </div>
                             <div className="delete">
@@ -247,7 +249,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
                                     type="button"
                                     onClick={() => handleDeleteComment(comment._id!)}
                                 >
-                                    <Trash2 /> Delete
+                                    <Trash2 /> Supprimer
                                 </button>
                             </div>
                         </>
@@ -650,8 +652,8 @@ export default function ArticlePage() {
             }
         } catch (error) {
             console.log(error);
-            setSubmitHeader("We're sorry!");
-            setSubmitMessage('Something went wrong while submitting your comment');
+            setSubmitHeader("Nous sommes désolés!");
+            setSubmitMessage('Une erreur s\'est produite lors de l\'envoi de votre commentaire');
             setIsSuccess(false);
             setIsSubmitOpen(true);
         }
@@ -698,7 +700,7 @@ export default function ArticlePage() {
                         }),
                     }}
                 />
-                <title>{article?.title} | Poetry Website</title>
+                <title>{article?.title} | Blog de poésie</title>
                 <meta name="description" content={`${article?.title}.`} />
             </Head>
             <main className="post">
@@ -718,7 +720,7 @@ export default function ArticlePage() {
                                     <nav className="__breadcrumb">
                                         <ul>
                                             <li>
-                                                <Link href="/">Home</Link>
+                                                <Link href="/">Accueil</Link>
                                                 <ChevronRight />
                                             </li>
                                             <li>
@@ -813,6 +815,7 @@ export default function ArticlePage() {
                                                             {formatDistanceToNow(
                                                                 new Date(article.updatedAt!),
                                                                 {
+                                                                    locale: fr,
                                                                     addSuffix: true,
                                                                 }
                                                             )}
@@ -899,7 +902,7 @@ export default function ArticlePage() {
                                                                     errors._comment_email?.message
                                                                 }
                                                                 rules={{
-                                                                    required: 'Email is required',
+                                                                    required: 'Email est requis',
                                                                 }}
                                                                 onClear={() =>
                                                                     handleClearField(
@@ -910,7 +913,7 @@ export default function ArticlePage() {
                                                                 forceReset={formReset}
                                                             />
                                                             <FormField
-                                                                label="Full name"
+                                                                label="Nom et prénom"
                                                                 name="_comment_author"
                                                                 value={
                                                                     currentComment?._comment_author ||
@@ -923,7 +926,7 @@ export default function ArticlePage() {
                                                                 }
                                                                 rules={{
                                                                     required:
-                                                                        'Full Name is required',
+                                                                        'Le nom complet est requis',
                                                                 }}
                                                                 onClear={() =>
                                                                     handleClearField(
@@ -936,7 +939,7 @@ export default function ArticlePage() {
                                                         </div>
                                                         <div className="_row __textarea">
                                                             <FormField
-                                                                label="Add comment..."
+                                                                label="Laissez un commentaire..."
                                                                 name="_comment_body"
                                                                 value={watchedBody}
                                                                 type="textarea"
@@ -945,7 +948,7 @@ export default function ArticlePage() {
                                                                     errors._comment_body?.message
                                                                 }
                                                                 rules={{
-                                                                    required: 'Message is required',
+                                                                    required: 'Le message est requis',
                                                                 }}
                                                                 onClear={() =>
                                                                     handleClearField(
@@ -1001,7 +1004,7 @@ export default function ArticlePage() {
                                                                         }}
                                                                         parentHoverSelector="#_buttonCancel"
                                                                     >
-                                                                        Cancel
+                                                                        Annuler
                                                                         <b className="__dot">.</b>
                                                                     </AnimatedWrapper>
                                                                 </button>
@@ -1137,8 +1140,8 @@ export default function ArticlePage() {
                                                                     parentHoverSelector="#_buttonComment"
                                                                 >
                                                                     {isLoading
-                                                                        ? 'Submitting...'
-                                                                        : 'Submit'}
+                                                                        ? 'Envoi en cours...'
+                                                                        : 'Envoyer'}
                                                                     <b className="__dot">.</b>
                                                                 </AnimatedWrapper>
                                                             </button>
@@ -1150,7 +1153,7 @@ export default function ArticlePage() {
 
                                         <div className="__comments-right">
                                             <div className="__title">
-                                                Comments
+                                                Commentaires
                                                 <p>
                                                     {_.size(
                                                         _.filter(comments, (c) => c._comment_isOK)

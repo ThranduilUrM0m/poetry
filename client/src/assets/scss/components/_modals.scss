@@ -310,6 +310,7 @@
                                                 @apply flex items-center gap-[.75vh] px-[1.5vh] py-[.75vh] rounded-[.75vh] h-full;
                                                 @apply bg-[rgb(var(--hoverGray)/1)] border border-[rgb(var(--hoverGray)/.75)];
                                                 @apply text-[1.75vh] font-semibold;
+                                                @apply whitespace-nowrap;
 
                                                 svg {
                                                     @apply w-[2vh] h-[2vh];

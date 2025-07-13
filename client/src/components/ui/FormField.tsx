@@ -516,7 +516,7 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                             onBlur={onBlur}
                         >
                             {options.find((opt) => opt.value === value)?.label ||
-                                'Select an option'}
+                                'Sélectionnez une option'}
                         </button>
 
                         {selectTransition((style, isOpen) => (
@@ -739,10 +739,9 @@ const FormField = <T extends FieldValues, S extends SearchSuggestion, V = string
                                                             className="suggestion-group"
                                                         >
                                                             <div className="suggestion-group-header">
-                                                                {type === 'tag' && 'Tags'}
-                                                                {type === 'category' &&
-                                                                    'Categories'}
-                                                                {type === 'author' && 'Authors'}
+                                                                {type === 'tag' && 'Hashtags'}
+                                                                {type === 'category' && 'Catégories'}
+                                                                {type === 'author' && 'Auteurs'}
                                                                 {type === 'title' && 'Articles'}
                                                             </div>
                                                             <ul

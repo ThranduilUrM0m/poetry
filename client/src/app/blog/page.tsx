@@ -6,6 +6,7 @@ import { AppDispatch } from '@/store';
 import { fetchArticles, selectArticles, selectIsLoading } from '@/slices/articleSlice';
 import _ from 'lodash';
 import { formatDistanceToNow, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Eye, Hash, MessagesSquare, ThumbsUp, Clock9 } from 'lucide-react';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import { useLoading } from '@/context/LoadingContext';
@@ -75,7 +76,7 @@ function extractFirstImage(htmlContent: string): JSX.Element | null {
  * If maxLength is provided, returns a substring of that length with ellipsis.
  * Otherwise, splits the text by punctuation and returns the first sentence.
  */
-function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
+/* function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
     if (!htmlContent) return '';
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
@@ -87,6 +88,53 @@ function extractFirstPhrase(htmlContent: string, maxLength?: number): string {
 
     const firstSentence = textContent.split(/[.!?]+/)[0];
     return firstSentence.trim();
+} */
+
+function sanitizeHtmlForPreview(html: string, maxLength?: number): string {
+    if (!html) return '';
+    let sanitized = html;
+
+    // Remove all style attributes (double or single quotes)
+    sanitized = sanitized.replace(/\s*style\s*=\s*(['"])[\s\S]*?\1/gi, '');
+
+    // 1. Remove <p> or <div> that only contain a media element (img, video, iframe, a)
+    sanitized = sanitized.replace(
+        /<(p|div)[^>]*>\s*(<img[^>]*>|<video[^>]*>.*?<\/video>|<iframe[^>]*>.*?<\/iframe>|<a[^>]*>.*?<\/a>)\s*<\/\1>/gi,
+        ''
+    );
+
+    // 2. Remove standalone media elements (not wrapped)
+    sanitized = sanitized
+        .replace(/<img[^>]*>/gi, '')
+        .replace(/<video[^>]*>.*?<\/video>/gi, '')
+        .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+        .replace(/<a[^>]*>.*?<\/a>/gi, '');
+
+    // 3. Remove all tags except <br>, <p>, <b>, <i>, <strong>, <em>
+    sanitized = sanitized.replace(/<(?!\/?(br|p|b|i|strong|em)\b)[^>]+>/gi, '');
+
+    // 4. Remove empty paragraphs (including those with only whitespace or <br>)
+    sanitized = sanitized.replace(/<p>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, '');
+
+    // 5. Collapse multiple consecutive <br> into one
+    sanitized = sanitized.replace(/(<br\s*\/?>\s*){2,}/gi, '<br>');
+
+    // 6. Trim leading/trailing whitespace and <br>
+    sanitized = sanitized.replace(/^(<br\s*\/?>)+/i, '').replace(/(<br\s*\/?>)+$/i, '');
+
+    // 7. If maxLength is provided, truncate the text content (preserving HTML tags is non-trivial, so we strip tags for preview)
+    if (maxLength) {
+        // Remove all tags for plain text truncation
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = sanitized;
+        let textContent = tempDiv.textContent || tempDiv.innerText || '';
+        if (textContent.length > maxLength) {
+            textContent = textContent.slice(0, maxLength).trim() + '...';
+        }
+        return textContent;
+    }
+
+    return sanitized;
 }
 
 export default function BlogPage() {
@@ -282,11 +330,8 @@ export default function BlogPage() {
     return (
         <>
             <Head>
-                <title>Blog | Poetry Website</title>
-                <meta
-                    name="description"
-                    content="View poems from Qasida and our poetry community."
-                />
+                <title>Blog | Blog de poésie</title>
+                <meta name="description" content="Lisez tous les poèmes de Qasidaty." />
             </Head>
             <main className="blog">
                 <SectionObserver theme="dark">
@@ -300,7 +345,7 @@ export default function BlogPage() {
                             delay={1000}
                         >
                             <div className="__bestOfWeek">
-                                <h1 className="__title">Best of the week</h1>
+                                <h1 className="__title">Meilleure de la semaine</h1>
                                 <div className="_card">
                                     <div className="_cardBody">
                                         {bestArticle ? (
@@ -325,6 +370,7 @@ export default function BlogPage() {
                                                             {formatDistanceToNow(
                                                                 new Date(bestArticle.updatedAt!),
                                                                 {
+                                                                    locale: fr,
                                                                     addSuffix: true,
                                                                 }
                                                             )}
@@ -338,10 +384,12 @@ export default function BlogPage() {
                                                                 : 'en'
                                                         }
                                                         className="firstPhrase"
-                                                    >
-                                                        {bestArticle.body &&
-                                                            extractFirstPhrase(bestArticle.body)}
-                                                    </span>
+                                                        dangerouslySetInnerHTML={{
+                                                            __html: sanitizeHtmlForPreview(
+                                                                bestArticle?.body
+                                                            ),
+                                                        }}
+                                                    />
 
                                                     <h2
                                                         className={`${
@@ -376,9 +424,9 @@ export default function BlogPage() {
 
                                                     <div className="_row">
                                                         <Link
-                                                            href={`/blog/${normalizeString(bestArticle.category)}/${
-                                                                bestArticle.slug
-                                                            }`}
+                                                            href={`/blog/${normalizeString(
+                                                                bestArticle.category
+                                                            )}/${bestArticle.slug}`}
                                                             className="_button"
                                                             id="_buttonArticle"
                                                         >
@@ -502,7 +550,7 @@ export default function BlogPage() {
                                                                 }}
                                                                 parentHoverSelector="#_buttonArticle"
                                                             >
-                                                                Read More About it
+                                                                En savoir plus
                                                                 <b className="__dot">.</b>
                                                             </AnimatedWrapper>
                                                         </Link>
@@ -530,7 +578,7 @@ export default function BlogPage() {
                                                         </b>
                                                         <LuSquircle />
                                                         <b>
-                                                            by{' '}
+                                                            par{' '}
                                                             {_.isEmpty(
                                                                 bestArticle.author.lastName
                                                             ) &&
@@ -548,14 +596,14 @@ export default function BlogPage() {
                                             </>
                                         ) : (
                                             // Render a fallback UI or message indicating no articles are available
-                                            <p>Loading articles...</p>
+                                            <p>Chargement des articles...</p>
                                         )}
                                     </div>
                                 </div>
                             </div>
                             <div className="__topRated">
                                 <div className="__header">
-                                    <h2 className="__title">Top Rated</h2>
+                                    <h2 className="__title">Les mieux notés</h2>
                                     <button
                                         className="__viewMore"
                                         onClick={() =>
@@ -573,7 +621,8 @@ export default function BlogPage() {
                                             }}
                                             config={config.wobbly}
                                         >
-                                            View more
+                                            Voir plus
+                                            <b className="__dot">.</b>
                                         </AnimatedWrapper>
                                     </button>
                                 </div>
@@ -602,9 +651,7 @@ export default function BlogPage() {
                                                     <span className="__articleDate">
                                                         {formatDistanceToNow(
                                                             new Date(article.updatedAt!),
-                                                            {
-                                                                addSuffix: true,
-                                                            }
+                                                            { locale: fr, addSuffix: true }
                                                         )}
                                                     </span>
                                                 </div>
@@ -613,9 +660,12 @@ export default function BlogPage() {
                                                         containsArabic(article.body) ? 'ar' : 'en'
                                                     }
                                                     className="firstPhrase"
-                                                >
-                                                    {extractFirstPhrase(article.body)}
-                                                </p>
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: sanitizeHtmlForPreview(
+                                                            article?.body
+                                                        ),
+                                                    }}
+                                                />
                                             </Link>
                                         </li>
                                     ))}
@@ -632,7 +682,7 @@ export default function BlogPage() {
                             delay={1000}
                         >
                             <div className="__header">
-                                <h1 className="__title">Most viewed</h1>
+                                <h1 className="__title">Les plus vues</h1>
                                 <button
                                     className="__viewMore"
                                     onClick={() =>
@@ -650,7 +700,8 @@ export default function BlogPage() {
                                         }}
                                         config={config.wobbly}
                                     >
-                                        View more
+                                        Voir plus
+                                        <b className="__dot">.</b>
                                     </AnimatedWrapper>
                                 </button>
                             </div>
@@ -681,18 +732,17 @@ export default function BlogPage() {
                                                 <span className="__articleDate">
                                                     {formatDistanceToNow(
                                                         new Date(article.updatedAt!),
-                                                        {
-                                                            addSuffix: true,
-                                                        }
+                                                        { locale: fr, addSuffix: true }
                                                     )}
                                                 </span>
                                             </div>
                                             <p
                                                 lang={containsArabic(article.body) ? 'ar' : 'en'}
                                                 className="firstPhrase"
-                                            >
-                                                {extractFirstPhrase(article.body)}
-                                            </p>
+                                                dangerouslySetInnerHTML={{
+                                                    __html: sanitizeHtmlForPreview(article?.body),
+                                                }}
+                                            />
                                         </Link>
                                     </li>
                                 ))}
@@ -723,9 +773,9 @@ export default function BlogPage() {
                                             >
                                                 <Link
                                                     className="_cardBody"
-                                                    href={`/blog/${normalizeString(_article.category)}/${
-                                                        _article.slug
-                                                    }`}
+                                                    href={`/blog/${normalizeString(
+                                                        _article.category
+                                                    )}/${_article.slug}`}
                                                 >
                                                     <div className="__background">
                                                         {extractFirstImage(_article.body)}
@@ -761,10 +811,12 @@ export default function BlogPage() {
                                                                     : 'en'
                                                             }
                                                             className="firstPhrase"
-                                                        >
-                                                            {_article.body &&
-                                                                extractFirstPhrase(_article.body)}
-                                                        </span>
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: sanitizeHtmlForPreview(
+                                                                    _article?.body
+                                                                ),
+                                                            }}
+                                                        />
 
                                                         <div className="information">
                                                             <span>
@@ -796,7 +848,10 @@ export default function BlogPage() {
                                                                         new Date(
                                                                             _article.updatedAt!
                                                                         ),
-                                                                        'dd MMMM yyyy'
+                                                                        'dd MMMM yyyy',
+                                                                        {
+                                                                            locale: fr,
+                                                                        }
                                                                     )}
                                                                 </b>
                                                                 <Clock9 />
@@ -806,7 +861,10 @@ export default function BlogPage() {
                                                                             new Date(
                                                                                 _article.updatedAt!
                                                                             ),
-                                                                            'HH:mm'
+                                                                            'HH:mm',
+                                                                            {
+                                                                                locale: fr,
+                                                                            }
                                                                         )}
                                                                     </b>
                                                                 )}
@@ -841,9 +899,9 @@ export default function BlogPage() {
                                             >
                                                 <Link
                                                     className="_cardBody"
-                                                    href={`/blog/${normalizeString(_article.category)}/${
-                                                        _article.slug
-                                                    }`}
+                                                    href={`/blog/${normalizeString(
+                                                        _article.category
+                                                    )}/${_article.slug}`}
                                                 >
                                                     <div className="__background">
                                                         {extractFirstImage(_article.body)}
@@ -879,10 +937,12 @@ export default function BlogPage() {
                                                                     : 'en'
                                                             }
                                                             className="firstPhrase"
-                                                        >
-                                                            {_article.body &&
-                                                                extractFirstPhrase(_article.body)}
-                                                        </span>
+                                                            dangerouslySetInnerHTML={{
+                                                                __html: sanitizeHtmlForPreview(
+                                                                    _article?.body
+                                                                ),
+                                                            }}
+                                                        />
 
                                                         <div className="information">
                                                             <span>
@@ -914,7 +974,10 @@ export default function BlogPage() {
                                                                         new Date(
                                                                             _article.updatedAt!
                                                                         ),
-                                                                        'dd MMMM yyyy'
+                                                                        'dd MMMM yyyy',
+                                                                        {
+                                                                            locale: fr,
+                                                                        }
                                                                     )}
                                                                 </b>
                                                                 <Clock9 />
@@ -923,7 +986,10 @@ export default function BlogPage() {
                                                                         new Date(
                                                                             _article.updatedAt!
                                                                         ),
-                                                                        'HH:mm'
+                                                                        'HH:mm',
+                                                                        {
+                                                                            locale: fr,
+                                                                        }
                                                                     )}
                                                                 </b>
                                                             </span>

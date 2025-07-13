@@ -12,8 +12,8 @@ import { useHeaderTheme } from '@/context/HeaderThemeContext';
 import logo from '@/assets/images/_logo.png';
 
 const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'About', href: '/about' },
+    { label: 'Accueil', href: '/' },
+    { label: 'À propos', href: '/about' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },
 ];
@@ -99,6 +99,7 @@ export default function Header() {
                 keys: ['menu-trail'],
             },
         }),
+        /* Adding this smoothConfig to the array will throw an infinite loop */
         [isMenuOpen, menuItemElements]
     );
 

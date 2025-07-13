@@ -448,7 +448,7 @@ export default function SearchModal(): JSX.Element | null {
         if (filteredMatches.length === 0 && value.length > 1) {
             control.setError('searchQuery', {
                 type: 'manual',
-                message: 'No matches found for your search criteria.',
+                message: 'Aucune correspondance trouvée pour vos critères.',
             });
         } else {
             clearErrors('searchQuery');
@@ -591,19 +591,19 @@ export default function SearchModal(): JSX.Element | null {
                     <form>
                         <div className="_row">
                             <FormField
-                                label="Search"
+                                label="Recherche"
                                 name="searchQuery"
                                 type="text"
                                 icon={<Search />}
                                 error={
                                     transformedSuggestions.length === 0 && searchQuery
-                                        ? 'No exact matches found, here are some suggestions.'
+                                        ? 'Aucune correspondance exacte trouvée, voici quelques suggestions.'
                                         : errors.searchQuery?.message
                                 }
                                 suggestions={transformedSuggestions}
                                 allArticles={articles}
                                 control={control}
-                                rules={{ required: 'This field is required' }}
+                                rules={{ required: 'Ce champ est requis' }}
                                 onClear={handleClear}
                                 onInputChange={handleSearch}
                                 onSuggestionSelect={handleSuggestionSelect}
@@ -636,8 +636,8 @@ export default function SearchModal(): JSX.Element | null {
 
             {/* Body */}
             <div className="_body">
-                {isLoading && <p>Loading articles...</p>}
-                {error && <p className="text-red-500">Error: {error}</p>}
+                {isLoading && <p>Chargement des articles...</p>}
+                {error && <p className="text-red-500">Erreur: {error}</p>}
                 <div className="__suggestions">
                     <SimpleBar
                         className="_SimpleBar"
@@ -653,12 +653,12 @@ export default function SearchModal(): JSX.Element | null {
                                 config={smoothConfig}
                             >
                                 <div className="selected-header">
-                                    <h3>Selected Filters</h3>
+                                    <h3>Filtres sélectionnés</h3>
                                     <button
                                         onClick={handleClearAllSuggestions}
                                         className="clear-all"
                                     >
-                                        Clear All
+                                        Tout effacer
                                     </button>
                                 </div>
                                 <div className="selected-tags">
@@ -704,11 +704,11 @@ export default function SearchModal(): JSX.Element | null {
                                 name="sortOption"
                                 type="select"
                                 options={[
-                                    { value: 'trending', label: 'Trending' },
-                                    { value: 'mostViewed', label: 'Most Viewed' },
-                                    { value: 'topRated', label: 'Top Rated' },
-                                    { value: 'mostRecent', label: 'Most Recent' },
-                                    { value: 'mostRelevant', label: 'Most Relevant' },
+                                    { value: 'trending', label: 'Tendance' },
+                                    { value: 'mostViewed', label: 'Plus vues' },
+                                    { value: 'topRated', label: 'Mieux notées' },
+                                    { value: 'mostRecent', label: 'Plus récentes' },
+                                    { value: 'mostRelevant', label: 'Pertinences' },
                                 ]}
                                 rules={{ required: true }}
                             />
@@ -718,11 +718,11 @@ export default function SearchModal(): JSX.Element | null {
                                 name="timeFrameOption"
                                 type="select"
                                 options={[
-                                    { value: '24h', label: 'Last 24 hours' },
-                                    { value: '7d', label: 'Last 7 days' },
-                                    { value: '30d', label: 'Last 30 days' },
-                                    { value: '6m', label: 'Last 6 months' },
-                                    { value: 'all', label: 'All time' },
+                                    { value: '24h', label: '24 heures' },
+                                    { value: '7d', label: '7 jours' },
+                                    { value: '30d', label: '30 jours' },
+                                    { value: '6m', label: '6 mois' },
+                                    { value: 'all', label: 'Tout le temps' },
                                 ]}
                                 rules={{ required: true }}
                             />
@@ -739,13 +739,13 @@ export default function SearchModal(): JSX.Element | null {
             <div className="_footer">
                 <div className="results-info">
                     <div>
-                        Showing&nbsp;
+                        Affichage de&nbsp;
                         <strong>{currentPage * cardsPerPage - cardsPerPage + 1}</strong>
-                        &nbsp;to&nbsp;
+                        &nbsp;à&nbsp;
                         <strong>
                             {Math.min(currentPage * cardsPerPage, articleSuggestions.length)}
                         </strong>
-                        &nbsp;of&nbsp;
+                        &nbsp;sur&nbsp;
                         <strong>{articleSuggestions.length}</strong>&nbsp;articles.
                     </div>
                 </div>

@@ -35,7 +35,7 @@
 
                         // sm breakpoint (>= 640px): small tablets and up
                         @include mq.mq($from: sm) {
-                            @apply basis-3/4 mx-[5vh] mb-[1.25vh] px-[5vh] pb-0;
+                            @apply basis-3/4 mx-[5vh] mb-[1.25vh] px-[5vh];
                         }
 
                         form {
@@ -43,7 +43,7 @@
 
                             // sm breakpoint (>= 640px): small tablets and up
                             @include mq.mq($from: sm) {
-                                @apply gap-[3.75vh];
+                                @apply gap-[2.75vh];
                             }
                             
                             ._row {

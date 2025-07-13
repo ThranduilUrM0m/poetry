@@ -12,13 +12,13 @@ import { useLoading } from '@/context/LoadingContext';
 import { useMedia } from 'react-use';
 
 const AboutItems = [
-    { label: 'About me', href: '/about' },
+    { label: 'À propos de moi', href: '/about' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: '/contact' },
 ];
 
 const LegalItems = [
-    { label: 'Legal Notice', href: '' },
+    { label: 'Mentions Légales', href: '' },
     { label: 'Newsroom', href: '' },
 ];
 
@@ -47,9 +47,9 @@ export default function Footer() {
             <div className="footer__container">
                 <div className="footer__container-left">
                     <h2>
-                        Sign up for our <span className="__lastWord">Newsletter</span>
+                        Inscrivez-vous à notre <span className="__lastWord">Newsletter</span>
                         <br />
-                        And be the first to receive updates.
+                        Et soyez le premier à recevoir des mises à jour.
                     </h2>
                     <Newsletter />
                 </div>
@@ -58,7 +58,7 @@ export default function Footer() {
                     <div className="footer__container-right-links">
                         <div>
                             <h3>
-                                Find Me
+                                Trouvez-moi
                             </h3>
                             <AnimatedWrapper
                                 as="ul"
@@ -105,7 +105,7 @@ export default function Footer() {
 
                         <div>
                             <h3>
-                                About
+                                À propos
                             </h3>
                             <AnimatedWrapper
                                 as="ul"
@@ -141,7 +141,7 @@ export default function Footer() {
 
                         <div>
                             <h3>
-                                Legal
+                                Mentions Légales
                             </h3>
                             <AnimatedWrapper
                                 as="ul"
@@ -216,7 +216,7 @@ export default function Footer() {
                                     config={config.wobbly}
                                     parentHoverSelector="#_backToTop"
                                 >
-                                    Back to the top.
+                                    Retour en haut.
                                     <AnimatedWrapper
                                         as={ChevronUp}
                                         hover={{

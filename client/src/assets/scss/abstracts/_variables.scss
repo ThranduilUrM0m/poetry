@@ -8,11 +8,14 @@
     --hoverGray: 248 249 250;
     --whitePlusOne: 250 249 246;
     --white: 255 251 235;
-    --background: 255 243 198;
     --text: 18 22 22;
-    --primary: 252 212 77;
-    --primary-light: 253 230 138;
-    --primary-dark: 251 192 36;
+
+    /* 252 246 245  */
+    --background: 250 238 229;
+    --primary: 123 154 204;
+    --primary-light: 163 191 224;
+    --primary-dark: 90 123 153;
+
     --input-height: 7vh;
     --input-line-height: 1.5rem;
     --input-offset: calc((var(--input-height) - var(--input-line-height)) / 2);

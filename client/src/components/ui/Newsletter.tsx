@@ -18,8 +18,8 @@ interface FormData {
 
 const validationSchema = Yup.object().shape({
     email: Yup.string()
-        .required('Email is required')
-        .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Invalid email format'),
+        .required('L\'e-mail est obligatoire')
+        .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Format d\'e-mail invalide'),
 });
 
 export default function Newsletter() {
@@ -56,13 +56,13 @@ export default function Newsletter() {
             setFormReset(true); // Trigger FormField reset
             setTimeout(() => setFormReset(false), 100); // Reset trigger
             dispatch(clearSubscriberState());
-            setSubmitHeader('You are officially In.');
-            setSubmitMessage('You will never miss on our news!\nWe promise not to spam you.');
+            setSubmitHeader('Vous êtes officiellement inscrit.');
+            setSubmitMessage('Vous ne manquerez jamais nos actualités !\nNous promettons de ne pas vous spammer.');
             setIsSuccess(true);
             setIsSubmitOpen(true);
         } catch (error) {
-            setSubmitHeader('We are sorry!');
-            setSubmitMessage(`Something went wrong: ${error as string}`);
+            setSubmitHeader('Nous sommes désolés !');
+            setSubmitMessage(`Quelque chose a mal tourné : ${error as string}`);
             setIsSuccess(false);
             setIsSubmitOpen(true);
         }
@@ -89,7 +89,7 @@ export default function Newsletter() {
                         type="email"
                         control={control}
                         error={errors.email?.message}
-                        rules={{ required: 'Email is required' }}
+                        rules={{ required: 'L\'e-mail est obligatoire' }}
                         onClear={handleClearEmail}
                         icon={<AtSign />}
                         immediateSync={true}
@@ -196,7 +196,7 @@ export default function Newsletter() {
                             }}
                             parentHoverSelector="#_buttonNewsletter"
                         >
-                            {isLoading ? 'Subscribing...' : 'Subscribe'}
+                            {isLoading ? 'Abonnement en cours...' : 'S\'abonner'}
                             <b className="__dot">.</b>
                         </AnimatedWrapper>
                     </button>

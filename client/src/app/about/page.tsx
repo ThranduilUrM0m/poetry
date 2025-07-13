@@ -7,6 +7,7 @@ import { fetchArticles, selectArticles, selectIsLoading, selectError } from '@/s
 import { fetchComments, selectComments, selectFeaturedComments } from '@/slices/commentSlice';
 import Slider from 'react-slick';
 import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Squircle } from 'lucide-react';
 import _ from 'lodash';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
@@ -202,7 +203,7 @@ export default function AboutPage() {
         }
     };
 
-    function sanitizeHtmlForPreview(html: string): string {
+    function sanitizeHtmlForPreview(html: string, maxLength?: number): string {
         if (!html) return '';
         let sanitized = html;
 
@@ -231,6 +232,17 @@ export default function AboutPage() {
         // 6. Trim leading/trailing whitespace and <br>
         sanitized = sanitized.replace(/^(<br\s*\/?>)+/i, '').replace(/(<br\s*\/?>)+$/i, '');
 
+        // 7. If maxLength is provided, truncate the text content (strip tags for preview)
+        if (maxLength) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = sanitized;
+            let textContent = tempDiv.textContent || tempDiv.innerText || '';
+            if (textContent.length > maxLength) {
+                textContent = textContent.slice(0, maxLength).trim() + '...';
+            }
+            return textContent;
+        }
+
         return sanitized;
     }
 
@@ -240,10 +252,10 @@ export default function AboutPage() {
     return (
         <>
             <Head>
-                <title>About Qasida | Poetry Website</title>
+                <title>À propos de Qasidaty | Blog de poésie</title>
                 <meta
                     name="description"
-                    content="Learn more about Qasida and our poetry community."
+                    content="En savoir plus sur Qasida et notre communauté de poésie."
                 />
             </Head>
             <main className="about">
@@ -276,9 +288,9 @@ export default function AboutPage() {
                         >
                             <div className="about__section-1-right-fadedText">
                                 <p>
-                                    About
+                                    À propos de
                                     <br />
-                                    <b className="__dot">me.</b>
+                                    <b className="__dot">moi.</b>
                                 </p>
                             </div>
                             <div className="about__section-1-right-text">
@@ -317,7 +329,7 @@ export default function AboutPage() {
                                     }}
                                     config={config.wobbly}
                                 >
-                                    Read the full Bio.
+                                    Lire la biographie complète.
                                     <AnimatedWrapper
                                         as={LongArrow}
                                         hover={{
@@ -344,8 +356,8 @@ export default function AboutPage() {
                                 config={{ mass: 1, tension: 170, friction: 26 }}
                                 delay={1000}
                             >
-                                {isLoading && <p>Loading comments...</p>}
-                                {error && <p className="text-red-500">Error: {error}</p>}
+                                {isLoading && <p>Chargement des commentaires...</p>}
+                                {error && <p className="text-red-500">Erreur: {error}</p>}
                                 {!_.isEmpty(displayCommentsUpdated) && (
                                     <Slider {..._slider1CommentsSettings}>
                                         {_.map(displayCommentsUpdated, (comment, index) => {
@@ -376,7 +388,7 @@ export default function AboutPage() {
                                                         <div className="_cardBody">
                                                             <form className="_form">
                                                                 <h2 className="_comment_author">
-                                                                    by{' '}
+                                                                    par{' '}
                                                                     <span
                                                                         lang={
                                                                             containsArabic(
@@ -431,7 +443,11 @@ export default function AboutPage() {
                                                                         {formatDistanceToNow(
                                                                             new Date(
                                                                                 comment.createdAt!
-                                                                            )
+                                                                            ),
+                                                                            {
+                                                                                locale: fr,
+                                                                                addSuffix: true,
+                                                                            }
                                                                         )}
                                                                     </span>
                                                                 </div>
@@ -457,8 +473,8 @@ export default function AboutPage() {
                                 config={{ mass: 1, tension: 170, friction: 26 }}
                                 delay={1000}
                             >
-                                {isLoading && <p>Loading comments...</p>}
-                                {error && <p className="text-red-500">Error: {error}</p>}
+                                {isLoading && <p>Chargement des commentaires...</p>}
+                                {error && <p className="text-red-500">Erreur: {error}</p>}
                                 {!_.isEmpty(displayCommentsUpdated) && (
                                     <Slider {..._slider2CommentsSettings}>
                                         {[...displayCommentsUpdated]
@@ -490,7 +506,7 @@ export default function AboutPage() {
                                                             <div className="_cardBody">
                                                                 <form className="_form">
                                                                     <h2 className="_comment_author">
-                                                                        by{' '}
+                                                                        par{' '}
                                                                         <span>
                                                                             {
                                                                                 comment._comment_author
@@ -531,7 +547,7 @@ export default function AboutPage() {
                                                                                 new Date(
                                                                                     comment.createdAt!
                                                                                 ),
-                                                                                { addSuffix: true }
+                                                                                { locale: fr, addSuffix: true }
                                                                             )}
                                                                         </span>
                                                                     </div>

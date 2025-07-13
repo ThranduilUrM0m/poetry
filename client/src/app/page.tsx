@@ -10,6 +10,7 @@ import Link from 'next/link';
 import Slider from 'react-slick';
 import { Squircle, MessagesSquare, ThumbsUp, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import _ from 'lodash';
 import $ from 'jquery';
 import { HomeSection1, HomeSection2 } from '@/components/ui/HeroImage';
@@ -64,7 +65,6 @@ export default function HomePage() {
     // Fetch articles on mount
     useEffect(() => {
         dispatch(fetchArticles());
-        console.log('GA4 ID →', process.env.NEXT_PUBLIC_GA_ID);
     }, [dispatch]);
 
     // Set ready state when articles are loaded and page is loaded
@@ -154,10 +154,10 @@ export default function HomePage() {
     return (
         <>
             <Head>
-                <title>Qasidaty | Poetry Website</title>
+                <title>Qasidaty | Blog de poésie</title>
                 <meta
                     name="description"
-                    content={`Qasidaty is a poetry website that showcases a collection of thoughts and writings.`}
+                    content={`Qasidaty est un blog de poésie qui présente une collection de pensées et d'écrits.`}
                 />
             </Head>
             <main className="home">
@@ -185,16 +185,16 @@ export default function HomePage() {
                             config={{ mass: 1, tension: 170, friction: 26 }}
                         >
                             <div className="home__section-1-left-fadedText">
-                                <p>Hi. I&apos;m Elmkinsi!</p>
+                                <p>Je suis Elmkinsi!</p>
                             </div>
 
                             <div className="home__section-1-left-text">
                                 <h2>
-                                    Welcome to my online
+                                    Bienvenue dans ma
                                     <br />
-                                    <span className="__lastWord">collection</span> of thoughts
+                                    <span className="__lastWord">collection</span> en ligne
                                     <br />
-                                    and writings.
+                                    de pensées et d’écrits.
                                 </h2>
                             </div>
 
@@ -216,7 +216,7 @@ export default function HomePage() {
                                     }}
                                     config={config.wobbly}
                                 >
-                                    Read the full Bio.
+                                    Lire la biographie complète.
                                     <AnimatedWrapper
                                         as={LongArrow}
                                         hover={{
@@ -253,7 +253,7 @@ export default function HomePage() {
                                 <HomeSection1 />
                             </div>
                             <div className="home__section-1-right-text">
-                                <h1 className="home__section-1-right-text-hello">Hello.</h1>
+                                <h1 className="home__section-1-right-text-hello">Enchantée.</h1>
                             </div>
                         </AnimatedWrapper>
                     </section>
@@ -273,8 +273,8 @@ export default function HomePage() {
                                 config={{ mass: 1, tension: 170, friction: 26 }} // Smooth animation
                                 delay={1000}
                             >
-                                {isLoading && <p>Loading articles...</p>}
-                                {error && <p className="text-red-500">Error: {error}</p>}
+                                {isLoading && <p>Chargement des articles...</p>}
+                                {error && <p className="text-red-500">Erreur : {error}</p>}
 
                                 {/* Slider */}
                                 {!_.isEmpty(articles) && (
@@ -377,7 +377,7 @@ export default function HomePage() {
                                                                         new Date(
                                                                             _article.updatedAt!
                                                                         ),
-                                                                        { addSuffix: true }
+                                                                        { locale: fr, addSuffix: true }
                                                                     )}
                                                                 </span>
                                                             </h2>
@@ -541,7 +541,7 @@ export default function HomePage() {
                                                                         }}
                                                                         parentHoverSelector="#_buttonArticle"
                                                                     >
-                                                                        Read More About it
+                                                                        Lire la suite de l&apos;article
                                                                         <b className="__dot">.</b>
                                                                     </AnimatedWrapper>
                                                                 </Link>
@@ -632,7 +632,7 @@ export default function HomePage() {
                             config={{ mass: 1, tension: 170, friction: 26 }} // Smooth animation
                         >
                             <form className="_form">
-                                <span className="aboutMe">About Me</span>
+                                <span className="aboutMe">A propos de moi</span>
 
                                 <h2 className="fullName">
                                     Elmkinsi
@@ -641,7 +641,7 @@ export default function HomePage() {
                                 </h2>
 
                                 <p className="text">
-                                    I’m Fatima El Mkinsi, born in Salé in 1946. Over a forty‑year career spanning Salé and Rabat, I leveraged my bilingual fluency in Arabic and French to inspire students as a physical‑education instructor. After voluntarily retiring in 2005, I now dedicate this platform to sharing my literary works and inviting every literature enthusiast to embark on a transcultural, transgenerational journey through words.
+                                    Je m&apos;appelle Fatima El Mkinsi et je suis née à Salé en 1946.<br/>Au cours de mes quarante années de carrière, entre Salé et Rabat, j&apos;ai mis à profit ma maîtrise de l&apos;arabe et du français pour inspirer les élèves en tant que professeure d&apos;éducation physique.<br/>Après avoir pris ma retraite volontaire en 2005, je consacre désormais cette plateforme au partage de mes œuvres littéraires et invite chaque passionné de littérature à se lancer dans un voyage transculturel et transgénérationnel à travers les mots.
                                 </p>
 
                                 <div className="_row">
@@ -745,7 +745,7 @@ export default function HomePage() {
                                             config={{ mass: 1, tension: 170, friction: 26 }}
                                             parentHoverSelector="#_buttonAboutMe"
                                         >
-                                            Find out more<b className="__dot">.</b>
+                                            En savoir plus<b className="__dot">.</b>
                                         </AnimatedWrapper>
                                     </Link>
                                 </div>

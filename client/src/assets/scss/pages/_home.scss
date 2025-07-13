@@ -450,11 +450,11 @@
                     }
 
                     .fullName {
-                        @apply font-medium text-[4vh] mt-[2vh] leading-[1.2];
+                        @apply font-medium text-[3.5vh] mt-[2vh] leading-[1];
 
                         // sm breakpoint (>= 640px): small tablets and up
                         @include mq.mq($from: sm) {
-                            @apply text-[7vh];
+                            @apply text-[6.5vh];
                         }
                     }
 
