@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { format } from 'date-fns';
 import { Copyright, Heart, ChevronUp } from 'lucide-react';
-import { FaFacebookF, FaInstagram, FaXTwitter } from "react-icons/fa6";
+import { FaFacebookF/* , FaInstagram, FaXTwitter */ } from "react-icons/fa6";
 import { config } from '@react-spring/web';
 import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import Newsletter from '@/components/ui/Newsletter';
@@ -23,9 +23,9 @@ const LegalItems = [
 ];
 
 const SocialItems = [
-    { label: 'Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: FaInstagram },
-    { label: 'Facebook', href: 'https://fb.me/boutaleblcoder', icon: FaFacebookF },
-    { label: 'X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
+    /* { label: 'Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: FaInstagram }, */
+    { label: 'Facebook', href: 'https://fb.me/khawaterimraa', icon: FaFacebookF },
+    /* { label: 'X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, */
 ];
 
 export default function Footer() {

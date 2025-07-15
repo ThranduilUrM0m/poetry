@@ -253,7 +253,7 @@ export default function HomePage() {
                                 <HomeSection1 />
                             </div>
                             <div className="home__section-1-right-text">
-                                <h1 className="home__section-1-right-text-hello">Enchantée.</h1>
+                                <h1 className="home__section-1-right-text-hello">Ravie.</h1>
                             </div>
                         </AnimatedWrapper>
                     </section>

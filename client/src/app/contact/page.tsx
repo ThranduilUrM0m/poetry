@@ -13,7 +13,7 @@ import AnimatedWrapper from '@/components/ui/AnimatedWrapper.client';
 import FormField from '@/components/ui/FormField';
 import SubmitModal from '@/components/ui/SubmitModal';
 import { AtSign, User, Phone, MessageSquare } from 'lucide-react';
-import { FaFacebookF, FaInstagram, FaXTwitter, FaWhatsapp } from 'react-icons/fa6';
+import { FaFacebookF/* , FaInstagram, FaXTwitter, FaWhatsapp */ } from 'react-icons/fa6';
 import SectionObserver from '@/components/SectionObserver';
 import {
     sendContactEmail,
@@ -25,24 +25,24 @@ import {
 import { useMedia } from 'react-use';
 
 const contactMeItems = [
-    {
+    /* {
         label: 'Envoyez un DM sur Instagram',
         href: 'https://www.instagram.com/boutaleblcoder',
         icon: FaInstagram,
-    },
+    }, */
     {
         label: 'Ajoutez-moi sur Facebook',
-        href: 'https://fb.me/boutaleblcoder',
+        href: 'https://fb.me/khawaterimraa',
         icon: FaFacebookF,
     },
-    { label: 'Suivez-moi sur X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, // Using X (Twitter) icon for Behance
+    /* { label: 'Suivez-moi sur X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter } */
 ];
 
-interface WaLinkProps {
+/* interface WaLinkProps {
     phone: string; // e.g. "+14155552671"
     message?: string; // optional default text
     children: React.ReactNode;
-}
+} */
 
 interface FormData {
     email: string;
@@ -84,7 +84,7 @@ const validationSchema = Yup.object().shape({
     message: Yup.string().default('').required('Please provide a message.'),
 });
 
-const WaLink: React.FC<WaLinkProps> = ({ phone, message, children }) => {
+/* const WaLink: React.FC<WaLinkProps> = ({ phone, message, children }) => {
     // Remove non-digits to normalize E.164
     const normalized = phone.replace(/[^\d+]/g, '');
     const params = message ? `?text=${encodeURIComponent(message)}` : '';
@@ -97,7 +97,7 @@ const WaLink: React.FC<WaLinkProps> = ({ phone, message, children }) => {
             {children}
         </Link>
     );
-};
+}; */
 
 export default function ContactPage() {
     const isSm = useMedia('(min-width: 640px)');
@@ -455,7 +455,7 @@ export default function ContactPage() {
                                         </AnimatedWrapper>
                                     </div>
 
-                                    <div className="__group">
+                                    {/* <div className="__group">
                                         <h3>Contactez-moi</h3>
                                         <p>Connectez-vous avec moi sur WhatsApp pour des questions liées au travail.</p>
                                         <AnimatedWrapper
@@ -486,7 +486,7 @@ export default function ContactPage() {
                                                 </WaLink>
                                             </AnimatedWrapper>
                                         </AnimatedWrapper>
-                                    </div>
+                                    </div> */}
                                 </AnimatedWrapper>
                             </div>
 
