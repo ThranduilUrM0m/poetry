@@ -24,7 +24,7 @@ const LegalItems = [
 
 const SocialItems = [
     /* { label: 'Instagram', href: 'https://www.instagram.com/boutaleblcoder', icon: FaInstagram }, */
-    { label: 'Facebook', href: 'https://fb.me/khawaterimraa', icon: FaFacebookF },
+    { label: 'Facebook', href: 'https://fb.me/fatimaelmkinssi', icon: FaFacebookF },
     /* { label: 'X', href: 'https://www.behance.net/boutaleblcoder', icon: FaXTwitter }, */
 ];
 

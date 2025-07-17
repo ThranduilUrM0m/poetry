@@ -14,18 +14,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <html lang="en">
             <head>
                 <Head>
-                    <meta property="og:title" content="About Qasidaty | Poetry Website" />
+                    <meta property="og:title" content="Qasidaty | Blog de poetry" />
                     <meta
                         property="og:description"
-                        content="Learn more about Qasidaty and our poetry community."
+                        content="En savoir plus sur Qasidaty et notre communauté poétique."
                     />
                     <meta property="og:image" content="/images/og-image.jpg" />
                     <meta property="og:type" content="website" />
                     <meta name="twitter:card" content="summary_large_image" />
-                    <meta name="twitter:title" content="About Qasidaty | Poetry Website" />
+                    <meta name="twitter:title" content="Qasidaty | Blog de poetry" />
                     <meta
                         name="twitter:description"
-                        content="Learn more about Qasidaty and our poetry community."
+                        content="En savoir plus sur Qasidaty et notre communauté poétique."
                     />
                     <meta name="twitter:image" content="/images/og-image.jpg" />
                 </Head>
